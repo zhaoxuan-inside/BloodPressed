@@ -1,0 +1,79 @@
+name: blood_pressed
+description: "BloodPressed —— 跨 Android/iOS 的血压监控应用：记录血压脉搏、趋势图表、拍照识别、本地/远端大模型健康指导、数据导出与分享、健康知识阅读。"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # 状态管理 / 路由
+  flutter_riverpod: ^2.6.1
+  go_router: ">=14.0.0 <20.0.0"
+
+  # 本地存储
+  sqflite: ^2.4.0
+  path: ^1.9.0
+  path_provider: ^2.1.0
+  shared_preferences: ^2.3.0
+
+  # 工具
+  intl: ">=0.19.0 <0.22.0"
+  uuid: ^4.5.0
+
+  # 网络（魔搭模型下载 / 远端大模型 SSE）
+  dio: ^5.7.0
+
+  # 图表
+  fl_chart: ">=0.70.0 <2.0.0"
+
+  # 相机 / 相册 / 权限
+  camera: ^0.11.0
+  image_picker: ^1.1.0
+  permission_handler: ">=11.3.0 <13.0.0"
+
+  # OCR（ML Kit 文字识别，含中文）
+  google_mlkit_text_recognition: ">=0.14.0 <0.21.0"
+
+  # 本地大模型推理（llama.cpp GGUF）
+  llamadart: ^0.10.0
+
+  # 分享 / 导出
+  share_plus: ">=9.0.0 <13.0.0"
+  fluwx: ^6.0.4
+
+  # 健康知识阅读
+  flutter_markdown_plus: ^1.0.11
+
+  # 每日测量提醒
+  flutter_local_notifications: ">=18.0.0 <20.0.0"
+  flutter_timezone: ">=3.0.0 <5.0.0"
+  timezone: ">=0.10.0 <0.12.0"
+
+  # 图片处理（多模态识别前压缩）
+  image: ^4.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  sqflite_common_ffi: ^2.3.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/knowledge/
+
+# sqlite3 包的构建钩子默认从 github.com 下载 Android/iOS 预编译库，
+# 国内网络直连 GitHub 常超时，这里改用镜像前缀（若镜像失效可替换其它 gh 加速前缀）。
+hooks:
+  user_defines:
+    sqlite3:
+      url_pattern:
+        "https://ghproxy.net/https://github.com/simolus3/sqlite3.dart/releases/download/$RELEASE_TAG/$FILENAME"
