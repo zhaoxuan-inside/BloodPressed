@@ -102,6 +102,26 @@
       "author": "Agent",
       "verified": true,
       "note": "根因：google_mlkit_text_recognition 插件对中文识别库仅 compileOnly，运行时 NoClassDefFoundError（首版即坏）。app 补 implementation 依赖；proguard 保留 ML Kit/GMS 内部类（R8 full mode 连带 NPE）；识别异常提示人性化。模拟器验证：相册识别出 125/82（75% 置信度）进确认表单；拍照空场景正确走兜底。"
+    },
+    {
+      "id": "chg-005",
+      "date": "2026-10-05T12:00:00+08:00",
+      "requirement": "血压趋势要支持指定的时间段。快速通道执行。",
+      "plan_id": "plan-004",
+      "changed_files": [
+        "lib/features/stats/presentation/controllers/trend_providers.dart",
+        "lib/features/records/presentation/controllers/records_providers.dart",
+        "lib/features/stats/presentation/stats_page.dart",
+        "test/trend_query_test.dart",
+        "_08_task_plan_idx.json",
+        "_08_task_plans/plan-004.md",
+        "_10_change_log.json"
+      ],
+      "commits": [],
+      "changed_methods": [],
+      "author": "Agent",
+      "verified": true,
+      "note": "TrendQuery/StatsRange 支持显式 from/to（含自定义工厂）；筛选条新增自定义 chip（showDateRangePicker）；xOf/titles 改为按查询末日锚定（自定义区间可完全在过去）。新增 7 个单测，全量 99/99。模拟器实测 10/3-10/5：统计卡与图表正确锚定区间。"
     }
   ]
 }

@@ -8,18 +8,53 @@ import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
 
 /// 趋势查询参数。
+///
+/// 预设模式（近 N 天，锚定今天）或自定义模式（显式起止日期，可完全在过去）。
 class TrendQuery {
-  const TrendQuery({required this.days, this.arm});
+  const TrendQuery({required this.days, this.arm, this.from, this.to});
 
+  /// 自定义时间段工厂：days 自动取首尾闭区间跨度。
+  factory TrendQuery.custom(DateTime from, DateTime to, {MeasureArm? arm}) {
+    final start = DateTime(from.year, from.month, from.day);
+    final end = DateTime(to.year, to.month, to.day);
+    return TrendQuery(
+      days: end.difference(start).inDays + 1,
+      arm: arm,
+      from: start,
+      to: end.add(const Duration(hours: 23, minutes: 59, seconds: 59)),
+    );
+  }
+
+  /// 预设模式：窗口天数（近 N 天）；自定义模式：图表跨度（天）。
   final int days;
   final MeasureArm? arm;
 
-  @override
-  bool operator ==(Object other) =>
-      other is TrendQuery && other.days == days && other.arm == arm;
+  /// 自定义起点（当天 00:00）；预设模式为 null。
+  final DateTime? from;
+
+  /// 自定义终点（当天 23:59:59，含整日）；预设模式为 null。
+  final DateTime? to;
+
+  bool get isCustom => from != null && to != null;
+
+  /// 首尾闭区间跨度天数。
+  int get spanDays =>
+      isCustom ? to!.difference(DateTime(from!.year, from!.month, from!.day)).inDays + 1 : days;
+
+  /// 图表 x 轴锚定的末日：自定义取区间末日，预设取当前时刻。
+  DateTime get endDate =>
+      isCustom ? DateTime(to!.year, to!.month, to!.day) : DateTime.now();
 
   @override
-  int get hashCode => Object.hash(days, arm);
+  bool operator ==(Object other) =>
+      other is TrendQuery &&
+      other.days == days &&
+      other.arm == arm &&
+      other.from == from &&
+      other.to == to;
+
+  @override
+  int get hashCode => Object.hash(days, arm, from, to);
 }
 
 /// 图表数据（范围内记录，按天聚合）。
@@ -29,9 +64,12 @@ final trendDataProvider =
     FutureProvider.family<List<DayPoint>, TrendQuery>((ref, q) async {
   ref.watch(recordsControllerProvider);
   final repo = ref.watch(recordsRepositoryProvider);
-  final to = DateTime.now();
-  final from = to.subtract(Duration(days: q.days));
-  final records = await repo.list(from: from, to: to, arm: q.arm);
+  final now = DateTime.now();
+  final records = await repo.list(
+    from: q.isCustom ? q.from : now.subtract(Duration(days: q.days)),
+    to: q.isCustom ? q.to : now,
+    arm: q.arm,
+  );
   return DayPoint.aggregate(records, q.days);
 });
 
@@ -80,12 +118,13 @@ class DayPoint {
   }
 }
 
-/// x 轴：0 = 最早一天，days-1 = 今天。
-double xOf(DateTime date, int days) {
-  final today = DateTime.now();
+/// x 轴：0 = 区间首日，days-1 = 区间末日（预设模式末日=今天；自定义=区间末）。
+double xOf(DateTime date, TrendQuery q) {
+  final end =
+      DateTime(q.endDate.year, q.endDate.month, q.endDate.day);
   final d0 = DateTime(date.year, date.month, date.day);
-  final diff = today.difference(d0).inDays;
-  return (days - 1 - diff).toDouble().clamp(0.0, (days - 1).toDouble());
+  final diff = end.difference(d0).inDays;
+  return (q.days - 1 - diff).toDouble().clamp(0.0, (q.days - 1).toDouble());
 }
 
 /// 图表基座配置（坐标轴/网格/参考线），页面内共享。
@@ -106,7 +145,10 @@ class ChartBase {
     return 365; // "全部"范围按年取刻度，配合渲染端过滤避免重叠
   }
 
-  static FlTitlesData titles(int days) => FlTitlesData(
+  static FlTitlesData titles(TrendQuery q) {
+    final days = q.days;
+    final end = q.endDate;
+    return FlTitlesData(
         topTitles:
             const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         rightTitles:
@@ -131,8 +173,8 @@ class ChartBase {
             interval: labelInterval(days),
             reservedSize: 26,
             getTitlesWidget: (v, meta) {
-              final date = DateTime.now()
-                  .subtract(Duration(days: (days - 1 - v).round()));
+              final date =
+                  end.subtract(Duration(days: (days - 1 - v).round()));
               // "全部"等超长跨度只渲染首尾两个年月标签，避免重叠
               if (days > 366 && v > 0 && v < days - 1) {
                 return const SizedBox.shrink();
@@ -154,6 +196,7 @@ class ChartBase {
           ),
         ),
       );
+  }
 
   static FlGridData grid() => const FlGridData(
         show: true,

@@ -103,28 +103,51 @@ final todayRecordsProvider = Provider<List<BpRecord>>((ref) {
   }).toList();
 });
 
-/// 统计（近 N 天）。watch 记录列表状态：数据变化后自动重算。
+/// 统计（近 N 天或自定义区间）。watch 记录列表状态：数据变化后自动重算。
 final statsProvider = FutureProvider.family<BpStats, StatsRange>(
     (ref, range) async {
   ref.watch(recordsControllerProvider);
   final repo = ref.watch(recordsRepositoryProvider);
+  if (range.isCustom) {
+    return repo.stats(from: range.from!, to: range.to!);
+  }
   final to = DateTime.now();
   final from = to.subtract(Duration(days: range.days));
   return repo.stats(from: from, to: to);
 });
 
 class StatsRange {
-  const StatsRange(this.days, this.label);
+  const StatsRange(this.days, this.label, {this.from, this.to});
 
-  final int days; // 7 / 30 / 90 / 3650(全部)
+  /// 自定义区间工厂：from/to 含首尾整天。
+  StatsRange.custom(DateTime from, DateTime to, {String label = ''})
+      : this(
+          to.difference(DateTime(from.year, from.month, from.day)).inDays + 1,
+          label,
+          from: DateTime(from.year, from.month, from.day),
+          to: DateTime(to.year, to.month, to.day, 23, 59, 59),
+        );
+
+  final int days; // 7 / 30 / 90 / 3650(全部)；自定义=跨度天数
   final String label;
+
+  /// 自定义区间起点（当天 00:00）；预设模式为 null。
+  final DateTime? from;
+
+  /// 自定义区间终点（当天 23:59:59）；预设模式为 null。
+  final DateTime? to;
+
+  bool get isCustom => from != null && to != null;
 
   @override
   bool operator ==(Object other) =>
-      other is StatsRange && other.days == days;
+      other is StatsRange &&
+      other.days == days &&
+      other.from == from &&
+      other.to == to;
 
   @override
-  int get hashCode => days;
+  int get hashCode => Object.hash(days, from, to);
 }
 
 const kStatsRanges = [

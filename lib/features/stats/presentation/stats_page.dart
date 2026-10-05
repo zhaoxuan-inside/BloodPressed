@@ -23,17 +23,53 @@ class StatsPage extends ConsumerStatefulWidget {
 }
 
 class _StatsPageState extends ConsumerState<StatsPage> {
-  int _days = 30;
+  int? _days = 30;
+  DateTimeRange? _custom;
   MeasureArm? _arm;
   _Series _series = _Series.bp;
 
-  TrendQuery get _query => TrendQuery(days: _days, arm: _arm);
+  bool get _isCustom => _custom != null;
+
+  TrendQuery get _query => _isCustom
+      ? TrendQuery.custom(_custom!.start, _custom!.end, arm: _arm)
+      : TrendQuery(days: _days!, arm: _arm);
+
+  StatsRange get _statsRange => _isCustom
+      ? StatsRange.custom(_custom!.start, _custom!.end)
+      : StatsRange(_days!, '');
+
+  String get _customLabel {
+    final s = _custom!.start;
+    final e = _custom!.end;
+    String fmt(DateTime d) => '${d.month}/${d.day}';
+    return '${fmt(s)}-${fmt(e)}';
+  }
+
+  Future<void> _pickCustomRange() async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(now.year - 5),
+      lastDate: now,
+      initialDateRange: _custom ??
+          DateTimeRange(
+            start: now.subtract(const Duration(days: 29)),
+            end: now,
+          ),
+    );
+    if (picked == null) return;
+    setState(() {
+      _custom = picked;
+      _days = null;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final trend = ref.watch(trendDataProvider(_query));
-    final stats = ref.watch(statsProvider(StatsRange(_days, '')));
+    final query = _query;
+    final trend = ref.watch(trendDataProvider(query));
+    final stats = ref.watch(statsProvider(_statsRange));
 
     return Scaffold(
       appBar: AppBar(title: const Text('血压趋势')),
@@ -49,9 +85,17 @@ class _StatsPageState extends ConsumerState<StatsPage> {
               children: [
                 ...kStatsRanges.map((r) => ChoiceChip(
                       label: Text(r.label),
-                      selected: _days == r.days,
-                      onSelected: (_) => setState(() => _days = r.days),
+                      selected: !_isCustom && _days == r.days,
+                      onSelected: (_) => setState(() {
+                        _days = r.days;
+                        _custom = null;
+                      }),
                     )),
+                ChoiceChip(
+                  label: Text(_isCustom ? _customLabel : '自定义'),
+                  selected: _isCustom,
+                  onSelected: (_) => _pickCustomRange(),
+                ),
                 const SizedBox(width: 4),
                 FilterChip(
                   label: Text(_arm == null
@@ -123,8 +167,8 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                         SizedBox(
                           height: 260,
                           child: _series == _Series.bp
-                              ? _BpLineChart(points: points, days: _days)
-                              : _PulseLineChart(points: points, days: _days),
+                              ? _BpLineChart(points: points, query: query)
+                              : _PulseLineChart(points: points, query: query),
                         ),
                       ],
                     ),
@@ -203,28 +247,28 @@ class _StatsCards extends StatelessWidget {
 }
 
 class _BpLineChart extends StatelessWidget {
-  const _BpLineChart({required this.points, required this.days});
+  const _BpLineChart({required this.points, required this.query});
 
   final List<DayPoint> points;
-  final int days;
+  final TrendQuery query;
 
   @override
   Widget build(BuildContext context) {
     final sysSpots =
-        points.map((p) => FlSpot(xOf(p.date, days), p.avgSystolic)).toList();
+        points.map((p) => FlSpot(xOf(p.date, query), p.avgSystolic)).toList();
     final diaSpots =
-        points.map((p) => FlSpot(xOf(p.date, days), p.avgDiastolic)).toList();
+        points.map((p) => FlSpot(xOf(p.date, query), p.avgDiastolic)).toList();
     final allY =
         points.expand((p) => [p.avgSystolic, p.avgDiastolic]).toList();
 
     return LineChart(
       LineChartData(
-        minX: ChartBase.minX(days),
-        maxX: ChartBase.maxX(days),
+        minX: ChartBase.minX(query.days),
+        maxX: ChartBase.maxX(query.days),
         minY: ((allY.reduce(_min) - 15) / 10).floorToDouble() * 10,
         maxY: ((allY.reduce(_max) + 15) / 10).ceilToDouble() * 10,
         gridData: ChartBase.grid(),
-        titlesData: ChartBase.titles(days),
+        titlesData: ChartBase.titles(query),
         borderData: ChartBase.border(),
         lineTouchData: ChartBase.touch(),
         extraLinesData: ChartBase.referenceLines(),
@@ -283,16 +327,16 @@ class _BpLineChart extends StatelessWidget {
 }
 
 class _PulseLineChart extends StatelessWidget {
-  const _PulseLineChart({required this.points, required this.days});
+  const _PulseLineChart({required this.points, required this.query});
 
   final List<DayPoint> points;
-  final int days;
+  final TrendQuery query;
 
   @override
   Widget build(BuildContext context) {
     final spots = points
         .where((p) => p.avgPulse != null)
-        .map((p) => FlSpot(xOf(p.date, days), p.avgPulse!))
+        .map((p) => FlSpot(xOf(p.date, query), p.avgPulse!))
         .toList();
     if (spots.isEmpty) {
       return const Center(
@@ -303,12 +347,12 @@ class _PulseLineChart extends StatelessWidget {
 
     return LineChart(
       LineChartData(
-        minX: ChartBase.minX(days),
-        maxX: ChartBase.maxX(days),
+        minX: ChartBase.minX(query.days),
+        maxX: ChartBase.maxX(query.days),
         minY: ((ys.reduce(_min) - 10) / 10).floorToDouble() * 10,
         maxY: ((ys.reduce(_max) + 10) / 10).ceilToDouble() * 10,
         gridData: ChartBase.grid(),
-        titlesData: ChartBase.titles(days),
+        titlesData: ChartBase.titles(query),
         borderData: ChartBase.border(),
         lineTouchData: ChartBase.touch(),
         lineBarsData: [
