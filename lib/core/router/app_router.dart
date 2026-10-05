@@ -1,52 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:blood_pressed/features/assistant/presentation/assistant_page.dart';
 import 'package:blood_pressed/features/export/presentation/export_page.dart';
 import 'package:blood_pressed/features/knowledge/presentation/knowledge_list_page.dart';
+import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 import 'package:blood_pressed/features/llm/presentation/llm_settings_page.dart';
 import 'package:blood_pressed/features/records/presentation/home_page.dart';
 import 'package:blood_pressed/features/settings/presentation/settings_page.dart';
 import 'package:blood_pressed/features/stats/presentation/stats_page.dart';
 
+/// AI助手分支的 branch 索引（StatefulShellRoute 中的固定位置）。
+const int _assistantBranchIndex = 2;
+
 /// 底部导航外壳。
-class ShellScaffold extends StatelessWidget {
+///
+/// AI助手入口仅在已配置模型（本地或远端 LlmProfile 存在）时显示；
+/// 停留在该分支时配置被删空则自动跳回首页。
+class ShellScaffold extends ConsumerWidget {
   const ShellScaffold({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profiles = ref.watch(llmProfilesProvider).valueOrNull ?? const [];
+    final hasModel = profiles.isNotEmpty;
+
+    // 配置删空且当前停在 AI助手分支：退回首页，避免停留在已隐藏的入口
+    ref.listen(llmProfilesProvider, (prev, next) {
+      final empty = (next.valueOrNull ?? const []).isEmpty;
+      if (empty &&
+          navigationShell.currentIndex == _assistantBranchIndex &&
+          context.mounted) {
+        context.go('/home');
+      }
+    });    // 显示序号 → branch 索引（无模型配置时 AI助手分支不渲染）
+    final visibleBranches = [
+      0,
+      1,
+      if (hasModel) _assistantBranchIndex,
+      3,
+      4,
+    ];
+    final destinations = [
+      const NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home),
+          label: '首页'),
+      const NavigationDestination(
+          icon: Icon(Icons.show_chart_outlined),
+          selectedIcon: Icon(Icons.show_chart),
+          label: '趋势'),
+      if (hasModel)
+        const NavigationDestination(
+            icon: Icon(Icons.smart_toy_outlined),
+            selectedIcon: Icon(Icons.smart_toy),
+            label: 'AI助手'),
+      const NavigationDestination(
+          icon: Icon(Icons.menu_book_outlined),
+          selectedIcon: Icon(Icons.menu_book),
+          label: '知识'),
+      const NavigationDestination(
+          icon: Icon(Icons.person_outline),
+          selectedIcon: Icon(Icons.person),
+          label: '我的'),
+    ];
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (i) => navigationShell.goBranch(
-          i,
-          initialLocation: i == navigationShell.currentIndex,
-        ),
-        destinations: const [
-          NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: '首页'),
-          NavigationDestination(
-              icon: Icon(Icons.show_chart_outlined),
-              selectedIcon: Icon(Icons.show_chart),
-              label: '趋势'),
-          NavigationDestination(
-              icon: Icon(Icons.smart_toy_outlined),
-              selectedIcon: Icon(Icons.smart_toy),
-              label: 'AI助手'),
-          NavigationDestination(
-              icon: Icon(Icons.menu_book_outlined),
-              selectedIcon: Icon(Icons.menu_book),
-              label: '知识'),
-          NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: '我的'),
-        ],
+        // branch 索引 → 显示序号（AI助手隐藏后，知识/我的的选中态要前移）
+        selectedIndex:
+            visibleBranches.contains(navigationShell.currentIndex)
+                ? visibleBranches.indexOf(navigationShell.currentIndex)
+                : 0,
+        onDestinationSelected: (displayIndex) {
+          final branch = visibleBranches[displayIndex];
+          navigationShell.goBranch(
+            branch,
+            initialLocation: branch == navigationShell.currentIndex,
+          );
+        },
+        destinations: destinations,
       ),
     );
   }

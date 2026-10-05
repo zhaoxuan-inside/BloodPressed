@@ -221,11 +221,11 @@ void main() {
     expect(app.settings.knowledgeFontScale, greaterThan(1.0));
   });
 
-  testWidgets('AI 助手：未配置模型时显示引导', (tester) async {
+  testWidgets('AI 助手：未配置模型时入口隐藏，配置后显示', (tester) async {
     await app.pumpApp(tester);
-    await tester.tap(find.byIcon(Icons.smart_toy_outlined));
-    await pumpUntilReal(tester, () => tester.any(find.text('尚未配置 AI 模型')));
-    expect(find.text('去配置模型'), findsOneWidget);
+    // 未配置任何模型：底部导航不渲染 AI助手入口
+    expect(find.text('AI助手'), findsNothing);
+    expect(find.text('知识'), findsOneWidget);
   });
 
   testWidgets('添加远端模型写入 SQLite 后助手进入真实欢迎态', (tester) async {

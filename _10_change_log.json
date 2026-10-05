@@ -27,7 +27,16 @@
         "_10_change_log.json"
       ],
       "commits": [],
-      "changed_methods": ["m-001", "m-002", "m-003", "m-004", "m-005", "m-006", "m-007", "m-008"],
+      "changed_methods": [
+        "m-001",
+        "m-002",
+        "m-003",
+        "m-004",
+        "m-005",
+        "m-006",
+        "m-007",
+        "m-008"
+      ],
       "author": "Agent",
       "verified": true,
       "note": "实测补充修复：v19 需显式创建通知通道 + 清单声明 ScheduledNotificationReceiver/BootReceiver + exactAllowWhileIdle + @pragma(vm:entry-point) 后台回调。模拟器验证：周期模式 UI→排程 65 条精确闹钟→10:30 真实触发→通知栏显示'该测量血压啦'。附带修复外部重写测试的 8 处 finder/时序错误、CSV BOM 字节断言、testWidgets 下 sqflite_ffi NoIsolate 工厂、窄屏(360dp)溢出两处。"
@@ -56,6 +65,24 @@
       "author": "Agent",
       "verified": true,
       "note": "该需求在 plan-001 建立前完成并经模拟器实测（真实下载 SHA256 校验、本地推理），补记账挂靠当前计划。"
+    },
+    {
+      "id": "chg-003",
+      "date": "2026-10-05T10:12:00+08:00",
+      "requirement": "底部 AI助手按钮只有在安装了大模型或者配置了远端大模型的情况下再显示。快速通道执行。",
+      "plan_id": "plan-002",
+      "changed_files": [
+        "lib/core/router/app_router.dart",
+        "test/app_integration_test.dart",
+        "_08_task_plan_idx.json",
+        "_08_task_plans/plan-002.md",
+        "_10_change_log.json"
+      ],
+      "commits": [],
+      "changed_methods": [],
+      "author": "Agent",
+      "verified": true,
+      "note": "ShellScaffold 改 ConsumerWidget：无 LlmProfile 时隐藏 AI助手 destination（显示索引与 branch 索引映射），删空停留时跳回首页。模拟器实测三状态（显示/删除消失/高亮前移）。UI 组件按 frontend 豁免不入 _07。"
     }
   ]
 }
