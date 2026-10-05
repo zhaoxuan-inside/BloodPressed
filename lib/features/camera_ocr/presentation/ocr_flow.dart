@@ -13,21 +13,28 @@ import 'package:blood_pressed/features/records/presentation/record_edit_page.dar
 import 'package:blood_pressed/features/camera_ocr/data/image_utils.dart';
 import 'package:blood_pressed/features/camera_ocr/domain/ocr_parser.dart';
 import 'package:blood_pressed/features/camera_ocr/data/ocr_service.dart';
-import 'camera_capture_page.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../core/widgets/common_widgets.dart' show showConfirmDialog;
 
 /// OCR 识别总流程（拍照 / 相册 → ML Kit → 解析 → 确认表单；低置信度走大模型兜底）。
 class OcrFlow {
   OcrFlow._();
 
-  /// 从相机拍照开始。
+  /// 从相机拍照开始：直接调起系统相机（自绘取景框纵向比例不适配手机，已废弃）。
   static Future<void> startCamera(BuildContext context) async {
-    final path = await Navigator.of(context).push<String>(
-      MaterialPageRoute(
-          builder: (_) => const CameraCapturePage(), fullscreenDialog: true),
+    final status = await Permission.camera.request();
+    if (!status.isGranted) {
+      if (!context.mounted) return;
+      showErrorDialog(context, '未获得相机权限', '请在系统设置中允许相机后重试。');
+      return;
+    }
+    final xfile = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      maxWidth: 2400,
+      imageQuality: 92,
     );
-    if (path == null || !context.mounted) return;
-    await _runPipeline(context, path);
+    if (xfile == null || !context.mounted) return;
+    await _runPipeline(context, xfile.path);
   }
 
   /// 从相册选择开始。

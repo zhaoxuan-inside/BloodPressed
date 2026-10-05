@@ -122,6 +122,26 @@
       "author": "Agent",
       "verified": true,
       "note": "TrendQuery/StatsRange 支持显式 from/to（含自定义工厂）；筛选条新增自定义 chip（showDateRangePicker）；xOf/titles 改为按查询末日锚定（自定义区间可完全在过去）。新增 7 个单测，全量 99/99。模拟器实测 10/3-10/5：统计卡与图表正确锚定区间。"
+    },
+    {
+      "id": "chg-006",
+      "date": "2026-10-05T14:30:00+08:00",
+      "requirement": "拍摄框不适合手机，高低被压缩了；直接调用系统的相机，然后使用拍照的照片进行分析。快速通道执行。",
+      "plan_id": "plan-005",
+      "changed_files": [
+        "lib/features/camera_ocr/presentation/ocr_flow.dart",
+        "lib/features/camera_ocr/presentation/camera_capture_page.dart",
+        "pubspec.yaml",
+        "pubspec.lock",
+        "_08_task_plan_idx.json",
+        "_08_task_plans/plan-005.md",
+        "_10_change_log.json"
+      ],
+      "commits": [],
+      "changed_methods": [],
+      "author": "Agent",
+      "verified": true,
+      "note": "startCamera 改为 image_picker 系统相机（ACTION_IMAGE_CAPTURE），先请求相机权限；删除自绘 CameraCapturePage 与 camera 插件依赖（APK 减小）。模拟器实测：系统相机调起→拍照→确认→识别管线→空场景正确兜底，无崩溃。"
     }
   ]
 }
