@@ -2,6 +2,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
+import 'package:blood_pressed/features/settings/domain/reminder_schedule.dart';
+
+/// 测量提醒方式。
+enum ReminderMode { off, daily, interval }
 
 /// 应用设置（SharedPreferences KV）。
 class AppSettings {
@@ -15,6 +19,12 @@ class AppSettings {
   static const _kReminderEnabled = 'reminder_enabled';
   static const _kReminderHour = 'reminder_hour';
   static const _kReminderMinute = 'reminder_minute';
+  static const _kReminderMode = 'reminder_mode';
+  static const _kIntervalStartHour = 'interval_start_hour';
+  static const _kIntervalStartMinute = 'interval_start_minute';
+  static const _kIntervalEndHour = 'interval_end_hour';
+  static const _kIntervalEndMinute = 'interval_end_minute';
+  static const _kIntervalMinutes = 'interval_minutes';
   static const _kThemeMode = 'theme_mode'; // system/light/dark
   static const _kWechatAppId = 'wechat_app_id';
   static const _kWechatUniversalLink = 'wechat_universal_link';
@@ -45,7 +55,9 @@ class AppSettings {
       ? _prefs.remove(_kActiveLlmProfile)
       : _prefs.setString(_kActiveLlmProfile, id);
 
-  // ---- 每日测量提醒 ----
+  // ---- 测量提醒 ----
+
+  /// 旧版布尔开关（仅作迁移读取，新代码使用 [reminderMode]）。
   bool get reminderEnabled => _prefs.getBool(_kReminderEnabled) ?? false;
   Future<void> setReminderEnabled(bool v) =>
       _prefs.setBool(_kReminderEnabled, v);
@@ -55,6 +67,43 @@ class AppSettings {
   Future<void> setReminderTime(int hour, int minute) async {
     await _prefs.setInt(_kReminderHour, hour);
     await _prefs.setInt(_kReminderMinute, minute);
+  }
+
+  /// 提醒方式：旧版仅有布尔开关，未显式存储时按其值迁移。
+  ReminderMode get reminderMode {
+    final raw = _prefs.getString(_kReminderMode);
+    if (raw != null) {
+      return ReminderMode.values
+          .firstWhere((m) => m.name == raw, orElse: () => ReminderMode.off);
+    }
+    return reminderEnabled ? ReminderMode.daily : ReminderMode.off;
+  }
+
+  Future<void> setReminderMode(ReminderMode mode) =>
+      _prefs.setString(_kReminderMode, mode.name);
+
+  // 周期提醒：提醒窗口（当日时刻，start < end）与提醒周期。
+  int get intervalStartHour => _prefs.getInt(_kIntervalStartHour) ?? 8;
+  int get intervalStartMinute => _prefs.getInt(_kIntervalStartMinute) ?? 0;
+  int get intervalEndHour => _prefs.getInt(_kIntervalEndHour) ?? 20;
+  int get intervalEndMinute => _prefs.getInt(_kIntervalEndMinute) ?? 0;
+  int get intervalMinutes => _prefs.getInt(_kIntervalMinutes) ?? 30;
+
+  Future<void> setIntervalWindow(
+      int startHour, int startMinute, int endHour, int endMinute) async {
+    await _prefs.setInt(_kIntervalStartHour, startHour);
+    await _prefs.setInt(_kIntervalStartMinute, startMinute);
+    await _prefs.setInt(_kIntervalEndHour, endHour);
+    await _prefs.setInt(_kIntervalEndMinute, endMinute);
+  }
+
+  Future<void> setIntervalMinutes(int minutes) {
+    if (minutes < IntervalReminderConfig.minIntervalMinutes) {
+      throw ArgumentError.value(
+          minutes, 'intervalMinutes', '提醒周期不得小于 '
+          '${IntervalReminderConfig.minIntervalMinutes} 分钟');
+    }
+    return _prefs.setInt(_kIntervalMinutes, minutes);
   }
 
   // ---- 主题模式 ----

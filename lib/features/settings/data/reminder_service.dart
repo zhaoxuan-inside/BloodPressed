@@ -5,7 +5,19 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
-/// 每日测量提醒（本地通知）。
+import 'package:blood_pressed/features/settings/data/app_settings.dart';
+import 'package:blood_pressed/features/settings/domain/reminder_schedule.dart';
+
+/// 定时通知触发时的后台回调入口（顶层函数 + entry-point 标注，
+/// 防止 release AOT 被 tree-shaking 剥离导致通知静默丢失）。
+@pragma('vm:entry-point')
+Future<void> notificationTapBackground(NotificationResponse details) async {}
+
+/// 测量提醒（本地通知）：每日定时提醒 + 周期提醒（提醒窗口内按提醒周期）。
+///
+/// 周期提醒采用"批量预排一次性通知"：以 2 天为水平按触发时刻逐条排程
+/// （上限 [ReminderSchedule.maxPendingNotifications] - 1 条，为每日提醒留位），
+/// 应用启动、设置变更时整体重排。
 class ReminderService {
   ReminderService._();
 
@@ -13,7 +25,31 @@ class ReminderService {
       FlutterLocalNotificationsPlugin();
 
   static const int _dailyId = 1001;
+  static const int _intervalIdBase = 2000;
+  static const int _intervalHorizonDays = 2;
   static bool _initialized = false;
+
+  static const NotificationDetails _dailyDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'daily_reminder',
+      '每日测量提醒',
+      channelDescription: '提醒您每天定时测量血压',
+      importance: Importance.high,
+      priority: Priority.high,
+    ),
+    iOS: DarwinNotificationDetails(),
+  );
+
+  static const NotificationDetails _intervalDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'interval_reminder',
+      '周期测量提醒',
+      channelDescription: '在提醒窗口内按固定周期提醒您测量血压',
+      importance: Importance.high,
+      priority: Priority.high,
+    ),
+    iOS: DarwinNotificationDetails(),
+  );
 
   static Future<void> init() async {
     if (_initialized) return;
@@ -33,11 +69,34 @@ class ReminderService {
     try {
       await _plugin.initialize(
         const InitializationSettings(android: androidInit, iOS: iosInit),
+        onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       );
       _initialized = true;
     } catch (_) {
       // 通知插件不可用（如桌面/测试环境）时静默跳过
     }
+  }
+
+  /// 确保两个通知通道已创建（v19 的排程不再自动建通道，
+  /// 缺 channel 会让通知静默丢失）。
+  static Future<void> _ensureChannels() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (android == null) return;
+    try {
+      await android.createNotificationChannel(const AndroidNotificationChannel(
+        'daily_reminder',
+        '每日测量提醒',
+        description: '提醒您每天定时测量血压',
+        importance: Importance.high,
+      ));
+      await android.createNotificationChannel(const AndroidNotificationChannel(
+        'interval_reminder',
+        '周期测量提醒',
+        description: '在提醒窗口内按固定周期提醒您测量血压',
+        importance: Importance.high,
+      ));
+    } catch (_) {}
   }
 
   /// Android 13+ 通知权限；Android 12+ 精确闹钟（SCHEDULE_EXACT_ALARM）。
@@ -47,50 +106,105 @@ class ReminderService {
     return notif.isGranted;
   }
 
-  static Future<void> scheduleDaily({
+  /// 按当前设置重排全部提醒（先清空旧排程，再按提醒方式排程）。
+  static Future<void> scheduleFromSettings(AppSettings settings) async {
+    await init();
+    await _ensureChannels();
+    await cancelAllReminders();
+    switch (settings.reminderMode) {
+      case ReminderMode.off:
+        return;
+      case ReminderMode.daily:
+        await _scheduleDaily(
+            hour: settings.reminderHour, minute: settings.reminderMinute);
+      case ReminderMode.interval:
+        await _scheduleInterval(settings);
+    }
+  }
+
+  static Future<void> _scheduleDaily({
     required int hour,
     required int minute,
   }) async {
-    await init();
     final now = tz.TZDateTime.now(tz.local);
     var scheduled =
         tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
     if (!scheduled.isAfter(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
-
-    const androidDetails = AndroidNotificationDetails(
-      'daily_reminder',
-      '每日测量提醒',
-      channelDescription: '提醒您每天定时测量血压',
-      importance: Importance.high,
-      priority: Priority.high,
+    await _zonedSchedule(
+      _dailyId,
+      scheduled,
+      _dailyDetails,
+      matchTime: true,
+      payload: 'daily_reminder',
     );
-    const iosDetails = DarwinNotificationDetails();
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
+  }
 
-    try {
-      await _plugin.zonedSchedule(
-        _dailyId,
-        '该测量血压啦 🩺',
-        '坚持记录，血压趋势才有意义。',
+  static Future<void> _scheduleInterval(AppSettings settings) async {
+    final config = IntervalReminderConfig(
+      startHour: settings.intervalStartHour,
+      startMinute: settings.intervalStartMinute,
+      endHour: settings.intervalEndHour,
+      endMinute: settings.intervalEndMinute,
+      intervalMinutes: settings.intervalMinutes,
+    );
+    final occurrences = ReminderSchedule.occurrences(
+      config: config,
+      now: DateTime.now(),
+      horizonDays: _intervalHorizonDays,
+    );
+    for (var i = 0; i < occurrences.length; i++) {
+      final at = occurrences[i];
+      final scheduled = tz.TZDateTime(
+          tz.local, at.year, at.month, at.day, at.hour, at.minute);
+      final ok = await _zonedSchedule(
+        _intervalIdBase + i,
         scheduled,
-        details,
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
-        payload: 'daily_reminder',
+        _intervalDetails,
+        payload: 'interval_reminder',
       );
-    } catch (_) {
-      // 通知插件不可用时静默跳过
+      if (!ok) return;
     }
   }
 
-  static Future<void> cancelDaily() async {
+  /// 单条排程；通知插件不可用或系统拒绝时返回 false（静默跳过）。
+  static Future<bool> _zonedSchedule(
+    int id,
+    tz.TZDateTime at,
+    NotificationDetails details, {
+    required String payload,
+    bool matchTime = false,
+  }) async {
+    try {
+      await _plugin.zonedSchedule(
+        id,
+        '该测量血压啦 🩺',
+        '坚持记录，血压趋势才有意义。',
+        at,
+        details,
+        // 提醒必须准时：使用精确闹钟（manifest 已声明 USE_EXACT_ALARM）
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents:
+            matchTime ? DateTimeComponents.time : null,
+        payload: payload,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<void> cancelAllReminders() async {
     try {
       await _plugin.cancel(_dailyId);
     } catch (_) {}
+    for (var i = 0; i < ReminderSchedule.maxPendingNotifications; i++) {
+      try {
+        await _plugin.cancel(_intervalIdBase + i);
+      } catch (_) {
+        return;
+      }
+    }
   }
 }

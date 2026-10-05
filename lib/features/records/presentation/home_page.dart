@@ -255,43 +255,47 @@ class _LatestCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('${r.systolic}',
-                      style: theme.textTheme.displayMedium?.copyWith(
-                          fontWeight: FontWeight.w800, color: color)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: Text('/',
-                        style: theme.textTheme.displaySmall?.copyWith(
-                            color: theme.colorScheme.outline)),
-                  ),
-                  Text('${r.diastolic}',
-                      style: theme.textTheme.displayMedium?.copyWith(
-                          fontWeight: FontWeight.w800)),
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text('mmHg',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.outline)),
-                  ),
-                  const Spacer(),
-                  if (r.pulse != null)
+              // 窄屏（360dp）下大号数值 + 脉搏可能超宽，整体缩放避免溢出
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('${r.systolic}',
+                        style: theme.textTheme.displayMedium?.copyWith(
+                            fontWeight: FontWeight.w800, color: color)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Text('/',
+                          style: theme.textTheme.displaySmall?.copyWith(
+                              color: theme.colorScheme.outline)),
+                    ),
+                    Text('${r.diastolic}',
+                        style: theme.textTheme.displayMedium?.copyWith(
+                            fontWeight: FontWeight.w800)),
+                    const SizedBox(width: 8),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Icon(Icons.favorite,
-                              size: 14, color: theme.colorScheme.primary),
-                          const SizedBox(width: 4),
-                          Text('${r.pulse} 次/分',
-                              style: theme.textTheme.bodyMedium),
-                        ],
-                      ),
+                      child: Text('mmHg',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.outline)),
                     ),
-                ],
+                    const SizedBox(width: 12),
+                    if (r.pulse != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            Icon(Icons.favorite,
+                                size: 14, color: theme.colorScheme.primary),
+                            const SizedBox(width: 4),
+                            Text('${r.pulse} 次/分',
+                                style: theme.textTheme.bodyMedium),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
               const SizedBox(height: 10),
               Text(

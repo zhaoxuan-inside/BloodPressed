@@ -84,7 +84,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         visualDensity: VisualDensity.compact),
                   ),
                 ),
-                _ReminderTile(settings: settings),
+                _ReminderSection(settings: settings),
               ],
             ),
           ),
@@ -255,71 +255,150 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 }
 
 
-/// 每日提醒开关 + 时间设置。
-class _ReminderTile extends ConsumerStatefulWidget {
-  const _ReminderTile({required this.settings});
+/// 测量提醒：提醒方式（关闭/定时/周期）+ 各方式参数编辑。
+class _ReminderSection extends ConsumerStatefulWidget {
+  const _ReminderSection({required this.settings});
 
   final AppSettings settings;
 
   @override
-  ConsumerState<_ReminderTile> createState() => _ReminderTileState();
+  ConsumerState<_ReminderSection> createState() => _ReminderSectionState();
 }
 
-class _ReminderTileState extends ConsumerState<_ReminderTile> {
-  @override
-  Widget build(BuildContext context) {
-    final settings = widget.settings;
-    return ListTile(
-      leading: const Icon(Icons.alarm_outlined),
-      title: const Text('每日测量提醒'),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextButton(
-            onPressed: settings.reminderEnabled
-                ? () => _pickTime(settings)
-                : null,
-            child: Text(
-                '${settings.reminderHour.toString().padLeft(2, '0')}:'
-                '${settings.reminderMinute.toString().padLeft(2, '0')}'),
-          ),
-          Switch(
-            value: settings.reminderEnabled,
-            onChanged: (v) async {
-              final messenger = ScaffoldMessenger.of(context);
-              if (v) {
-                final granted =
-                    await ReminderService.requestExactAlarmPermission();
-                if (!granted) {
-                  messenger.showSnackBar(const SnackBar(
-                      content: Text('未获得精确闹钟权限，提醒可能不准时')));
-                }
-                await ReminderService.scheduleDaily(
-                  hour: settings.reminderHour,
-                  minute: settings.reminderMinute,
-                );
-              } else {
-                await ReminderService.cancelDaily();
-              }
-              await settings.setReminderEnabled(v);
-              if (mounted) setState(() {});
-            },
-          ),
-        ],
-      ),
-    );
+class _ReminderSectionState extends ConsumerState<_ReminderSection> {
+  static const _intervalChoices = [15, 30, 45, 60, 120];
+
+  AppSettings get settings => widget.settings;
+
+  String _clock(int hour, int minute) =>
+      '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+
+  Future<void> _apply({bool enabling = false}) async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (enabling) {
+      final granted = await ReminderService.requestExactAlarmPermission();
+      if (!granted) {
+        messenger.showSnackBar(const SnackBar(
+            content: Text('未获得通知权限，提醒可能无法显示')));
+      }
+    }
+    await ReminderService.scheduleFromSettings(settings);
+    if (mounted) setState(() {});
   }
 
-  Future<void> _pickTime(AppSettings settings) async {
+  Future<void> _changeMode(ReminderMode mode) async {
+    await settings.setReminderMode(mode);
+    await _apply(enabling: mode != ReminderMode.off);
+  }
+
+  Future<void> _pickDailyTime() async {
     final time = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay(
-          hour: settings.reminderHour, minute: settings.reminderMinute),
+      initialTime:
+          TimeOfDay(hour: settings.reminderHour, minute: settings.reminderMinute),
     );
     if (time == null) return;
     await settings.setReminderTime(time.hour, time.minute);
-    await ReminderService.scheduleDaily(
-        hour: time.hour, minute: time.minute);
-    if (mounted) setState(() {});
+    await _apply();
+  }
+
+  Future<void> _pickWindowTime({required bool isStart}) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final initialHour =
+        isStart ? settings.intervalStartHour : settings.intervalEndHour;
+    final initialMinute =
+        isStart ? settings.intervalStartMinute : settings.intervalEndMinute;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: initialHour, minute: initialMinute),
+    );
+    if (time == null) return;
+    final startHour = isStart ? time.hour : settings.intervalStartHour;
+    final startMinute = isStart ? time.minute : settings.intervalStartMinute;
+    final endHour = isStart ? settings.intervalEndHour : time.hour;
+    final endMinute = isStart ? settings.intervalEndMinute : time.minute;
+    if (startHour * 60 + startMinute >= endHour * 60 + endMinute) {
+      messenger.showSnackBar(const SnackBar(content: Text('结束时间需晚于开始时间')));
+      return;
+    }
+    await settings.setIntervalWindow(startHour, startMinute, endHour, endMinute);
+    await _apply();
+  }
+
+  Future<void> _pickInterval(int minutes) async {
+    await settings.setIntervalMinutes(minutes);
+    await _apply();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final mode = settings.reminderMode;
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.alarm_outlined),
+          title: const Text('测量提醒'),
+          trailing: SegmentedButton<ReminderMode>(
+            segments: const [
+              ButtonSegment(value: ReminderMode.off, label: Text('关闭')),
+              ButtonSegment(value: ReminderMode.daily, label: Text('定时')),
+              ButtonSegment(value: ReminderMode.interval, label: Text('周期')),
+            ],
+            selected: {mode},
+            onSelectionChanged: (selection) =>
+                _changeMode(selection.first),
+          ),
+        ),
+        if (mode == ReminderMode.daily)
+          ListTile(
+            leading: const Icon(Icons.schedule_outlined),
+            title: const Text('提醒时间'),
+            subtitle: const Text('每天在固定时刻提醒测量'),
+            trailing: TextButton(
+              onPressed: _pickDailyTime,
+              child: Text(_clock(settings.reminderHour, settings.reminderMinute)),
+            ),
+          ),
+        if (mode == ReminderMode.interval) ...[
+          ListTile(
+            leading: const Icon(Icons.timelapse_outlined),
+            title: const Text('提醒窗口'),
+            subtitle: const Text('仅在窗口内按周期提醒'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(
+                  onPressed: () => _pickWindowTime(isStart: true),
+                  child: Text(_clock(
+                      settings.intervalStartHour, settings.intervalStartMinute)),
+                ),
+                Text('–', style: theme.textTheme.bodyLarge),
+                TextButton(
+                  onPressed: () => _pickWindowTime(isStart: false),
+                  child: Text(_clock(
+                      settings.intervalEndHour, settings.intervalEndMinute)),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.update_outlined),
+            title: const Text('提醒周期'),
+            subtitle: const Text('窗口内每隔该时长提醒一次'),
+            trailing: DropdownButton<int>(
+              value: settings.intervalMinutes,
+              items: _intervalChoices
+                  .map((m) => DropdownMenuItem(
+                      value: m, child: Text('$m 分钟')))
+                  .toList(),
+              onChanged: (m) {
+                if (m != null) _pickInterval(m);
+              },
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }

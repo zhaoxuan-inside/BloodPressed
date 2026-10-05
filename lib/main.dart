@@ -33,13 +33,8 @@ Future<void> main() async {
     ).registerWeChat(),
   );
 
-  // 4. 恢复每日提醒（重启后保持）
-  if (settings.reminderEnabled) {
-    await ReminderService.scheduleDaily(
-      hour: settings.reminderHour,
-      minute: settings.reminderMinute,
-    );
-  }
+  // 4. 恢复测量提醒（重启后按当前提醒方式整体重排）
+  await ReminderService.scheduleFromSettings(settings);
 
   runApp(
     ProviderScope(

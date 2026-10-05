@@ -64,28 +64,32 @@ class RecordTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            '${record.systolic}/${record.diastolic}',
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
+                      // 窄屏（360dp）下数值行可能超出宽度，整体缩放避免溢出
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          children: [
+                            Text(
+                              '${record.systolic}/${record.diastolic}',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text('mmHg',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.outline)),
-                          const SizedBox(width: 10),
-                          if (record.pulse != null) ...[
-                            Icon(Icons.favorite,
-                                size: 13,
-                                color: theme.colorScheme.primary),
-                            const SizedBox(width: 2),
-                            Text('${record.pulse}',
-                                style: theme.textTheme.bodyMedium),
+                            const SizedBox(width: 4),
+                            Text('mmHg',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.outline)),
+                            const SizedBox(width: 10),
+                            if (record.pulse != null) ...[
+                              Icon(Icons.favorite,
+                                  size: 13,
+                                  color: theme.colorScheme.primary),
+                              const SizedBox(width: 2),
+                              Text('${record.pulse}',
+                                  style: theme.textTheme.bodyMedium),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
