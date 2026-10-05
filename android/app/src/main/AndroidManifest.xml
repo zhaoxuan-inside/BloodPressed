@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 网络访问：魔搭模型下载、远端大模型 API、微信分享回调等（debug 清单中的
+         INTERNET 仅覆盖调试构建，release 必须在主清单声明） -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <!-- 相机拍照识别 -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
@@ -39,6 +43,22 @@
         <!-- 微信分享回调由 fluwx 6 内置的 activity-alias
              (${applicationId}.wxapi.WXEntryActivity → com.jarvan.fluwx.wxapi.FluwxWXEntryActivity)
              自动提供，无需手写回调 Activity。 -->
+
+        <!-- flutter_local_notifications v19+：定时通知的广播接收器需在使用方清单
+             显式声明（插件 manifest 不再自带）；BootReceiver 用于重启后恢复排程 -->
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.HTC_QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

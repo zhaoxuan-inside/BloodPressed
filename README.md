@@ -145,6 +145,16 @@ UUID 主键、软删除、`updated_at` 时间戳、`sync_outbox` 离线变更日
 
 ```bash
 flutter analyze   # 0 issues
-flutter test      # 36 个用例：OCR 解析引擎（多格式/非法输入/多行场景）、
-                  # 血压分级、CSV 导出与转义、统计计算、记录仓库（内存 SQLite）
+flutter test      # 全功能用例均走真实数据：OCR 解析引擎、血压分级、
+                  # CSV 导出、统计聚合、记录/会话/模型配置仓库（内存 SQLite）、
+                  # 13 篇知识 assets、全链路 UI（录入/编辑/删除/趋势/知识/设置/导出）、
+                  # 魔搭市场与远端推理端点（真实 HTTP，无 mock 响应）
 ```
+
+> 业务层不再使用 FakeRecordsRepository 等内存假仓库。UI 集成测试注入与
+> `main()` 相同的真实 `RecordsRepository` / `LlmProfileStore` / `ChatRepository`
+> （sqflite_ffi 内存库）。魔搭与推理相关用例直连 modelscope.cn，
+> 运行需外网；UI 通过 `overrideHttpClient=false` + `runAsync` 驱动真实请求。
+>
+> 相机取景、ML Kit 离线 OCR、本地 GGUF 推理依赖真机/已下载模型，无法在
+> Windows 单元测试进程里执行；解析引擎与 OCR 确认入库已覆盖。

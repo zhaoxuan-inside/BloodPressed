@@ -140,6 +140,10 @@ class ModelDownloadService extends ChangeNotifier {
         await _client.downloadWithProgress(
           url: _client.downloadUrl(repoId, file.path),
           startFrom: startFrom,
+          // 闭合 Range（bytes=start-end）：魔搭直连端点对开放 Range
+          // （bytes=N-）会返回全量 Content-Length 却只发送剩余部分并断开，
+          // 导致 dart:io 抛 Connection closed；闭合区间则两端都精确。
+          endByte: file.size > 0 ? file.size - 1 : null,
           cancelToken: cancelToken,
           onProgress: (received, total) {
             task.receivedBytes = startFrom + received;

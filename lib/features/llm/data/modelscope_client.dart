@@ -64,14 +64,32 @@ class ModelScopeClient {
   ];
 
   /// 仓库下全部文件（含大小）。
+  ///
+  /// 注意：魔搭对不存在的仓库返回 HTTP 404 + JSON 错误体
+  /// （Code: 10010205001），需从错误响应中解析真实错误码。
   Future<List<ModelScopeFile>> listFiles(String repoId) async {
-    final resp = await _dio.get<Map<String, Object?>>(
-      '$apiBase/$repoId/repo/files',
-      queryParameters: {'Revision': 'master'},
-    );
+    Response<Map<String, Object?>> resp;
+    try {
+      resp = await _dio.get<Map<String, Object?>>(
+        '$apiBase/$repoId/repo/files',
+        queryParameters: {'Revision': 'master'},
+      );
+    } on DioException catch (e) {
+      final body = e.response?.data;
+      if (body is Map) {
+        throw InferenceException(_errorMessage(
+          body['Code'],
+          body['Message'] as String?,
+        ));
+      }
+      rethrow;
+    }
     final code = resp.data?['Code'];
     if (code != 200) {
-      throw InferenceException('魔搭返回错误（Code: $code），请检查模型ID是否正确');
+      throw InferenceException(_errorMessage(
+        code,
+        resp.data?['Message'] as String?,
+      ));
     }
     final data = resp.data?['Data'] as Map<String, Object?>?;
     final files = data?['Files'] as List?;
@@ -86,6 +104,11 @@ class ModelScopeClient {
             ))
         .where((f) => f.path.isNotEmpty)
         .toList();
+  }
+
+  static String _errorMessage(Object? code, String? message) {
+    final hint = (message == null || message.isEmpty) ? '' : '，$message';
+    return '魔搭返回错误（Code: $code$hint），请检查模型ID是否正确';
   }
 
   /// 过滤出可用的 GGUF 权重文件（排除 mmproj 等投影文件）。
@@ -104,15 +127,21 @@ class ModelScopeClient {
   }
 
   /// 带 Range 断点续传与逐块回调的下载。
+  ///
+  /// [endByte] 可选：闭合区间下载（Range: bytes=start-end），
+  /// 用于按需拉取文件头做魔数校验等场景；null 表示下载到文件末尾。
   Future<void> downloadWithProgress({
     required String url,
     required int startFrom,
     required CancelToken cancelToken,
     required void Function(int received, int total) onProgress,
     required void Function(List<int> bytes) onChunk,
+    int? endByte,
   }) async {
+    final rangeEnd = endByte?.toString() ?? '';
     final headers = <String, String>{
-      if (startFrom > 0) 'Range': 'bytes=$startFrom-',
+      if (startFrom > 0 || endByte != null)
+        'Range': 'bytes=$startFrom-$rangeEnd',
     };
     final resp = await _dio.get<ResponseBody>(
       url,

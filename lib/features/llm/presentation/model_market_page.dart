@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,6 +8,7 @@ import 'package:blood_pressed/core/utils/formatters.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/features/llm/data/model_downloader.dart';
 import 'package:blood_pressed/features/llm/data/modelscope_client.dart';
+import 'package:blood_pressed/features/llm/domain/inference_engine.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 
 /// 魔搭社区模型市场：精选模型 + 自定义仓库 ID + GGUF 文件下载。
@@ -18,6 +22,7 @@ class ModelMarketPage extends ConsumerStatefulWidget {
 class _ModelMarketPageState extends ConsumerState<ModelMarketPage> {
   final TextEditingController _customCtrl = TextEditingController();
   String? _openRepoId;
+  String? _customRepoId;
 
   @override
   void dispose() {
@@ -50,7 +55,10 @@ class _ModelMarketPageState extends ConsumerState<ModelMarketPage> {
           ],
           const SectionHeader('精选模型（Qwen 官方）'),
           ...ModelScopeClient.curated.map((m) => _RepoCard(
-                model: m,
+                repoId: m.repoId,
+                title: m.title,
+                subtitle: '${m.repoId} · ${m.sizeHint}',
+                desc: m.desc,
                 expanded: _openRepoId == m.repoId,
                 onToggle: () => setState(() {
                   _openRepoId = _openRepoId == m.repoId ? null : m.repoId;
@@ -79,6 +87,21 @@ class _ModelMarketPageState extends ConsumerState<ModelMarketPage> {
               ],
             ),
           ),
+          if (_customRepoId != null) ...[
+            const SizedBox(height: 8),
+            _RepoCard(
+              // 换一个模型ID时按新ID重建卡片状态，避免残留上一个仓库的列表
+              key: ValueKey(_customRepoId),
+              repoId: _customRepoId!,
+              title: _customRepoId!,
+              subtitle: '自定义仓库',
+              desc: '从魔搭拉取该仓库的 GGUF 文件列表',
+              expanded: _openRepoId == _customRepoId,
+              onToggle: () => setState(() {
+                _openRepoId = _openRepoId == _customRepoId ? null : _customRepoId;
+              }),
+            ),
+          ],
         ],
       ),
     );
@@ -87,19 +110,29 @@ class _ModelMarketPageState extends ConsumerState<ModelMarketPage> {
   void _openCustom() {
     final id = _customCtrl.text.trim();
     if (id.isEmpty) return;
-    setState(() => _openRepoId = id);
+    setState(() {
+      _customRepoId = id;
+      _openRepoId = id;
+    });
   }
 }
 
-/// 仓库卡片：展开后拉取文件列表。
+/// 仓库卡片：展开后拉取文件列表；失败时给出可读错误与重试入口。
 class _RepoCard extends ConsumerStatefulWidget {
   const _RepoCard({
-    required this.model,
+    super.key,
+    required this.repoId,
+    required this.title,
+    required this.subtitle,
+    required this.desc,
     required this.expanded,
     required this.onToggle,
   });
 
-  final CuratedModel model;
+  final String repoId;
+  final String title;
+  final String subtitle;
+  final String desc;
   final bool expanded;
   final VoidCallback onToggle;
 
@@ -111,13 +144,29 @@ class _RepoCardState extends ConsumerState<_RepoCard> {
   Future<List<ModelScopeFile>>? _filesFuture;
 
   @override
-  void didUpdateWidget(_RepoCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.expanded && _filesFuture == null) {
+  void initState() {
+    super.initState();
+    // 自定义仓库卡片创建时即处于展开态，需在首帧前就发起拉取
+    if (widget.expanded) {
       _filesFuture = ref
           .read(modelscopeClientProvider)
-          .listGgufFiles(widget.model.repoId);
+          .listGgufFiles(widget.repoId);
     }
+  }
+
+  @override
+  void didUpdateWidget(_RepoCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.expanded && !oldWidget.expanded && _filesFuture == null) {
+      _loadFiles();
+    }
+  }
+
+  void _loadFiles() {
+    setState(() {
+      _filesFuture =
+          ref.read(modelscopeClientProvider).listGgufFiles(widget.repoId);
+    });
   }
 
   @override
@@ -140,14 +189,12 @@ class _RepoCardState extends ConsumerState<_RepoCard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.model.title,
+                        Text(widget.title,
                             style: theme.textTheme.titleSmall
                                 ?.copyWith(fontWeight: FontWeight.w700)),
-                        Text(
-                          '${widget.model.repoId} · ${widget.model.sizeHint}',
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: theme.colorScheme.outline),
-                        ),
+                        Text(widget.subtitle,
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(color: theme.colorScheme.outline)),
                       ],
                     ),
                   ),
@@ -158,11 +205,12 @@ class _RepoCardState extends ConsumerState<_RepoCard> {
               ),
               if (widget.expanded) ...[
                 const SizedBox(height: 4),
-                Text(widget.model.desc,
+                Text(widget.desc,
                     style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.outline)),
                 const SizedBox(height: 8),
                 FutureBuilder<List<ModelScopeFile>>(
+                  key: ValueKey(_filesFuture),
                   future: _filesFuture,
                   builder: (context, snap) {
                     if (snap.connectionState != ConnectionState.done) {
@@ -177,9 +225,10 @@ class _RepoCardState extends ConsumerState<_RepoCard> {
                       );
                     }
                     if (snap.hasError) {
-                      return Text('获取文件列表失败：${snap.error}',
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: theme.colorScheme.error));
+                      return _FileListError(
+                        message: _describeError(snap.error!),
+                        onRetry: _loadFiles,
+                      );
                     }
                     final files = snap.data ?? [];
                     if (files.isEmpty) {
@@ -189,7 +238,7 @@ class _RepoCardState extends ConsumerState<_RepoCard> {
                     }
                     return Column(
                       children: files.map((f) => _FileTile(
-                            repoId: widget.model.repoId,
+                            repoId: widget.repoId,
                             file: f,
                           )).toList(),
                     );
@@ -199,6 +248,46 @@ class _RepoCardState extends ConsumerState<_RepoCard> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  String _describeError(Object error) {
+    if (error is InferenceException) return error.message;
+    if (error is DioException) {
+      final cause = error.error;
+      if (error.type == DioExceptionType.connectionError ||
+          error.type == DioExceptionType.connectionTimeout ||
+          cause is SocketException) {
+        return '无法连接魔搭服务器，请检查网络后重试';
+      }
+    }
+    return '获取文件列表失败：$error';
+  }
+}
+
+/// 文件列表加载失败占位：可读错误 + 重试按钮。
+class _FileListError extends StatelessWidget {
+  const _FileListError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(message,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: theme.colorScheme.error)),
+          ),
+          const SizedBox(width: 8),
+          TextButton(onPressed: onRetry, child: const Text('重试')),
+        ],
       ),
     );
   }
