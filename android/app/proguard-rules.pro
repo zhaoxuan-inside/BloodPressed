@@ -9,3 +9,11 @@
 -dontwarn com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions$Builder
 -dontwarn com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 -dontwarn com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions$Builder
+
+# R8 full mode 会重组 ML Kit / GMS 内部类导致运行期 NPE
+# （"getClass() on a null object reference"，识别必现报错），
+# 保留 ML Kit 与其 GMS 内部实现，禁止混淆与优化。
+-keep class com.google.mlkit.** { *; }
+-keep class com.google.android.gms.internal.mlkit_vision_text.** { *; }
+-keep class com.google.android.gms.internal.mlkit_vision_common.** { *; }
+-keep class com.google.android.gms.internal.mlkit_vision_barcode.** { *; }

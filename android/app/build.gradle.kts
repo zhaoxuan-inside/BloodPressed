@@ -46,6 +46,9 @@ android {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // google_mlkit_text_recognition 插件对中文识别库仅 compileOnly，
+    // 运行时需要 app 显式引入，否则 script=chinese 抛 NoClassDefFoundError
+    implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
 }
 
 kotlin {

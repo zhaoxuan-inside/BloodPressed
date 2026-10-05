@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -69,8 +70,12 @@ class OcrFlow {
     try {
       final service = OcrService();
       result = await service.recognize(imagePath);
+    } on PlatformException catch (e) {
+      debugPrint('OCR PlatformException: $e');
+      errorMsg = '识别服务异常，请重试；若持续失败请改用手动录入';
     } catch (e) {
-      errorMsg = '$e';
+      debugPrint('OCR error: $e');
+      errorMsg = '识别失败：$e';
     }
     if (!context.mounted) return;
     Navigator.of(context, rootNavigator: true).pop(); // 关掉加载框

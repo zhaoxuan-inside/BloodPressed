@@ -83,6 +83,25 @@
       "author": "Agent",
       "verified": true,
       "note": "ShellScaffold 改 ConsumerWidget：无 LlmProfile 时隐藏 AI助手 destination（显示索引与 branch 索引映射），删空停留时跳回首页。模拟器实测三状态（显示/删除消失/高亮前移）。UI 组件按 frontend 豁免不入 _07。"
+    },
+    {
+      "id": "chg-004",
+      "date": "2026-10-05T11:00:00+08:00",
+      "requirement": "相册识别和拍照识别功能异常报错修复。快速通道热修。",
+      "plan_id": "plan-003",
+      "changed_files": [
+        "android/app/build.gradle.kts",
+        "android/app/proguard-rules.pro",
+        "lib/features/camera_ocr/presentation/ocr_flow.dart",
+        "_08_task_plan_idx.json",
+        "_08_task_plans/plan-003.md",
+        "_10_change_log.json"
+      ],
+      "commits": [],
+      "changed_methods": [],
+      "author": "Agent",
+      "verified": true,
+      "note": "根因：google_mlkit_text_recognition 插件对中文识别库仅 compileOnly，运行时 NoClassDefFoundError（首版即坏）。app 补 implementation 依赖；proguard 保留 ML Kit/GMS 内部类（R8 full mode 连带 NPE）；识别异常提示人性化。模拟器验证：相册识别出 125/82（75% 置信度）进确认表单；拍照空场景正确走兜底。"
     }
   ]
 }
