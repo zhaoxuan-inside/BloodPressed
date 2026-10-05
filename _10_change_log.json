@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "changes": [
+    {
+      "id": "chg-001",
+      "date": "2026-10-05T00:40:00+08:00",
+      "requirement": "血压提示支持多种方式：定时提示；周期性提示（选择开始结束时间，按提醒周期如半小时重复）。快速通道（right-sizing）执行。",
+      "plan_id": "plan-001",
+      "changed_files": [
+        "lib/features/settings/data/app_settings.dart",
+        "lib/features/settings/data/reminder_service.dart",
+        "lib/features/settings/domain/reminder_schedule.dart",
+        "lib/features/settings/presentation/settings_page.dart",
+        "lib/main.dart",
+        "lib/features/records/presentation/widgets/record_tile.dart",
+        "lib/features/records/presentation/home_page.dart",
+        "android/app/src/main/AndroidManifest.xml",
+        "test/reminder_schedule_test.dart",
+        "test/app_integration_test.dart",
+        "test/real_data_services_test.dart",
+        "test/support/real_test_harness.dart",
+        "_00_project_idx.json",
+        "_07_method_idx.json",
+        "_08_task_plan_idx.json",
+        "_08_task_plans/plan-001.md",
+        "_09_project_dict.json",
+        "_10_change_log.json"
+      ],
+      "commits": [],
+      "changed_methods": ["m-001", "m-002", "m-003", "m-004", "m-005", "m-006", "m-007", "m-008"],
+      "author": "Agent",
+      "verified": true,
+      "note": "实测补充修复：v19 需显式创建通知通道 + 清单声明 ScheduledNotificationReceiver/BootReceiver + exactAllowWhileIdle + @pragma(vm:entry-point) 后台回调。模拟器验证：周期模式 UI→排程 65 条精确闹钟→10:30 真实触发→通知栏显示'该测量血压啦'。附带修复外部重写测试的 8 处 finder/时序错误、CSV BOM 字节断言、testWidgets 下 sqflite_ffi NoIsolate 工厂、窄屏(360dp)溢出两处。"
+    },
+    {
+      "id": "chg-002",
+      "date": "2026-10-04T12:00:00+08:00",
+      "requirement": "魔搭模型市场真实数据修复与 release 构建修复（上一需求，含 INTERNET 权限、闭合 Range 断点续传、错误响应解析、自定义仓库卡片、R8/JDK21 构建配置）。",
+      "plan_id": "plan-001",
+      "changed_files": [
+        "android/app/src/main/AndroidManifest.xml",
+        "android/app/build.gradle.kts",
+        "android/app/proguard-rules.pro",
+        "android/gradle.properties",
+        "lib/features/llm/data/model_downloader.dart",
+        "lib/features/llm/data/modelscope_client.dart",
+        "lib/features/llm/presentation/model_market_page.dart",
+        "test/model_market_api_test.dart",
+        "test/model_market_page_test.dart",
+        "pubspec.yaml",
+        "pubspec.lock",
+        "README.md"
+      ],
+      "commits": [],
+      "changed_methods": [],
+      "author": "Agent",
+      "verified": true,
+      "note": "该需求在 plan-001 建立前完成并经模拟器实测（真实下载 SHA256 校验、本地推理），补记账挂靠当前计划。"
+    }
+  ]
+}

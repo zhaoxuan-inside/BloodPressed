@@ -1,0 +1,137 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-10-05T08:24:09+08:00",
+  "methods": [
+    {
+      "dependencies": [],
+      "tests": "test/reminder_schedule_test.dart",
+      "deprecated": false,
+      "replaced_by": null,
+      "signature": "List<DateTime> occurrences({required IntervalReminderConfig config, required DateTime now, int horizonDays, int max})",
+      "name": "occurrences",
+      "category": "algorithm",
+      "layer": "domain",
+      "module": "settings",
+      "location": "lib/features/settings/domain/reminder_schedule.dart",
+      "description": "按提醒窗口与提醒周期计算未来 horizonDays 天内严格晚于 now 的触发时刻（升序、上限 max）",
+      "reusable": true,
+      "id": "m-001"
+    },
+    {
+      "dependencies": [
+        "m-002",
+        "m-003"
+      ],
+      "tests": "模拟器实测",
+      "deprecated": false,
+      "replaced_by": null,
+      "signature": "Future<void> scheduleFromSettings(AppSettings settings)",
+      "name": "scheduleFromSettings",
+      "category": "orchestration",
+      "layer": "data",
+      "module": "settings",
+      "location": "lib/features/settings/data/reminder_service.dart",
+      "description": "按当前提醒方式重排全部本地通知：清空旧排程后按 off/daily/interval 分派",
+      "reusable": false,
+      "id": "m-002"
+    },
+    {
+      "dependencies": [],
+      "tests": null,
+      "deprecated": false,
+      "replaced_by": null,
+      "signature": "Future<bool> _zonedSchedule(int id, tz.TZDateTime at, NotificationDetails details, {required String payload, bool matchTime})",
+      "name": "_zonedSchedule",
+      "category": "data",
+      "layer": "data",
+      "module": "settings",
+      "location": "lib/features/settings/data/reminder_service.dart",
+      "description": "单条本地通知排程，插件不可用或系统拒绝时返回 false 静默跳过",
+      "reusable": false,
+      "id": "m-003"
+    },
+    {
+      "dependencies": [],
+      "tests": null,
+      "deprecated": false,
+      "replaced_by": null,
+      "signature": "Future<void> cancelAllReminders()",
+      "name": "cancelAllReminders",
+      "category": "data",
+      "layer": "data",
+      "module": "settings",
+      "location": "lib/features/settings/data/reminder_service.dart",
+      "description": "取消每日与周期提醒的全部待发通知",
+      "reusable": false,
+      "id": "m-004"
+    },
+    {
+      "dependencies": [],
+      "tests": "test/reminder_schedule_test.dart",
+      "deprecated": false,
+      "replaced_by": null,
+      "signature": "ReminderMode get reminderMode",
+      "name": "reminderMode",
+      "category": "data",
+      "layer": "data",
+      "module": "settings",
+      "location": "lib/features/settings/data/app_settings.dart",
+      "description": "读取提醒方式；未显式存储时按旧版布尔开关迁移（true→daily，false→off）",
+      "reusable": false,
+      "id": "m-005"
+    },
+    {
+      "dependencies": [],
+      "tests": "test/reminder_schedule_test.dart",
+      "deprecated": false,
+      "replaced_by": null,
+      "signature": "Future<void> setReminderMode(ReminderMode mode)",
+      "name": "setReminderMode",
+      "category": "data",
+      "layer": "data",
+      "module": "settings",
+      "location": "lib/features/settings/data/app_settings.dart",
+      "description": "持久化提醒方式",
+      "reusable": false,
+      "id": "m-006"
+    },
+    {
+      "dependencies": [],
+      "tests": "test/reminder_schedule_test.dart",
+      "deprecated": false,
+      "replaced_by": null,
+      "signature": "Future<void> setIntervalWindow(int startHour, int startMinute, int endHour, int endMinute)",
+      "name": "setIntervalWindow",
+      "category": "data",
+      "layer": "data",
+      "module": "settings",
+      "location": "lib/features/settings/data/app_settings.dart",
+      "description": "持久化周期提醒的提醒窗口（开始/结束时刻）",
+      "reusable": false,
+      "id": "m-007"
+    },
+    {
+      "dependencies": [],
+      "tests": "test/reminder_schedule_test.dart",
+      "deprecated": false,
+      "replaced_by": null,
+      "signature": "Future<void> setIntervalMinutes(int minutes)",
+      "name": "setIntervalMinutes",
+      "category": "data",
+      "layer": "data",
+      "module": "settings",
+      "location": "lib/features/settings/data/app_settings.dart",
+      "description": "持久化提醒周期（分钟），小于下限 15 抛 ArgumentError",
+      "reusable": false,
+      "id": "m-008"
+    }
+  ],
+  "stats": {
+    "total": 8,
+    "by_category": {
+      "algorithm": 1,
+      "orchestration": 1,
+      "data": 6
+    }
+  }
+}

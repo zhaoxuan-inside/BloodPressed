@@ -1,0 +1,223 @@
+{
+  "schema_version": "1.0",
+  "project": {
+    "name": "BloodPressed",
+    "version": "1.0.0+1",
+    "description": "跨 Android/iOS 的血压监控应用：记录血压脉搏、趋势图表、拍照识别读数、本地/远端大模型健康指导、数据导出与卡片分享、健康知识阅读。",
+    "languages": [
+      "dart"
+    ],
+    "status": "developing",
+    "scale": "personal"
+  },
+  "reading_order": [
+    {
+      "order": 1,
+      "path": "_01_business",
+      "purpose": "业务需求与验收标准"
+    },
+    {
+      "order": 2,
+      "path": "_02_principle",
+      "purpose": "实现原理与风险"
+    },
+    {
+      "order": 3,
+      "path": "_03_tech_stack",
+      "purpose": "技术选型与 ADR"
+    },
+    {
+      "order": 4,
+      "path": "_04_framework_design",
+      "purpose": "分层架构与模块划分"
+    },
+    {
+      "order": 5,
+      "path": "_05_function_design",
+      "purpose": "功能矩阵与任务卡"
+    },
+    {
+      "order": 6,
+      "path": "_06_interface_design",
+      "purpose": "接口契约"
+    },
+    {
+      "order": 7,
+      "path": "_07_method_idx.json",
+      "purpose": "方法防重索引"
+    },
+    {
+      "order": 8,
+      "path": "_08_task_plan_idx.json",
+      "purpose": "任务计划目录"
+    },
+    {
+      "order": 9,
+      "path": "_09_project_dict.json",
+      "purpose": "术语词典"
+    },
+    {
+      "order": 10,
+      "path": "_10_change_log.json",
+      "purpose": "变更日志"
+    },
+    {
+      "order": 11,
+      "path": "lib/",
+      "purpose": "源码（features 分层）"
+    }
+  ],
+  "documents": {
+    "_01_business": {
+      "path": "_01_business",
+      "files": []
+    },
+    "_02_principle": {
+      "path": "_02_principle",
+      "files": []
+    },
+    "_03_tech_stack": {
+      "path": "_03_tech_stack",
+      "files": []
+    },
+    "_04_framework_design": {
+      "path": "_04_framework_design",
+      "files": []
+    },
+    "_05_function_design": {
+      "path": "_05_function_design",
+      "files": []
+    },
+    "_06_interface_design": {
+      "path": "_06_interface_design",
+      "files": []
+    }
+  },
+  "tech_stack": {
+    "language": "Dart 3.13 / Flutter 3.47",
+    "runtime": "Android minSdk 24 / iOS 15+",
+    "key_dependencies": [
+      "flutter_riverpod（状态管理）",
+      "go_router（路由）",
+      "sqflite（本地存储，UUID 主键 + 软删除 + outbox）",
+      "dio（魔搭模型下载 / 远端 LLM SSE）",
+      "llamadart（本地 GGUF 推理）",
+      "google_mlkit_text_recognition（OCR，依赖 GMS）",
+      "flutter_local_notifications + flutter_timezone + timezone（测量提醒）",
+      "fluwx + share_plus（分享）",
+      "fl_chart（趋势图）"
+    ],
+    "adr_dir": "_03_tech_stack"
+  },
+  "code": {
+    "dir": "lib",
+    "layout": "Clean Architecture：core（design/db/widgets/utils/router/theme）+ features/<feature>/{domain,data,presentation}",
+    "entry_points": [
+      "lib/main.dart",
+      "lib/app.dart"
+    ],
+    "modules": [
+      {
+        "name": "records",
+        "path": "lib/features/records",
+        "summary": "血压记录：领域模型/仓库 + 录入表单 + 首页",
+        "owner": "hardstone"
+      },
+      {
+        "name": "stats",
+        "path": "lib/features/stats",
+        "summary": "趋势图：按天聚合 + fl_chart",
+        "owner": "hardstone"
+      },
+      {
+        "name": "camera_ocr",
+        "path": "lib/features/camera_ocr",
+        "summary": "相机 + OCR 解析引擎（domain 纯 Dart）+ ML Kit 服务",
+        "owner": "hardstone"
+      },
+      {
+        "name": "llm",
+        "path": "lib/features/llm",
+        "summary": "本地/远端大模型：引擎抽象 + 魔搭市场与下载器",
+        "owner": "hardstone"
+      },
+      {
+        "name": "assistant",
+        "path": "lib/features/assistant",
+        "summary": "健康指导聊天：上下文构建 + 会话仓库",
+        "owner": "hardstone"
+      },
+      {
+        "name": "export",
+        "path": "lib/features/export",
+        "summary": "CSV 导出 + 分享卡 + 微信/系统分享",
+        "owner": "hardstone"
+      },
+      {
+        "name": "knowledge",
+        "path": "lib/features/knowledge",
+        "summary": "内置 13 篇健康科普",
+        "owner": "hardstone"
+      },
+      {
+        "name": "sync",
+        "path": "lib/features/sync",
+        "summary": "云同步抽象（预留）",
+        "owner": "hardstone"
+      },
+      {
+        "name": "settings",
+        "path": "lib/features/settings",
+        "summary": "设置 / 测量提醒（本地通知）/ 微信配置",
+        "owner": "hardstone"
+      }
+    ]
+  },
+  "method_index": {
+    "path": "_07_method_idx.json",
+    "stats": {
+      "total": 8,
+      "by_category": {
+        "algorithm": 1,
+        "orchestration": 1,
+        "data": 6
+      }
+    }
+  },
+  "task_plan": {
+    "path": "_08_task_plan_idx.json",
+    "details_dir": "_08_task_plans/",
+    "latest": {
+      "id": "plan-001",
+      "name": "测量提醒多方式：每日定时 + 周期提醒（提醒窗口+提醒周期）",
+      "time": "2026-10-04 18:03:38"
+    }
+  },
+  "dictionary": {
+    "path": "_09_project_dict.json",
+    "terms": 0
+  },
+  "change_log": {
+    "path": "_10_change_log.json",
+    "latest": null
+  },
+  "quality_gates": {
+    "lint": "flutter analyze（0 issues）",
+    "test": "flutter test（全部通过）",
+    "coverage": null,
+    "e2e": "模拟器（BloodPress_EMU）UI 冒烟"
+  },
+  "conventions": {
+    "method_signature": "存量代码采用项目既有 Clean Architecture 风格（未使用五段签名）；五段签名改造为独立 onboarding 任务，新方法暂按既有风格保持一致",
+    "framework_signature_exemptions": [
+      "Flutter Widget 构建（UI 组件豁免）",
+      "main() 入口",
+      "测试函数"
+    ],
+    "standards": [
+      "references/coding-standards.md",
+      "references/frontend-spec.md"
+    ],
+    "embedding_model": null
+  }
+}

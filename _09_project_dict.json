@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-10-04T18:30:00+08:00",
+  "terms": [
+    {"term": "血压记录", "code_name": "BpRecord", "definition": "一次血压测量结果：高压/低压/脉搏、时间、测量臂、体位、备注、来源", "aliases": ["血压条目", "测量记录"], "domain": "records"},
+    {"term": "测量提醒", "code_name": "Reminder", "definition": "通过本地通知提醒用户测量血压的功能总称，支持多种提醒方式", "aliases": ["血压提示", "测量通知"], "domain": "settings"},
+    {"term": "提醒方式", "code_name": "ReminderMode", "definition": "测量提醒的触发模式枚举：off（关闭）/ daily（每日定时）/ interval（周期提醒）", "aliases": ["提醒类型", "提醒模式"], "domain": "settings"},
+    {"term": "定时提醒", "code_name": "DailyReminder", "definition": "提醒方式之一：每天固定时刻触发一次本地通知", "aliases": ["每日提醒", "固定时间提醒"], "domain": "settings"},
+    {"term": "周期提醒", "code_name": "IntervalReminder", "definition": "提醒方式之一：在开始时间与结束时间构成的提醒窗口内，按固定提醒周期（分钟）重复触发本地通知", "aliases": ["循环提醒", "间隔提醒"], "domain": "settings"},
+    {"term": "提醒窗口", "code_name": "reminderWindow", "definition": "周期提醒的生效时段，由开始时刻与结束时刻（均为当日时刻，要求 start < end）构成", "aliases": ["提醒时段", "生效时段"], "domain": "settings"},
+    {"term": "提醒周期", "code_name": "intervalMinutes", "definition": "周期提醒相邻两次触发的间隔分钟数（≥15），默认 30", "aliases": ["提醒间隔", "重复周期"], "domain": "settings"},
+    {"term": "触发时刻", "code_name": "occurrence", "definition": "按提醒窗口与提醒周期计算出的具体某天某时刻的通知触发点，从窗口开始时刻起按提醒周期递增，最后一个不晚于结束时刻", "aliases": ["触发点", "排程时刻"], "domain": "settings"}
+  ]
+}
