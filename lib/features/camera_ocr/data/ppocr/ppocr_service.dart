@@ -9,13 +9,14 @@ library;
 
 import 'dart:io';
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:onnxruntime/onnxruntime.dart';
 
 import 'det_postprocess.dart';
+import 'perspective_crop.dart';
 import 'rec_decode.dart';
 
 /// RGBA 像素图（行主序，每像素 4 字节）。
@@ -115,11 +116,11 @@ class PpOcrService {
     codec.dispose();
 
     // ---------- 检测 ----------
-    final longest = math.max(image.width, image.height);
-    var scale = _detLimitSide / longest;
-    if (scale > 1) scale = 1;
-    var detW = ((image.width * scale) / 32).floor() * 32;
-    var detH = ((image.height * scale) / 32).floor() * 32;
+    // 与 RapidOCR 默认一致：短边缩放到 736（不足则放大），对齐 32
+    final shortest = math.min(image.width, image.height);
+    final scale = _detLimitSide / shortest;
+    var detW = ((image.width * scale) / 32).round() * 32;
+    var detH = ((image.height * scale) / 32).round() * 32;
     detW = detW < 32 ? 32 : detW;
     detH = detH < 32 ? 32 : detH;
     final detImage = image.resizeNearest(detW, detH);
@@ -132,40 +133,36 @@ class PpOcrService {
       },
     );
     final prob = _probMapFromOutput(detRun![0]!.value, detW, detH);
-
     final scaleX = image.width / detW;
     final scaleY = image.height / detH;
-    final detBoxes = boxesFromProbMap(
+    final quads = quadsFromProbMap(
       prob: prob,
       width: detW,
       height: detH,
     )
-        .map((b) => DetBox(
-              left: (b.left * scaleX).round(),
-              top: (b.top * scaleY).round(),
-              right: (b.right * scaleX).round(),
-              bottom: (b.bottom * scaleY).round(),
-              score: b.score,
+        .map((q) => DetQuad(
+              corners: q.corners
+                  .map((c) => Offset(c.dx * scaleX, c.dy * scaleY))
+                  .toList(),
+              score: q.score,
             ))
-        .toList()
-      ..sort((a, b) => b.area.compareTo(a.area));
-    // 大图/摩尔纹场景可能检出数十个框，逐框识别耗时过长；
-    // 血压读数所在框面积显著更大，按面积取前 15 个
-    final recTargets = detBoxes.take(_recMaxBoxes).toList()
-      ..sort((a, b) {
-        final byRow = (a.top + a.bottom).compareTo(b.top + b.bottom);
-        return byRow != 0 ? byRow : a.left.compareTo(b.left);
-      });
+        .toList();
 
     // ---------- 识别 ----------
+    // 大图/摩尔纹场景可能检出数十个框，逐框识别耗时过长；
+    // 血压读数所在四边形面积显著更大，按面积取前 15 个
+    final sortedQuads = [...quads]..sort((a, b) {
+        final ba = a.bounds;
+        final bb = b.bounds;
+        return (bb.width * bb.height).compareTo(ba.width * ba.height);
+      });
+    if (kDebugMode) {
+      debugPrint('PpOCR det quads: ${sortedQuads.length}');
+    }
     final lines = <PpTextLine>[];
-    for (final box in recTargets) {
-      final cropped = image.crop(Rect.fromLTWH(
-        box.left.toDouble(),
-        box.top.toDouble(),
-        box.width.toDouble(),
-        box.height.toDouble(),
-      ));
+    for (final quad in sortedQuads.take(_recMaxBoxes)) {
+      final (cropW, cropH) = quadSize(quad.corners);
+      final cropped = cropQuad(image, quad.corners, cropW, cropH);
       final recW = _recInputWidth(cropped);
       final resized = cropped.resizeNearest(recW, _recHeight);
       final recInput = _recTensor(resized, recW);
@@ -179,18 +176,19 @@ class PpOcrService {
       final indices =
           _argmaxPerSteps(recRun![0]!.value, _dict!.length + 2);
       final text = decodeCtc(indices, _dict!).trim();
+      // ignore: avoid_print
+      print('PpOCR rec "$text" @ ${quad.score.toStringAsFixed(2)}');
       if (text.isEmpty) continue;
       lines.add(PpTextLine(
         text: text,
-        rect: Rect.fromLTWH(
-          box.left.toDouble(),
-          box.top.toDouble(),
-          box.width.toDouble(),
-          box.height.toDouble(),
-        ),
-        score: box.score,
+        rect: quad.bounds,
+        score: quad.score,
       ));
     }
+    lines.sort((a, b) {
+      final byRow = a.rect.center.dy.compareTo(b.rect.center.dy);
+      return byRow != 0 ? byRow : a.rect.center.dx.compareTo(b.rect.center.dx);
+    });
     return lines;
   }
 

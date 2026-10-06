@@ -1,13 +1,17 @@
 /// DBNet 文本检测后处理（纯 Dart，无 IO，便于单元测试）。
 ///
-/// 输入 PP-OCR 检测模型输出的概率图（单通道 H×W），输出文本框列表
-/// （轴对齐，已按 unclip 扩张并缩放回原图坐标）。
+/// 输入 PP-OCR 检测模型输出的概率图（单通道 H×W）：
+/// * [quadsFromProbMap] 完整后处理：连通域 → 凸包 → 最小面积旋转矩形 →
+///   unclip 扩张，输出**旋转四边形**（配合透视裁剪使用，识别质量更好）；
+/// * [boxesFromProbMap] 简化后处理：输出轴对齐框（调试用）。
 library;
 
 import 'dart:collection';
+import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:ui';
 
-/// 检测出的文本框（原图坐标，轴对齐）。
+/// 检测出的文本框（轴对齐，调试用）。
 class DetBox {
   const DetBox({
     required this.left,
@@ -32,14 +36,127 @@ class DetBox {
       'DetBox($left,$top,$right,$bottom,score=${score.toStringAsFixed(2)})';
 }
 
-/// 从概率图提取文本框。
+/// 检测出的文本四边形（原图坐标，四角按周向顺序：
+/// 左上 → 右上 → 右下 → 左下，以矩形长边为"宽"）。
+class DetQuad {
+  const DetQuad({required this.corners, required this.score});
+
+  /// 4 个角点，index 0..3 周向顺序。
+  final List<Offset> corners;
+  final double score;
+
+  Rect get bounds {
+    final xs = corners.map((c) => c.dx);
+    final ys = corners.map((c) => c.dy);
+    return Rect.fromLTRB(xs.reduce(math.min), ys.reduce(math.min),
+        xs.reduce(math.max), ys.reduce(math.max));
+  }
+
+  /// 边长（宽=角点 0-1 边，高=角点 1-2 边）。
+  double get edge01 {
+    final dx = corners[1].dx - corners[0].dx;
+    final dy = corners[1].dy - corners[0].dy;
+    return math.sqrt(dx * dx + dy * dy);
+  }
+
+  double get edge12 {
+    final dx = corners[2].dx - corners[1].dx;
+    final dy = corners[2].dy - corners[1].dy;
+    return math.sqrt(dx * dx + dy * dy);
+  }
+}
+
+class _Point2 {
+  _Point2(this.x, this.y);
+  final double x;
+  final double y;
+}
+
+double _cross(_Point2 o, _Point2 a, _Point2 b) =>
+    (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+
+/// Andrew 凸包（单调链）。
+List<_Point2> _convexHull(List<_Point2> pts) {
+  if (pts.length < 3) return pts;
+  final sorted = [...pts]..sort((a, b) {
+      final c = a.x.compareTo(b.x);
+      return c != 0 ? c : a.y.compareTo(b.y);
+    });
+  final lower = <_Point2>[];
+  for (final p in sorted) {
+    while (lower.length >= 2 &&
+        _cross(lower[lower.length - 2], lower.last, p) <= 0) {
+      lower.removeLast();
+    }
+    lower.add(p);
+  }
+  final upper = <_Point2>[];
+  for (final p in sorted.reversed) {
+    while (upper.length >= 2 &&
+        _cross(upper[upper.length - 2], upper.last, p) <= 0) {
+      upper.removeLast();
+    }
+    upper.add(p);
+  }
+  upper.removeLast();
+  lower.removeLast();
+  return [...lower, ...upper];
+}
+
+/// 最小面积旋转矩形（枚举凸包边为基准方向）。
+({_Point2 center, _Point2 u, _Point2 v, double w, double h}) _minAreaRect(
+    List<_Point2> hull) {
+  var bestArea = double.infinity;
+  var bestU = _Point2(1, 0);
+  var bestV = _Point2(0, 1);
+  var bestW = 0.0;
+  var bestH = 0.0;
+  var bestC = _Point2(0, 0);
+
+  for (var i = 0; i < hull.length; i++) {
+    final p1 = hull[i];
+    final p2 = hull[(i + 1) % hull.length];
+    final ex = p2.x - p1.x;
+    final ey = p2.y - p1.y;
+    final len = math.sqrt(ex * ex + ey * ey);
+    if (len < 1e-6) continue;
+    final ux = ex / len;
+    final uy = ey / len;
+    final vx = -uy;
+    final vy = ux;
+
+    var minU = double.infinity, maxU = double.negativeInfinity;
+    var minV = double.infinity, maxV = double.negativeInfinity;
+    for (final p in hull) {
+      final pu = p.x * ux + p.y * uy;
+      final pv = p.x * vx + p.y * vy;
+      if (pu < minU) minU = pu;
+      if (pu > maxU) maxU = pu;
+      if (pv < minV) minV = pv;
+      if (pv > maxV) maxV = pv;
+    }
+    final w = maxU - minU;
+    final h = maxV - minV;
+    final area = w * h;
+    if (area < bestArea) {
+      bestArea = area;
+      bestU = _Point2(ux, uy);
+      bestV = _Point2(vx, vy);
+      bestW = w;
+      bestH = h;
+      bestC = _Point2(
+        ux * ((minU + maxU) / 2) + vx * ((minV + maxV) / 2),
+        uy * ((minU + maxU) / 2) + vy * ((minV + maxV) / 2),
+      );
+    }
+  }
+  return (center: bestC, u: bestU, v: bestV, w: bestW, h: bestH);
+}
+
+/// 从概率图提取文本四边形（完整 DB 后处理）。
 ///
-/// * [prob] 长度 h*w 的概率图；
-/// * [thresh] 二值化阈值（DB 默认 0.3）；
-/// * [boxThresh] 框内平均分过滤阈值（DB 默认 0.5，取略宽松值）；
-/// * [unclipRatio] 扩张系数（DB 默认 1.5~2.0）；
-/// * [minArea] 最小像素面积（过滤噪点）。
-List<DetBox> boxesFromProbMap({
+/// 返回按阅读顺序（行优先）排序的四边形列表，坐标为概率图坐标系。
+List<DetQuad> quadsFromProbMap({
   required Float32List prob,
   required int width,
   required int height,
@@ -55,29 +172,33 @@ List<DetBox> boxesFromProbMap({
 
   final visited = Uint8List(width * height);
   final queue = Queue<int>();
-  final boxes = <DetBox>[];
+  final quads = <DetQuad>[];
 
   for (var start = 0; start < bin.length; start++) {
     if (bin[start] == 0 || visited[start] == 1) continue;
     queue.add(start);
     visited[start] = 1;
 
-    var minX = width, minY = height, maxX = 0, maxY = 0;
     var count = 0;
     var probSum = 0.0;
-    final memberIdx = <int>[];
+    final boundary = <_Point2>[];
 
     while (queue.isNotEmpty) {
       final idx = queue.removeFirst();
-      memberIdx.add(idx);
       final x = idx % width;
       final y = idx ~/ width;
       count++;
       probSum += prob[idx];
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
+
+      final isBoundary = x == 0 ||
+          y == 0 ||
+          x == width - 1 ||
+          y == height - 1 ||
+          bin[idx - 1] == 0 ||
+          bin[idx + 1] == 0 ||
+          bin[idx - width] == 0 ||
+          bin[idx + width] == 0;
+      if (isBoundary) boundary.add(_Point2(x.toDouble(), y.toDouble()));
 
       if (x > 0 && bin[idx - 1] == 1 && visited[idx - 1] == 0) {
         visited[idx - 1] = 1;
@@ -100,22 +221,73 @@ List<DetBox> boxesFromProbMap({
     if (count < minArea) continue;
     final score = probSum / count;
     if (score < boxThresh) continue;
+    if (boundary.length < 3) continue;
 
-    // unclip：按 bbox 面积/周长比向外扩张（DB 简化版，轴对齐近似）
-    final bw = maxX - minX + 1;
-    final bh = maxY - minY + 1;
-    final perimeter = 2 * (bw + bh);
-    final offset = (bw * bh * unclipRatio / perimeter).ceil();
-    final l = (minX - offset).clamp(0, width - 1);
-    final t = (minY - offset).clamp(0, height - 1);
-    final r = (maxX + offset).clamp(0, width - 1);
-    final b = (maxY + offset).clamp(0, height - 1);
-    boxes.add(DetBox(left: l, top: t, right: r, bottom: b, score: score));
+    final hull = _convexHull(boundary);
+    final rect = _minAreaRect(hull);
+
+    // unclip：offset = area * ratio / perimeter，宽高各外扩 2*offset
+    final perimeter = 2 * (rect.w + rect.h);
+    final offset = rect.w * rect.h * unclipRatio / perimeter;
+    final w = rect.w + 2 * offset;
+    final h = rect.h + 2 * offset;
+    // 保证"宽"为长边（识别条横放）
+    final uLong = w >= h ? rect.u : rect.v;
+    final vShort = w >= h ? rect.v : rect.u;
+    final halfLong = math.max(w, h) / 2;
+    final halfShort = math.min(w, h) / 2;
+
+    final cx = rect.center.x;
+    final cy = rect.center.y;
+    Offset corner(double su, double sv) => Offset(
+        cx + uLong.x * halfLong * su + vShort.x * halfShort * sv,
+        cy + uLong.y * halfLong * su + vShort.y * halfShort * sv);
+    quads.add(DetQuad(
+      corners: [
+        corner(-1, -1),
+        corner(1, -1),
+        corner(1, 1),
+        corner(-1, 1),
+      ],
+      score: score,
+    ));
   }
 
-  boxes.sort((a, b) {
-    final byRow = (a.top + a.bottom).compareTo(b.top + b.bottom);
-    return byRow != 0 ? byRow : a.left.compareTo(b.left);
+  quads.sort((a, b) {
+    final ba = a.bounds;
+    final bb = b.bounds;
+    final byRow = (ba.top + ba.bottom).compareTo(bb.top + bb.bottom);
+    return byRow != 0 ? byRow : ba.left.compareTo(bb.left);
   });
-  return boxes;
+  return quads;
+}
+
+/// 从概率图提取轴对齐文本框（简化后处理，调试用）。
+List<DetBox> boxesFromProbMap({
+  required Float32List prob,
+  required int width,
+  required int height,
+  double thresh = 0.3,
+  double boxThresh = 0.45,
+  double unclipRatio = 1.8,
+  int minArea = 24,
+}) {
+  final quads = quadsFromProbMap(
+    prob: prob,
+    width: width,
+    height: height,
+    thresh: thresh,
+    boxThresh: boxThresh,
+    unclipRatio: unclipRatio,
+    minArea: minArea,
+  );
+  return quads
+      .map((q) => DetBox(
+            left: q.bounds.left.floor(),
+            top: q.bounds.top.floor(),
+            right: q.bounds.right.ceil(),
+            bottom: q.bounds.bottom.ceil(),
+            score: q.score,
+          ))
+      .toList();
 }

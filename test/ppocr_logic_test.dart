@@ -7,6 +7,8 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:blood_pressed/features/camera_ocr/data/ppocr/det_postprocess.dart';
+import 'package:blood_pressed/features/camera_ocr/data/ppocr/perspective_crop.dart';
+import 'package:blood_pressed/features/camera_ocr/data/ppocr/ppocr_service.dart' show RgbaImage;
 import 'package:blood_pressed/features/camera_ocr/data/ppocr/position_parser.dart';
 import 'package:blood_pressed/features/camera_ocr/data/ppocr/rec_decode.dart';
 
@@ -87,6 +89,50 @@ void main() {
     });
     test('全 blank → 空串', () {
       expect(decodeCtc([0, 0, 0], dict), '');
+    });
+  });
+
+  group('旋转矩形与透视裁剪', () {
+    test('轴对齐区域：quad bbox 与轴对齐一致，裁剪退化正确', () {
+      final quads = quadsFromProbMap(
+        prob: _prob(96, 32, [const Rect.fromLTWH(20, 8, 40, 12)]),
+        width: 96,
+        height: 32,
+      );
+      expect(quads, hasLength(1));
+      final b = quads.first.bounds;
+      expect(b.left, lessThanOrEqualTo(20));
+      expect(b.right, greaterThanOrEqualTo(60));
+      // 长边为宽
+      final (w, h) = quadSize(quads.first.corners);
+      expect(w, greaterThanOrEqualTo(h));
+    });
+
+    test('透视裁剪：渐变图上裁剪位置正确（轴对齐退化用例）', () {
+      // 水平渐变 RGBA 图：颜色仅与 x 相关
+      const w = 100, h = 40;
+      final rgba = Uint8List(w * h * 4);
+      for (var y = 0; y < h; y++) {
+        for (var x = 0; x < w; x++) {
+          final i = (y * w + x) * 4;
+          rgba[i] = x * 2;
+          rgba[i + 1] = 0;
+          rgba[i + 2] = 0;
+          rgba[i + 3] = 255;
+        }
+      }
+      final src = RgbaImage(rgba, w, h);
+      final quad = [
+        const Offset(20, 10),
+        const Offset(60, 10),
+        const Offset(60, 30),
+        const Offset(20, 30),
+      ];
+      final cropped = cropQuad(src, quad, 40, 20);
+      // 裁剪图左缘 x=20 → R=40；右缘 x=59.x → R≈118
+      expect(cropped.rgba[0], 40);
+      final lastX = cropped.rgba[(cropped.height - 1) * cropped.width * 4 + (cropped.width - 1) * 4];
+      expect(lastX, inInclusiveRange(112, 120));
     });
   });
 

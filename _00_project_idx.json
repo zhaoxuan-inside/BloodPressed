@@ -188,9 +188,9 @@
     "path": "_08_task_plan_idx.json",
     "details_dir": "_08_task_plans/",
     "latest": {
-      "id": "plan-005",
-      "name": "拍照识别改用系统相机",
-      "time": "2026-10-05 14:13:03"
+      "id": "plan-006",
+      "name": "PP-OCRv5 离线 OCR 引擎替换 ML Kit",
+      "time": "2026-10-06 10:22:53"
     }
   },
   "dictionary": {

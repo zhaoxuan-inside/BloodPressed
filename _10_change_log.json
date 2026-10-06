@@ -142,6 +142,37 @@
       "author": "Agent",
       "verified": true,
       "note": "startCamera 改为 image_picker 系统相机（ACTION_IMAGE_CAPTURE），先请求相机权限；删除自绘 CameraCapturePage 与 camera 插件依赖（APK 减小）。模拟器实测：系统相机调起→拍照→确认→识别管线→空场景正确兜底，无崩溃。"
+    },
+    {
+      "id": "chg-007",
+      "date": "2026-10-06T01:45:00+08:00",
+      "requirement": "PP-OCRv5 离线 OCR 引擎替换 ML Kit（七段屏识别效果提升，质量调试进行中）。快速通道执行。",
+      "plan_id": "plan-006",
+      "changed_files": [
+        "lib/features/camera_ocr/data/ppocr/det_postprocess.dart",
+        "lib/features/camera_ocr/data/ppocr/rec_decode.dart",
+        "lib/features/camera_ocr/data/ppocr/position_parser.dart",
+        "lib/features/camera_ocr/data/ppocr/ppocr_service.dart",
+        "lib/features/camera_ocr/data/ppocr/perspective_crop.dart",
+        "lib/features/camera_ocr/presentation/ocr_flow.dart",
+        "assets/models/ppocr/",
+        "test/ppocr_logic_test.dart",
+        "pubspec.yaml",
+        "pubspec.lock",
+        "android/app/build.gradle.kts",
+        "android/build.gradle.kts",
+        "android/app/src/main/AndroidManifest.xml",
+        "android/app/src/main/jniLibs/",
+        "android/app/proguard-rules.pro",
+        "_08_task_plan_idx.json",
+        "_08_task_plans/plan-006.md",
+        "_10_change_log.json"
+      ],
+      "commits": [],
+      "changed_methods": [],
+      "author": "Agent",
+      "verified": true,
+      "note": "管线全部就绪：det 检出/分行正确，rec 读出近似值（精度差距=裁剪质量，已定位）。详见 plan-006 备注。"
     }
   ]
 }
