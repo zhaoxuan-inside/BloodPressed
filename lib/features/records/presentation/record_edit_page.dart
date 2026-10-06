@@ -20,6 +20,7 @@ class RecordEditPage extends ConsumerStatefulWidget {
     this.initialSource = RecordSource.manual,
     this.initialPhotoPath,
     this.initialConfidence,
+    this.initialLowConfidence = false,
   });
 
   final BpRecord? existing;
@@ -29,6 +30,9 @@ class RecordEditPage extends ConsumerStatefulWidget {
   final RecordSource initialSource;
   final String? initialPhotoPath;
   final double? initialConfidence;
+
+  /// 低置信度/未识别：预填值仅供参考，所有数值输入框红框强调。
+  final bool initialLowConfidence;
 
   @override
   ConsumerState<RecordEditPage> createState() => _RecordEditPageState();
@@ -149,6 +153,7 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
               _RecognitionSourceBanner(
                 source: widget.initialSource,
                 confidence: widget.initialConfidence,
+                lowConfidence: widget.initialLowConfidence,
               ),
             const SizedBox(height: 4),
             Row(
@@ -158,6 +163,7 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
                   child: _NumberField(
                     controller: _sysCtrl,
                     label: '高压（收缩压）',
+                    highlight: widget.initialLowConfidence,
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -166,6 +172,7 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
                   child: _NumberField(
                     controller: _diaCtrl,
                     label: '低压（舒张压）',
+                    highlight: widget.initialLowConfidence,
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -176,6 +183,7 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
               controller: _pulseCtrl,
               label: '脉搏（可选）',
               suffix: '次/分',
+              highlight: widget.initialLowConfidence,
             ),
             const SizedBox(height: 16),
             SegmentedButton<MeasureArm>(
@@ -258,15 +266,46 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
 }
 
 class _RecognitionSourceBanner extends StatelessWidget {
-  const _RecognitionSourceBanner({required this.source, this.confidence});
+  const _RecognitionSourceBanner({
+    required this.source,
+    this.confidence,
+    this.lowConfidence = false,
+  });
 
   final RecordSource source;
   final double? confidence;
+  final bool lowConfidence;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final text = source == RecordSource.ocr ? '拍照识别结果' : 'AI 识别结果';
+    if (lowConfidence) {
+      final detail = confidence == null
+          ? '$text未能读出数值，请手动录入'
+          : '$text置信度低（${(confidence! * 100).toStringAsFixed(0)}%），红框数值仅供参考';
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.errorContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded,
+                size: 18, color: theme.colorScheme.onErrorContainer),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '$detail，请核对修改后保存',
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: theme.colorScheme.onErrorContainer),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     final conf = confidence == null
         ? ''
         : '（置信度 ${(confidence! * 100).toStringAsFixed(0)}%）';
@@ -300,15 +339,18 @@ class _NumberField extends StatelessWidget {
     required this.label,
     this.suffix,
     this.onChanged,
+    this.highlight = false,
   });
 
   final TextEditingController controller;
   final String label;
   final String? suffix;
   final ValueChanged<String>? onChanged;
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
+    final error = Theme.of(context).colorScheme.error;
     return TextField(
       controller: controller,
       keyboardType: TextInputType.number,
@@ -322,6 +364,20 @@ class _NumberField extends StatelessWidget {
         labelText: label,
         counterText: '',
         suffixText: suffix,
+        filled: highlight,
+        fillColor: highlight ? error.withValues(alpha: 0.06) : null,
+        enabledBorder: highlight
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: error, width: 1.6),
+              )
+            : null,
+        focusedBorder: highlight
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: error, width: 2),
+              )
+            : null,
       ),
       onChanged: onChanged,
     );

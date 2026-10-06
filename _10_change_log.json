@@ -201,7 +201,23 @@
    "author": "Agent",
    "verified": true,
    "note": "彩色背光直拍照片（IMG20261006104305）宿主机端到端读出 120/80/脉搏75；合成用例 8 个（竖版/横版/旋转5°/灰屏/解析映射）。首版手机端全失败：压测定位为强暖光/冷光白平衡下背光 HSV 窗口失配 + 严格候选阻断放宽阶段。已改为两阶段色相窗 + 多候选（2 窗×前 2 连通域）× 双定向按读数得分择优，压测 7 种光照变体通过（冷光安全拒绝走兜底）；并修复灰像素色相除零崩溃；新增失败自诊断（照片副本+LCD 中间图+读数摘要存 ocr_debug，失败对话框显示摘要）。全量 121 测试 + analyze 0。【追记】二次失败定位：俯拍透视下 minAreaRect 角点不含透视信息；已改极值点取真实角点 + 四点透视单应性矫正 + 移除列簇层冗余边框过滤，失败照片两条输入路径均读出 120/80/75。"
+  },
+  {
+   "id": "chg-009",
+   "date": "2026-10-06T17:30:00+08:00",
+   "requirement": "用户要求：识别读不出时不要报错弹窗，直接把识别到的结果预填进输入框交由用户确认；低置信度结果在所有数值输入框加红框强调。快速通道。",
+   "plan_id": "plan-006",
+   "changed_files": [
+    "lib/features/camera_ocr/presentation/ocr_flow.dart",
+    "lib/features/records/presentation/record_edit_page.dart",
+    "_10_change_log.json"
+   ],
+   "commits": [],
+   "changed_methods": [],
+   "author": "Agent",
+   "verified": true,
+   "note": "识别流程改为：可靠结果直接预填确认表单；低置信度/未识别也直接进表单（尽力预填，可能为空），横幅警告 + 三个数值输入框红框强调，不再弹窗打断。移除低置信度弹窗与大模型兜底入口（extractBpFromImage 保留为 llm 模块 API）。服务级异常仍提示。诊断留存逻辑不变。全量 120 测试 + analyze 0。"
   }
  ],
- "latest": "chg-008"
+ "latest": "chg-009"
 }
