@@ -14,6 +14,7 @@ import 'package:blood_pressed/features/camera_ocr/data/image_utils.dart';
 import 'package:blood_pressed/features/camera_ocr/domain/ocr_parser.dart';
 import 'package:blood_pressed/features/camera_ocr/data/ppocr/ppocr_service.dart';
 import 'package:blood_pressed/features/camera_ocr/data/ppocr/position_parser.dart';
+import 'package:blood_pressed/features/camera_ocr/data/ppocr/seven_segment.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../core/widgets/common_widgets.dart' show showConfirmDialog;
 
@@ -76,8 +77,20 @@ class OcrFlow {
     OcrParseResult? result;
     String? errorMsg;
     try {
-      final lines = await PpOcrService().recognizeLines(imagePath);
-      result = parsePositionedLines(lines);
+      final image = await PpOcrService.decodeImage(imagePath);
+      // 1) 七段码专用路径：彩色背光血压计屏。巨型七段字形是通用文本
+      //    检测/识别模型的盲区（plan-006 对照实验），先走结构化读取。
+      final readout = SevenSegmentReader()
+          .read(SegImage(image.rgba, image.width, image.height));
+      final lcdResult = readout == null ? null : parseLcdReadout(readout);
+      if (lcdResult != null && lcdResult.isReliable) {
+        debugPrint('OCR LCD readout: $readout');
+        result = lcdResult;
+      } else {
+        // 2) 通用 PP-OCR 路径（印刷体/非彩色背光照片）
+        final lines = await PpOcrService().recognizeImage(image);
+        result = parsePositionedLines(lines);
+      }
     } on PlatformException catch (e) {
       debugPrint('OCR PlatformException: $e');
       errorMsg = '识别服务异常，请重试；若持续失败请改用手动录入';

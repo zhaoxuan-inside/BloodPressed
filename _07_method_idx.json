@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-10-05T08:24:09+08:00",
+  "updated_at": "2026-10-06T12:45:28+08:00",
   "methods": [
     {
       "dependencies": [],
@@ -124,13 +124,62 @@
       "description": "持久化提醒周期（分钟），小于下限 15 抛 ArgumentError",
       "reusable": false,
       "id": "m-008"
+    },
+    {
+      "dependencies": [
+        "det_postprocess.minAreaRectCorners"
+      ],
+      "tests": "test/seven_segment_test.dart",
+      "deprecated": false,
+      "replaced_by": null,
+      "signature": "LcdReadout? read(SegImage img)",
+      "name": "read",
+      "category": "orchestration",
+      "layer": "data",
+      "module": "camera_ocr",
+      "location": "lib/features/camera_ocr/data/ppocr/seven_segment.dart",
+      "description": "七段码 LCD 读数主入口：HSV 蓝青背光定位旋转矩形（图像坐标锚定防颠倒）→ 仿射矫正灰度（长边≤900）→ 照度归一化二值化 → 连通域去噪 → 行带/列簇/行子块提取字形 → 行列填充峰值七段分类 → 间距分组数值；横竖两个 90° 定向都提取取合理数值得分高者，无可读结果返回 null",
+      "reusable": true,
+      "id": "m-009"
+    },
+    {
+      "dependencies": [],
+      "tests": "test/seven_segment_test.dart",
+      "deprecated": false,
+      "replaced_by": null,
+      "signature": "List<Offset> minAreaRectCorners(List<Offset> points)",
+      "name": "minAreaRectCorners",
+      "category": "algorithm",
+      "layer": "data",
+      "module": "camera_ocr",
+      "location": "lib/features/camera_ocr/data/ppocr/det_postprocess.dart",
+      "description": "点集的最小面积旋转矩形四角（凸包 + 枚举凸包边，周向顺序：0→1 为长边、1→2 为短边；退化点集返回空）",
+      "reusable": true,
+      "id": "m-010"
+    },
+    {
+      "dependencies": [
+        "seven_segment.LcdReadout"
+      ],
+      "tests": "test/seven_segment_test.dart",
+      "deprecated": false,
+      "replaced_by": null,
+      "signature": "OcrParseResult? parseLcdReadout(LcdReadout readout)",
+      "name": "parseLcdReadout",
+      "category": "orchestration",
+      "layer": "data",
+      "module": "camera_ocr",
+      "location": "lib/features/camera_ocr/data/ppocr/position_parser.dart",
+      "description": "七段码 LCD 读数值 → 血压候选：自上而下首个收缩压区间(60-260)数值为收缩压，其后舒张压区间(40-160)且小于收缩压者为舒张压，再其后脉搏区间(30-220)者为脉搏（时间/序号靠区间过滤），置信度 0.88-0.92",
+      "reusable": true,
+      "id": "m-011"
     }
   ],
   "stats": {
-    "total": 8,
+    "total": 11,
     "by_category": {
-      "algorithm": 1,
-      "orchestration": 1,
+      "algorithm": 2,
+      "orchestration": 3,
       "data": 6
     }
   }

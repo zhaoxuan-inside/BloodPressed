@@ -13,6 +13,44 @@ import 'dart:ui';
 import 'package:blood_pressed/features/camera_ocr/domain/ocr_parser.dart';
 
 import 'rec_decode.dart';
+import 'seven_segment.dart';
+
+/// 七段码 LCD 读数 → 血压候选（行序自上而下：收缩压 → 舒张压 → 脉搏）。
+///
+/// 规则：首个收缩压区间数值为收缩压；其后首个舒张压区间且小于收缩压的
+/// 数值为舒张压；再其后首个脉搏区间数值为脉搏（多余数值如时间/记忆序号
+/// 靠区间过滤）。七段字形经逐段采样校验，误读概率低，置信度高于通用 OCR。
+OcrParseResult? parseLcdReadout(LcdReadout readout) {
+  int? sys, dia, pulse;
+  for (final n in readout.numbers) {
+    final v = n.value;
+    if (sys == null && v >= 60 && v <= 260) {
+      sys = v;
+    } else if (sys != null &&
+        dia == null &&
+        v >= 40 &&
+        v <= 160 &&
+        v < sys) {
+      dia = v;
+    } else if (sys != null &&
+        dia != null &&
+        pulse == null &&
+        v >= 30 &&
+        v <= 220) {
+      pulse = v;
+    }
+  }
+  if (sys == null || dia == null) return null;
+  final c = BpCandidate(
+    systolic: sys,
+    diastolic: dia,
+    pulse: pulse,
+    confidence: pulse != null ? 0.92 : 0.88,
+    pattern: 'lcd',
+  );
+  if (!c.plausible) return null;
+  return OcrParseResult(candidates: [c]);
+}
 
 /// 把带位置的文本行解析为血压候选。
 OcrParseResult parsePositionedLines(List<PpTextLine> lines) {

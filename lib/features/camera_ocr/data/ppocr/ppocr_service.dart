@@ -101,11 +101,14 @@ class PpOcrService {
     _recSession = OrtSession.fromBuffer(recBytes, OrtSessionOptions());
   }
 
-  /// 识别图片，返回带位置的文本行（按阅读顺序）。
-  Future<List<PpTextLine>> recognizeLines(String imagePath) async {
-    await _ensureLoaded();
+  /// 解码图片为 RGBA（宽 1600，等比缩放）。LCD 七段码路径与通用 OCR
+  /// 路径共用一次解码。
+  static Future<RgbaImage> decodeImage(
+    String imagePath, {
+    int targetWidth = 1600,
+  }) async {
     final bytes = File(imagePath).readAsBytesSync();
-    final codec = await instantiateImageCodec(bytes, targetWidth: 1600);
+    final codec = await instantiateImageCodec(bytes, targetWidth: targetWidth);
     final frame = await codec.getNextFrame();
     final rgba =
         (await frame.image.toByteData(format: ImageByteFormat.rawRgba))!
@@ -114,6 +117,16 @@ class PpOcrService {
     final image = RgbaImage(rgba, frame.image.width, frame.image.height);
     frame.image.dispose();
     codec.dispose();
+    return image;
+  }
+
+  /// 识别图片，返回带位置的文本行（按阅读顺序）。
+  Future<List<PpTextLine>> recognizeLines(String imagePath) async =>
+      recognizeImage(await decodeImage(imagePath));
+
+  /// 识别已解码图片（供 ocr_flow 复用七段码路径的解码结果）。
+  Future<List<PpTextLine>> recognizeImage(RgbaImage image) async {
+    await _ensureLoaded();
 
     // ---------- 检测 ----------
     // 与 RapidOCR 默认一致：短边缩放到 736（不足则放大），对齐 32
