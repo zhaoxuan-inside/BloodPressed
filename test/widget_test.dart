@@ -28,7 +28,12 @@ void main() {
     });
   });
 
-  testWidgets('占位冒烟测试', (tester) async {
-    expect(true, isTrue);
+  test('分级建议文案非空', () {
+    for (final c in BpCategory.values) {
+      expect(c.label, isNotEmpty);
+      expect(c.advice, isNotEmpty);
+    }
+    expect(BpCategory.grade1.needsAttention, isTrue);
+    expect(BpCategory.normal.needsAttention, isFalse);
   });
 }

@@ -188,9 +188,9 @@
     "path": "_08_task_plan_idx.json",
     "details_dir": "_08_task_plans/",
     "latest": {
-      "id": "plan-002",
-      "name": "底部 AI助手入口按模型配置动态显示",
-      "time": "2026-10-05 10:09:30"
+      "id": "plan-005",
+      "name": "拍照识别改用系统相机",
+      "time": "2026-10-05 14:13:03"
     }
   },
   "dictionary": {

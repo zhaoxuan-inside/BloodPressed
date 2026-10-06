@@ -29,6 +29,9 @@ dependencies:
   # 网络（魔搭模型下载 / 远端大模型 SSE）
   dio: ^5.7.0
 
+  # 端侧 OCR（PP-OCRv5 ONNX 推理）
+  onnxruntime: ^1.4.1
+
   # 图表
   fl_chart: ">=0.70.0 <2.0.0"
 
@@ -70,6 +73,7 @@ flutter:
 
   assets:
     - assets/knowledge/
+    - assets/models/ppocr/
 
 # sqlite3 包的构建钩子默认从 github.com 下载 Android/iOS 预编译库，
 # 国内网络直连 GitHub 常超时，这里改用镜像前缀（若镜像失效可替换其它 gh 加速前缀）。

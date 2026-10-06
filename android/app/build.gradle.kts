@@ -6,7 +6,8 @@ plugins {
 
 android {
     namespace = "com.example.blood_pressed"
-    compileSdk = flutter.compileSdkVersion
+    // onnxruntime AAR 要求 compileSdk 34+（PP-OCR 端侧推理）
+    compileSdk = maxOf(34, flutter.compileSdkVersion)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

@@ -12,7 +12,8 @@ import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/record_edit_page.dart';
 import 'package:blood_pressed/features/camera_ocr/data/image_utils.dart';
 import 'package:blood_pressed/features/camera_ocr/domain/ocr_parser.dart';
-import 'package:blood_pressed/features/camera_ocr/data/ocr_service.dart';
+import 'package:blood_pressed/features/camera_ocr/data/ppocr/ppocr_service.dart';
+import 'package:blood_pressed/features/camera_ocr/data/ppocr/position_parser.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../core/widgets/common_widgets.dart' show showConfirmDialog;
 
@@ -75,8 +76,8 @@ class OcrFlow {
     OcrParseResult? result;
     String? errorMsg;
     try {
-      final service = OcrService();
-      result = await service.recognize(imagePath);
+      final lines = await PpOcrService().recognizeLines(imagePath);
+      result = parsePositionedLines(lines);
     } on PlatformException catch (e) {
       debugPrint('OCR PlatformException: $e');
       errorMsg = '识别服务异常，请重试；若持续失败请改用手动录入';
