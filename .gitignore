@@ -27,10 +27,12 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+# 任意层级的构建输出目录（根 /build、android/build、ios/Build 等一并覆盖）
+build/
 /coverage/
 
 # Symbolication related
@@ -46,6 +48,13 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# SOP 工具本地缓存（向量召回缓存等）
+.sop-vec-cache.json
 
 # ZCode 会话元数据
 .zcode/
