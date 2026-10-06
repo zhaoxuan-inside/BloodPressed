@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'package:blood_pressed/features/llm/domain/inference_engine.dart';
 import 'package:blood_pressed/features/llm/data/vision_extract.dart';
@@ -76,12 +79,17 @@ class OcrFlow {
 
     OcrParseResult? result;
     String? errorMsg;
+    String lcdSummary = '';
     try {
       final image = await PpOcrService.decodeImage(imagePath);
       // 1) 七段码专用路径：彩色背光血压计屏。巨型七段字形是通用文本
       //    检测/识别模型的盲区（plan-006 对照实验），先走结构化读取。
+      SevenSegmentReader.collectDebugArtifacts = true;
       final readout = SevenSegmentReader()
           .read(SegImage(image.rgba, image.width, image.height));
+      lcdSummary = readout == null
+          ? 'LCD: 未找到彩色背光屏'
+          : 'LCD 读数: ${readout.numbers.isEmpty ? "无可读数字" : readout.numbers}';
       final lcdResult = readout == null ? null : parseLcdReadout(readout);
       if (lcdResult != null && lcdResult.isReliable) {
         debugPrint('OCR LCD readout: $readout');
@@ -90,6 +98,7 @@ class OcrFlow {
         // 2) 通用 PP-OCR 路径（印刷体/非彩色背光照片）
         final lines = await PpOcrService().recognizeImage(image);
         result = parsePositionedLines(lines);
+        lcdSummary += '；OCR 行数: ${lines.length}';
       }
     } on PlatformException catch (e) {
       debugPrint('OCR PlatformException: $e');
@@ -97,13 +106,19 @@ class OcrFlow {
     } catch (e) {
       debugPrint('OCR error: $e');
       errorMsg = '识别失败：$e';
+    } finally {
+      SevenSegmentReader.collectDebugArtifacts = false;
+    }
+    if (result == null || !result.isReliable) {
+      // 失败自诊断：留存实际处理的照片与 LCD 中间图，便于回放定位
+      lcdSummary = await _saveDiagnostics(imagePath, lcdSummary);
     }
     if (!context.mounted) return;
     Navigator.of(context, rootNavigator: true).pop(); // 关掉加载框
 
     if (errorMsg != null) {
       if (context.mounted) {
-        showErrorDialog(context, '识别失败', errorMsg);
+        showErrorDialog(context, '识别失败', '$errorMsg\n$lcdSummary');
       }
       return;
     }
@@ -124,7 +139,48 @@ class OcrFlow {
 
     // 不可靠：尝试大模型兜底 / 低置信度手填
     if (!context.mounted) return;
-    await _onLowConfidence(context, imagePath, result);
+    await _onLowConfidence(context, imagePath, result, lcdSummary);
+  }
+
+  /// 失败自诊断：留存输入照片、LCD 中间图与读数摘要到文档目录，
+  /// 返回追加了诊断位置信息的摘要。
+  static Future<String> _saveDiagnostics(
+      String imagePath, String lcdSummary) async {
+    try {
+      final docs = await getApplicationDocumentsDirectory();
+      final stamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+      final dir = Directory(p.join(docs.path, 'ocr_debug', stamp));
+      dir.createSync(recursive: true);
+      final src = File(imagePath);
+      if (src.existsSync()) {
+        await src.copy(p.join(dir.path, 'input.jpg'));
+      }
+      final artifacts = SevenSegmentReader.debugOrientations;
+      for (var i = 0; i < artifacts.length; i++) {
+        final o = artifacts[i];
+        final w = o[0] as int, h = o[1] as int;
+        final gray = o[2] as Uint8List, clean = o[4] as Uint8List;
+        void dumpPng(String name, Uint8List plane) {
+          final im = img.Image.fromBytes(
+            width: w,
+            height: h,
+            bytes: plane.buffer,
+            numChannels: 1,
+          );
+          File(p.join(dir.path, name)).writeAsBytesSync(img.encodePng(im));
+        }
+
+        dumpPng('lcd$i.png', gray);
+        dumpPng('clean$i.png', clean);
+      }
+      File(p.join(dir.path, 'summary.txt')).writeAsStringSync(
+          '${DateTime.now()}\n$lcdSummary\n',
+          flush: true);
+      return '$lcdSummary\n（诊断已存 ocr_debug/${p.basename(dir.path)}）';
+    } catch (e) {
+      debugPrint('save diagnostics failed: $e');
+      return lcdSummary;
+    }
   }
 
   static Future<void> _onOcrUnavailable(
@@ -148,8 +204,8 @@ class OcrFlow {
     }
   }
 
-  static Future<void> _onLowConfidence(
-      BuildContext context, String imagePath, OcrParseResult result) async {
+  static Future<void> _onLowConfidence(BuildContext context,
+      String imagePath, OcrParseResult result, String lcdSummary) async {
     final canUseAi = _hasVisionLlm(context);
     final best = result.best;
     if (canUseAi) {
@@ -157,8 +213,8 @@ class OcrFlow {
         context,
         title: '识别结果不确定',
         content: best == null
-            ? '未能从照片中识别出血压数值。是否用已配置的大模型重新识别？'
-            : '识别置信度较低（${(best.confidence * 100).toStringAsFixed(0)}%），是否用大模型复核？',
+            ? '未能从照片中识别出血压数值（$lcdSummary）。是否用已配置的大模型重新识别？'
+            : '识别置信度较低（${(best.confidence * 100).toStringAsFixed(0)}%，${best.systolic}/${best.diastolic}${best.pulse == null ? '' : '/${best.pulse}'}，$lcdSummary），是否用大模型复核？',
         confirmText: '用大模型识别',
       );
       if (useAi && context.mounted) {
@@ -171,7 +227,7 @@ class OcrFlow {
       final manual = await _chooseFallback(
         context,
         title: '未能识别出血压数值',
-        message: '请尝试光线充足、无反光的角度重新拍摄，或手动录入。',
+        message: '请尝试光线充足、无反光的角度重新拍摄，或手动录入。\n$lcdSummary',
         allowAi: false,
       );
       if (manual == _Fallback.manual && context.mounted) {

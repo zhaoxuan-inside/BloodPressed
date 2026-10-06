@@ -137,17 +137,20 @@ class SevenSegmentReader {
 
   /// 主入口：读出 LCD 上的数值；未找到彩色背光屏或无可读数字时返回 null。
   ///
-  /// 行方向未知（三诺竖屏 / 欧姆龙横屏），两个 90° 定向都提取，
-  /// 取合理数值得分更高者。
+  /// 定位给出多候选（两阶段色相窗 × 各自前 2 个连通域），每个候选再按
+  /// 两个 90° 定向（行方向未知：三诺竖屏 / 欧姆龙横屏）提取，最终以
+  /// 合理数值得分最高者为准——任何单一候选都可能被光照/背景带偏。
   LcdReadout? read(SegImage img) {
     debugOrientations.clear();
-    final quad = _locateLcdQuad(img);
-    if (quad == null) return null;
-    final best = _readOrientation(img, quad);
-    final alt = _readOrientation(img, _rotated(quad));
-    if (best == null) return alt?.$1;
-    if (alt == null) return best.$1;
-    return best.$2 >= alt.$2 ? best.$1 : alt.$1;
+    (LcdReadout, int)? best;
+    for (final quad in _locateLcdCandidates(img)) {
+      for (final q in [quad, _rotated(quad)]) {
+        final r = _readOrientation(img, q);
+        if (r == null) continue;
+        if (best == null || r.$2 > best.$2) best = r;
+      }
+    }
+    return best?.$1;
   }
 
   /// 单定向提取，返回 (读数, 得分)。
@@ -178,18 +181,51 @@ class SevenSegmentReader {
 
   // ---------------- 1) LCD 定位 ----------------
 
-  /// 在降采样图上找饱和蓝/青背光的旋转矩形，返回原图坐标四角
-  /// （图像坐标周向顺序：左上→右上→右下→左下；行方向由 [read] 双定向解决）。
-  List<Offset>? _locateLcdQuad(SegImage img) {
+  /// 两阶段定位，返回候选四边形列表（最多 2×2 个，可能为空）。
+  ///
+  /// 严格窗（日光白平衡的蓝青）优先；放宽窗（色相/饱和度/明度都放宽）
+  /// 兜住暖光、冷光、暗光下的色相漂移与明度下降。
+  List<List<Offset>> _locateLcdCandidates(SegImage img) {
+    final cands = <List<Offset>>[];
+    for (final inMask in [_inStrictBlue, _inLooseBlue]) {
+      final stage = _locateByMask(img, inMask, 2);
+      for (final q in stage) {
+        if (cands.every((c) => _quadDist(c, q) > 12)) cands.add(q);
+      }
+    }
+    _log('locate candidates: ${cands.length}');
+    return cands;
+  }
+
+  double _quadDist(List<Offset> a, List<Offset> b) {
+    var d = 0.0;
+    for (var i = 0; i < 4; i++) {
+      d += _dist(a[i], b[i]);
+    }
+    return d / 4;
+  }
+
+  /// 严格窗：日光白平衡下的蓝青背光。
+  static bool _inStrictBlue(int hue, int sat, int val) =>
+      hue >= 180 && hue <= 240 && sat >= 70 && val >= 60;
+
+  /// 放宽窗：暖光/冷光白平衡使色相漂移、暗光使明度下降。
+  static bool _inLooseBlue(int hue, int sat, int val) =>
+      hue >= 140 && hue <= 280 && sat >= 30 && val >= 35;
+
+  /// 在降采样图上按 [inMask] 掩码找背光连通域，返回得分前 [topN] 的
+  /// 旋转矩形四角（原图坐标，图像坐标周向顺序：左上→右上→右下→左下）。
+  List<List<Offset>> _locateByMask(
+      SegImage img, bool Function(int, int, int) inMask, int topN) {
     final step = math.max(1, math.max(img.width, img.height) ~/ 360);
     final dw = img.width ~/ step;
     final dh = img.height ~/ step;
-    final mask = _blueMask(img, dw, dh, step);
+    final mask = _blueMask(img, dw, dh, step, inMask);
     final solid = _closeOpen(mask, dw, dh, 4);
+    _log('locate stage: mask on=${mask.fold(0, (a, v) => a + v)}');
 
     final minArea = dw * dh * 0.004;
-    var bestScore = 0.0;
-    List<Offset>? best;
+    final scored = <(double, List<Offset>)>[];
     for (final comp in _components(solid, dw, dh)) {
       if (comp.area < minArea) continue;
       final corners = minAreaRectCorners([
@@ -202,30 +238,34 @@ class SevenSegmentReader {
       if (math.min(w, h) / math.max(w, h) < 0.25) continue; // 长条背景剔除
       final fill = comp.area / (w * h);
       if (fill < 0.55) continue;
-      final score = comp.area * fill;
-      if (score > bestScore) {
-        bestScore = score;
-        best = corners;
-      }
+      scored.add((comp.area * fill, corners));
     }
-    if (best == null) return null;
+    scored.sort((a, b) => b.$1.compareTo(a.$1));
     // 图像坐标锚定（y 轴向下）：左上 = x+y 最小，右上 = y-x 最小，
     // 保证 0→1 为顶边、3→0 为左边，矫正结果不会上下颠倒。
-    var tl = best[0], tr = best[0], br = best[0], bl = best[0];
-    for (final p in best) {
-      if (p.dx + p.dy < tl.dx + tl.dy) tl = p;
-      if (p.dx + p.dy > br.dx + br.dy) br = p;
-      if (p.dy - p.dx < tr.dy - tr.dx) tr = p;
-      if (p.dy - p.dx > bl.dy - bl.dx) bl = p;
-    }
-    return [tl, tr, br, bl].map((p) => Offset(p.dx * step, p.dy * step)).toList();
+    return [
+      for (final (_, corners) in scored.take(topN))
+        (() {
+          var tl = corners[0], tr = corners[0], br = corners[0], bl = corners[0];
+          for (final p in corners) {
+            if (p.dx + p.dy < tl.dx + tl.dy) tl = p;
+            if (p.dx + p.dy > br.dx + br.dy) br = p;
+            if (p.dy - p.dx < tr.dy - tr.dx) tr = p;
+            if (p.dy - p.dx > bl.dy - bl.dx) bl = p;
+          }
+          return [tl, tr, br, bl]
+              .map((p) => Offset(p.dx * step, p.dy * step))
+              .toList();
+        })()
+    ];
   }
 
   List<Offset> _rotated(List<Offset> corners) =>
       [corners[1], corners[2], corners[3], corners[0]];
 
-  /// 蓝/青背光掩码（对齐 OpenCV 色相 90~120、饱和度≥70、明度≥60）。
-  Uint8List _blueMask(SegImage img, int dw, int dh, int step) {
+  /// 背光掩码：按 [inMask] 的 HSV 条件（hue 为 0~360 度，sat/val 0~255）。
+  Uint8List _blueMask(SegImage img, int dw, int dh, int step,
+      bool Function(int, int, int) inMask) {
     final out = Uint8List(dw * dh);
     for (var y = 0; y < dh; y++) {
       final int srcY = math.min(img.height - 1, y * step);
@@ -235,9 +275,8 @@ class SevenSegmentReader {
         final r = img.rgba[si], g = img.rgba[si + 1], b = img.rgba[si + 2];
         final maxC = math.max(r, math.max(g, b));
         final minC = math.min(r, math.min(g, b));
-        if (maxC < 60) continue;
+        if (maxC < 35 || maxC == minC) continue; // 灰像素无色相，防除零
         final s = (maxC - minC) * 255 ~/ maxC;
-        if (s < 70) continue;
         var hue = 0.0;
         if (maxC == r) {
           hue = 60 * (g - b) / (maxC - minC);
@@ -247,8 +286,7 @@ class SevenSegmentReader {
           hue = 240 + 60 * (r - g) / (maxC - minC);
         }
         if (hue < 0) hue += 360;
-        final half = hue / 2; // 对齐 OpenCV 0~180 刻度
-        if (half >= 90 && half <= 120) out[y * dw + x] = 1;
+        if (inMask(hue.round(), s, maxC)) out[y * dw + x] = 1;
       }
     }
     return out;
