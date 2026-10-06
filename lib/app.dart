@@ -40,7 +40,7 @@ class _BloodPressedAppState extends ConsumerState<BloodPressedApp> {
     };
 
     return MaterialApp.router(
-      title: 'BloodPressed 血压管家',
+      title: '血压了么',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

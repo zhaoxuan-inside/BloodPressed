@@ -164,7 +164,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               children: [
                 const ListTile(
                   leading: Icon(Icons.monitor_heart_outlined),
-                  title: Text('BloodPressed 血压管家'),
+                  title: Text('血压了么'),
                   subtitle: Text('v1.0.0 · 跨平台血压健康助手'),
                 ),
                 ListTile(

@@ -194,12 +194,12 @@ class _ExportPageState extends ConsumerState<ExportPage> {
       if (system) {
         result = await service.shareFile(
           file,
-          text: '我的血压记录（来自 BloodPressed）',
+          text: '我的血压记录（来自血压了么）',
         );
       } else {
         result = await service.shareImage(
           file,
-          text: '我的血压记录（来自 BloodPressed）',
+          text: '我的血压记录（来自血压了么）',
           toTimeline: toTimeline,
         );
       }
@@ -233,7 +233,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
       final file = await const CsvExporter().exportToFile(records);
       final result = await shareService.shareFile(
         file,
-        text: 'BloodPressed 血压记录导出',
+        text: '血压了么 血压记录导出',
       );
       if (mounted) {
         ScaffoldMessenger.of(context)

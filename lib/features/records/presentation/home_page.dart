@@ -27,7 +27,7 @@ class HomePage extends ConsumerWidget {
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('BloodPressed',
+            Text('血压了么',
                 style: TextStyle(fontWeight: FontWeight.w700)),
           ],
         ),
@@ -209,7 +209,7 @@ class _LatestCard extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              Text('👋 欢迎使用 BloodPressed',
+              Text('👋 欢迎使用血压了么',
                   style: theme.textTheme.titleMedium),
               const SizedBox(height: 6),
               const Text('记录第一次血压，开始你的健康之旅'),

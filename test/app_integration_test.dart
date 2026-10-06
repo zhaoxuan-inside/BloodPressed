@@ -74,7 +74,7 @@ void main() {
       (tester) async {
     await app.pumpApp(tester);
 
-    expect(find.text('👋 欢迎使用 BloodPressed'), findsOneWidget);
+    expect(find.text('👋 欢迎使用血压了么'), findsOneWidget);
     expect(find.text('还没有血压记录'), findsOneWidget);
 
     await tester.tap(find.byType(FloatingActionButton));
@@ -368,14 +368,14 @@ void main() {
     await pumpUntilReal(tester, () => tester.any(find.text('卡片分享')));
 
     expect(find.text('单次记录卡'), findsOneWidget);
-    expect(find.text('BloodPressed · 血压记录'), findsOneWidget);
+    expect(find.text('血压了么 · 血压记录'), findsOneWidget);
     expect(find.text('微信好友'), findsOneWidget);
     expect(find.text('导出全部记录为 CSV（Excel 可打开）'), findsOneWidget);
 
     await tester.tap(find.text('统计摘要卡'));
     await pumpUntilReal(
       tester,
-      () => tester.any(find.text('BloodPressed · 血压周报')),
+      () => tester.any(find.text('血压了么 · 血压周报')),
     );
   });
 

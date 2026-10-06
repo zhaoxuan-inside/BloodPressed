@@ -21,7 +21,7 @@
 - [x] 2. 根因定位：插件 gradle 对 text-recognition-chinese 仅 compileOnly，运行时无此类 → NoClassDefFoundError（首版即坏，与 R8 无关）；R8 报警与混淆 NPE 为连带问题
 - [x] 3. 修复：app build.gradle.kts 补 implementation 依赖；proguard-rules.pro 保留 ML Kit/GMS 内部类；ocr_flow 异常提示人性化（PlatformException → 友好文案，原始错误进 debugPrint）
 - [x] 4. 验证：相册识别真实识别 125/82（置信度 75%）进确认表单；拍照识别无崩溃、空场景正确走"未能识别"兜底
-- [ ] 5. 全量测试 + 收尾提交 + 重建真机包
+- [x] 5. 全量测试 + 收尾提交 + 重建真机包（后续多轮全量 112 测试通过、真机包已随修复重建；收尾并入 plan-006/chg-007）
 
 ## 恢复
 

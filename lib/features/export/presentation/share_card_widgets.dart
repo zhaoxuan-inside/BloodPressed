@@ -59,7 +59,7 @@ class RecordShareCard extends StatelessWidget {
               Icon(Icons.favorite, color: Colors.white70, size: 18),
               SizedBox(width: 6),
               Text(
-                'BloodPressed · 血压记录',
+                '血压了么 · 血压记录',
                 style: TextStyle(
                     color: Colors.white70,
                     fontSize: 13,
@@ -174,7 +174,7 @@ class StatsShareCard extends StatelessWidget {
               Icon(Icons.monitor_heart, color: Colors.white70, size: 18),
               SizedBox(width: 6),
               Text(
-                'BloodPressed · 血压周报',
+                '血压了么 · 血压周报',
                 style: TextStyle(
                     color: Colors.white70,
                     fontSize: 13,

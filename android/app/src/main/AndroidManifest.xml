@@ -14,7 +14,7 @@
     <!-- 保存分享卡片到临时目录（share_plus 提供 FileProvider，无需外部存储权限） -->
 
     <application
-        android:label="BloodPressed 血压管家"
+        android:label="血压了么"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
