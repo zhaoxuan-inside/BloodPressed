@@ -15,7 +15,6 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'det_postprocess.dart';
 
 /// RGBA 像素图（行主序，每像素 4 字节）。
 class SegImage {
@@ -163,7 +162,7 @@ class SevenSegmentReader {
     final clean = _filterComponents(bin, w, h);
     final numbers = _extractNumbers(clean, w, h);
     if (collectDebugArtifacts) {
-      debugOrientations.add([w, h, gray, bin, clean, numbers]);
+      debugOrientations.add([w, h, gray, bin, clean, numbers, quad]);
     }
     _log('rectified ${w}x$h quad=$quad numbers=$numbers');
     if (numbers.isEmpty) return null;
@@ -228,16 +227,41 @@ class SevenSegmentReader {
     final scored = <(double, List<Offset>)>[];
     for (final comp in _components(solid, dw, dh)) {
       if (comp.area < minArea) continue;
-      final corners = minAreaRectCorners([
-        for (final i in comp.pixels) Offset(i % dw + 0.0, i ~/ dw + 0.0),
-      ]);
-      if (corners.isEmpty) continue;
+      // 极值点取角：min/max(x+y) 与 min/max(y-x) 给出 LCD 的真实
+      // 梯形角点（含透视信息）。minAreaRect 只会给旋转矩形——矩形到
+      // 矩形的单应性不含任何透视校正，俯拍梯形畸变原样保留。
+      var tl = Offset.zero, tr = Offset.zero;
+      var br = Offset.zero, bl = Offset.zero;
+      var sumTL = 1 << 30, sumBR = -(1 << 30);
+      var diffTR = 1 << 30, diffBL = -(1 << 30);
+      for (final i in comp.pixels) {
+        final x = i % dw, y = i ~/ dw;
+        final s = x + y, d = y - x;
+        final p = Offset(x.toDouble(), y.toDouble());
+        if (s < sumTL) {
+          sumTL = s;
+          tl = p;
+        }
+        if (s > sumBR) {
+          sumBR = s;
+          br = p;
+        }
+        if (d < diffTR) {
+          diffTR = d;
+          tr = p;
+        }
+        if (d > diffBL) {
+          diffBL = d;
+          bl = p;
+        }
+      }
+      final corners = [tl, tr, br, bl];
       final w = _dist(corners[0], corners[1]);
       final h = _dist(corners[1], corners[2]);
       if (w < 1 || h < 1) continue;
       if (math.min(w, h) / math.max(w, h) < 0.25) continue; // 长条背景剔除
       final fill = comp.area / (w * h);
-      if (fill < 0.55) continue;
+      if (fill < 0.5) continue;
       scored.add((comp.area * fill, corners));
     }
     scored.sort((a, b) => b.$1.compareTo(a.$1));
@@ -294,29 +318,77 @@ class SevenSegmentReader {
 
   // ---------------- 2) 矫正为灰度图 ----------------
 
-  /// 旋转矩形（左上→右上→右下→左下）→ 正置灰度图，长边 ≤ [_lcdMaxSide]。
+  /// 四边形（左上→右上→右下→左下）→ 正置灰度图，长边 ≤ [_lcdMaxSide]。
+  ///
+  /// 四点透视矫正（解 dst→src 单应性），消除俯拍梯形畸变——仅旋转的
+  /// 仿射矫正在俯角大时会让上半部数字挤歪（"80" 行并簇、大数字读不出）。
   (int, int, Uint8List) _rectifyToGray(SegImage img, List<Offset> quad) {
-    final sw = math.max(8, _dist(quad[0], quad[1]).round());
-    final sh = math.max(8, _dist(quad[1], quad[2]).round());
-    final scale = math.min(1.0, _lcdMaxSide / math.max(sw, sh));
-    final w = math.max(8, (sw * scale).round());
-    final h = math.max(8, (sh * scale).round());
+    final top = _dist(quad[0], quad[1]);
+    final bottom = _dist(quad[2], quad[3]);
+    final left = _dist(quad[0], quad[3]);
+    final right = _dist(quad[1], quad[2]);
+    final maxSide = math.max(math.max(top, bottom), math.max(left, right));
+    final scale = math.min(1.0, _lcdMaxSide / maxSide);
+    final w = math.max(8, (math.max(top, bottom) * scale).round());
+    final h = math.max(8, (math.max(left, right) * scale).round());
 
-    final c0 = quad[0], c1 = quad[1], c3 = quad[3];
-    final uw = (c1.dx - c0.dx) / w;
-    final uh = (c1.dy - c0.dy) / w;
-    final vw = (c3.dx - c0.dx) / h;
-    final vh = (c3.dy - c0.dy) / h;
-
+    final hh = _homographyDstToSrc(quad, w, h);
     final out = Uint8List(w * h);
     for (var y = 0; y < h; y++) {
       for (var x = 0; x < w; x++) {
-        out[y * w + x] =
-            _sampleGray(img, c0.dx + uw * x + vw * y, c0.dy + uh * x + vh * y)
-                .round();
+        final d = hh[6] * x + hh[7] * y + 1;
+        final sx = (hh[0] * x + hh[1] * y + hh[2]) / d;
+        final sy = (hh[3] * x + hh[4] * y + hh[5]) / d;
+        out[y * w + x] = _sampleGray(img, sx, sy).round();
       }
     }
     return (w, h, out);
+  }
+
+  /// 解 4 点对应（矩形 → 四边形）的单应性，返回 [a,b,c,d,e,f,g,h]：
+  /// srcX = (a·X + b·Y + c) / (g·X + h·Y + 1)，srcY 同理。
+  List<double> _homographyDstToSrc(List<Offset> quad, int w, int h) {
+    final dst = [
+      Offset.zero,
+      Offset(w.toDouble(), 0),
+      Offset(w.toDouble(), h.toDouble()),
+      Offset(0, h.toDouble()),
+    ];
+    // 8×8 增广矩阵，高斯消元（列主元）
+    final a = List.generate(8, (_) => List<double>.filled(9, 0));
+    for (var i = 0; i < 4; i++) {
+      final x = dst[i].dx, y = dst[i].dy;
+      final u = quad[i].dx, v = quad[i].dy;
+      a[2 * i][0] = x;
+      a[2 * i][1] = y;
+      a[2 * i][2] = 1;
+      a[2 * i][6] = -x * u;
+      a[2 * i][7] = -y * u;
+      a[2 * i][8] = u;
+      a[2 * i + 1][3] = x;
+      a[2 * i + 1][4] = y;
+      a[2 * i + 1][5] = 1;
+      a[2 * i + 1][6] = -x * v;
+      a[2 * i + 1][7] = -y * v;
+      a[2 * i + 1][8] = v;
+    }
+    for (var col = 0; col < 8; col++) {
+      var piv = col;
+      for (var r = col + 1; r < 8; r++) {
+        if (a[r][col].abs() > a[piv][col].abs()) piv = r;
+      }
+      final tmp = a[col];
+      a[col] = a[piv];
+      a[piv] = tmp;
+      for (var r = 0; r < 8; r++) {
+        if (r == col || a[col][col] == 0) continue;
+        final f = a[r][col] / a[col][col];
+        for (var c = col; c <= 8; c++) {
+          a[r][c] -= f * a[col][c];
+        }
+      }
+    }
+    return [for (var i = 0; i < 8; i++) a[i][8] / (a[i][i] == 0 ? 1 : a[i][i])];
   }
 
   double _dist(Offset a, Offset b) {
@@ -644,7 +716,6 @@ class SevenSegmentReader {
         'colSumMax=${colSum.reduce(math.max)}');
     for (final (x0, x1) in clusters) {
       if (x1 - x0 < w * 0.02) continue;
-      if (x0 < w * 0.03 || x1 > w * 0.97) continue; // LCD 边框/边缘阴影
       // 列簇 → 行子块（回接上下分离笔画，如 "1" 的上下两段）
       final blocks = <(int, int)>[];
       for (final b in _runs(_rowProfile(clean, w, x0, x1, y0, y1))) {

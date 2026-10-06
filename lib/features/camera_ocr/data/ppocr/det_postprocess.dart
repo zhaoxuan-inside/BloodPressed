@@ -262,23 +262,6 @@ List<DetQuad> quadsFromProbMap({
   return quads;
 }
 
-/// 点集的最小面积旋转矩形四角（周向：0→1 为长边、1→2 为短边）。
-///
-/// 退化点集（<3 点或共线凸包）返回空列表。
-List<Offset> minAreaRectCorners(List<Offset> points) {
-  if (points.length < 3) return const [];
-  final hull =
-      _convexHull([for (final p in points) _Point2(p.dx, p.dy)]);
-  if (hull.length < 3) return const [];
-  final rect = _minAreaRect(hull);
-  final halfLong = rect.w / 2;
-  final halfShort = rect.h / 2;
-  Offset corner(double su, double sv) => Offset(
-      rect.center.x + rect.u.x * halfLong * su + rect.v.x * halfShort * sv,
-      rect.center.y + rect.u.y * halfLong * su + rect.v.y * halfShort * sv);
-  return [corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1)];
-}
-
 /// 从概率图提取轴对齐文本框（简化后处理，调试用）。
 List<DetBox> boxesFromProbMap({
   required Float32List prob,

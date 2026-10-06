@@ -105,9 +105,9 @@ SegImage _landscapeLcd() {
     ..fillRect(0, 0, 740, 540, _body)
     ..fillRect(50, 60, 640, 420, _lcdBg);
   const gw = 33, gh = 60, t = 7, gap = 0;
-  _drawNumber(c, 205, 3, 250, 40,
+  _drawNumber(c, 205, 3, 250, 90,
       gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
-  _drawNumber(c, 88, 2, 270, 200,
+  _drawNumber(c, 88, 2, 270, 260,
       gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
   return SegImage(c.pixels, c.width, c.height);
 }
