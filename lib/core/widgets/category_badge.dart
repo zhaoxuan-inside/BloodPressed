@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:blood_pressed/core/design/bp_category_style.dart';
+import 'package:blood_pressed/core/i18n/labels.dart';
 import 'package:blood_pressed/core/utils/bp_category.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// 血压分级徽章（圆角 pill），全应用统一的分级展示组件。
 class CategoryBadge extends StatelessWidget {
@@ -20,7 +22,7 @@ class CategoryBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        category.label,
+        categoryLabel(AppLocalizations.of(context), category),
         style: theme.textTheme.labelSmall
             ?.copyWith(color: color, fontWeight: FontWeight.w600),
       ),

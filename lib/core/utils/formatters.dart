@@ -1,6 +1,11 @@
 import 'package:intl/intl.dart';
 
+import 'package:blood_pressed/core/i18n/app_locale_service.dart';
+
 /// 日期与数值格式化工具（界面统一使用）。
+///
+/// 注：本类常在无 BuildContext 场景（图表轴标签等）被调用，
+/// 文案分支读取 [AppLocaleService] 快照而非 AppLocalizations。
 class Fmt {
   Fmt._();
 
@@ -12,12 +17,17 @@ class Fmt {
   static String time(DateTime dt) => _timeFormat.format(dt);
   static String full(DateTime dt) => _fullFormat.format(dt);
 
-  /// 列表分组用：今天/昨天/M-d
+  /// 列表分组用：今天/昨天/M-d（英文 Today/Yesterday/M/d）。
   static String friendlyDay(DateTime dt) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(dt.year, dt.month, dt.day);
     final diff = today.difference(target).inDays;
+    if (AppLocaleService.isEn) {
+      if (diff == 0) return 'Today';
+      if (diff == 1) return 'Yesterday';
+      return '${dt.month}/${dt.day}';
+    }
     if (diff == 0) return '今天';
     if (diff == 1) return '昨天';
     return '${dt.month}月${dt.day}日';

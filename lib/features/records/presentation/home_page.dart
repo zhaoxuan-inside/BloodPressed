@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:blood_pressed/core/design/bp_category_style.dart';
+import 'package:blood_pressed/core/i18n/labels.dart';
 import 'package:blood_pressed/core/utils/bp_category.dart';
 import 'package:blood_pressed/core/widgets/quick_action.dart';
 import 'package:blood_pressed/core/utils/formatters.dart';
@@ -12,6 +13,7 @@ import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
 import 'record_edit_page.dart';
 import 'widgets/record_tile.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// 首页：概览 + 快捷录入 + 记录列表。
 class HomePage extends ConsumerWidget {
@@ -21,20 +23,21 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final recordsAsync = ref.watch(recordsControllerProvider);
     final today = ref.watch(todayRecordsProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('血压了么',
-                style: TextStyle(fontWeight: FontWeight.w700)),
+            Text(l10n.appTitle,
+                style: const TextStyle(fontWeight: FontWeight.w700)),
           ],
         ),
       ),
       body: recordsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => ErrorBanner('数据加载失败：$e'),
+        error: (e, _) => ErrorBanner(l10n.loadDataFailed(e.toString())),
         data: (records) {
           final theme = Theme.of(context);
           final latest = records.isEmpty ? null : records.first;
@@ -42,7 +45,7 @@ class HomePage extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 96),
             children: [
               _LatestCard(record: latest, todayCount: today.length),
-              const SectionHeader('录入血压'),
+              SectionHeader(l10n.sectionEntry),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
@@ -50,7 +53,7 @@ class HomePage extends ConsumerWidget {
                     Expanded(
                       child: QuickAction(
                         icon: Icons.edit_note,
-                        label: '手动录入',
+                        label: l10n.actionManual,
                         onTap: () => _openEdit(context),
                       ),
                     ),
@@ -58,7 +61,7 @@ class HomePage extends ConsumerWidget {
                     Expanded(
                       child: QuickAction(
                         icon: Icons.photo_camera_outlined,
-                        label: '拍照识别',
+                        label: l10n.actionCamera,
                         onTap: () => startCameraOcrFlow(context),
                       ),
                     ),
@@ -66,24 +69,24 @@ class HomePage extends ConsumerWidget {
                     Expanded(
                       child: QuickAction(
                         icon: Icons.photo_outlined,
-                        label: '相册识别',
+                        label: l10n.actionGallery,
                         onTap: () => startGalleryOcrFlow(context),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SectionHeader('历史记录'),
+              SectionHeader(l10n.sectionHistory),
               if (records.isEmpty)
-                const EmptyState(
+                EmptyState(
                   icon: Icons.monitor_heart_outlined,
-                  title: '还没有血压记录',
-                  subtitle: '从上方"手动录入"开始，或直接拍照识别血压计读数',
+                  title: l10n.emptyHomeTitle,
+                  subtitle: l10n.emptyHomeSubtitle,
                 )
               else ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text('左滑删除 · 点击编辑',
+                  child: Text(l10n.historyHint,
                       style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.outline)),
                 ),
@@ -133,12 +136,13 @@ class HomePage extends ConsumerWidget {
 
   Future<void> _delete(
       BuildContext context, WidgetRef ref, BpRecord r) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showConfirmDialog(
       context,
-      title: '删除记录',
-      content:
-          '删除 ${Fmt.full(r.measuredAt)} 的记录（${r.systolic}/${r.diastolic}）？删除后不可恢复。',
-      confirmText: '删除',
+      title: l10n.deleteRecordTitle,
+      content: l10n.deleteRecordContent(
+          Fmt.full(r.measuredAt), r.systolic, r.diastolic),
+      confirmText: l10n.delete,
       danger: true,
     );
     if (confirmed) {
@@ -154,14 +158,16 @@ void showEntrySheet(BuildContext context) {
   showModalBottomSheet(
     context: context,
     showDragHandle: true,
-    builder: (ctx) => SafeArea(
+    builder: (ctx) {
+      final l10n = AppLocalizations.of(ctx);
+      return SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
             leading: const Icon(Icons.edit_note),
-            title: const Text('手动录入'),
-            subtitle: const Text('直接输入高压/低压/脉搏'),
+            title: Text(l10n.actionManual),
+            subtitle: Text(l10n.sheetManualSubtitle),
             onTap: () {
               Navigator.of(ctx).pop();
               Navigator.of(context).push(MaterialPageRoute(
@@ -172,8 +178,8 @@ void showEntrySheet(BuildContext context) {
           ),
           ListTile(
             leading: const Icon(Icons.photo_camera_outlined),
-            title: const Text('拍照识别'),
-            subtitle: const Text('拍摄血压计屏幕，自动识别读数'),
+            title: Text(l10n.actionCamera),
+            subtitle: Text(l10n.sheetCameraSubtitle),
             onTap: () {
               Navigator.of(ctx).pop();
               startCameraOcrFlow(context);
@@ -181,8 +187,8 @@ void showEntrySheet(BuildContext context) {
           ),
           ListTile(
             leading: const Icon(Icons.photo_outlined),
-            title: const Text('从相册选择'),
-            subtitle: const Text('识别已有的血压计照片'),
+            title: Text(l10n.sheetGalleryTitle),
+            subtitle: Text(l10n.sheetGallerySubtitle),
             onTap: () {
               Navigator.of(ctx).pop();
               startGalleryOcrFlow(context);
@@ -190,7 +196,8 @@ void showEntrySheet(BuildContext context) {
           ),
         ],
       ),
-    ),
+      );
+    },
   );
 }
 
@@ -203,16 +210,16 @@ class _LatestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     if (record == null) {
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              Text('👋 欢迎使用血压了么',
-                  style: theme.textTheme.titleMedium),
+              Text(l10n.welcomeTitle, style: theme.textTheme.titleMedium),
               const SizedBox(height: 6),
-              const Text('记录第一次血压，开始你的健康之旅'),
+              Text(l10n.welcomeSubtitle),
             ],
           ),
         ),
@@ -233,7 +240,7 @@ class _LatestCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text('最近一次测量',
+                  Text(l10n.latestMeasurement,
                       style: theme.textTheme.labelLarge?.copyWith(
                           color: theme.colorScheme.outline)),
                   const Spacer(),
@@ -245,7 +252,7 @@ class _LatestCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      category.label,
+                      categoryLabel(l10n, category),
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: color,
                         fontWeight: FontWeight.w700,
@@ -289,7 +296,7 @@ class _LatestCard extends StatelessWidget {
                             Icon(Icons.favorite,
                                 size: 14, color: theme.colorScheme.primary),
                             const SizedBox(width: 4),
-                            Text('${r.pulse} 次/分',
+                            Text('${r.pulse} ${l10n.pulseUnit}',
                                 style: theme.textTheme.bodyMedium),
                           ],
                         ),
@@ -299,13 +306,13 @@ class _LatestCard extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                '${Fmt.friendlyDay(r.measuredAt)} ${Fmt.time(r.measuredAt)} · ${r.arm.label}'
-                '${todayCount > 1 ? ' · 今日已测 $todayCount 次' : ''}',
+                '${Fmt.friendlyDay(r.measuredAt)} ${Fmt.time(r.measuredAt)} · ${armLabel(l10n, r.arm)}'
+                '${todayCount > 1 ? ' · ${l10n.todayMeasuredTimes(todayCount)}' : ''}',
                 style: theme.textTheme.bodySmall
                     ?.copyWith(color: theme.colorScheme.outline),
               ),
               const SizedBox(height: 8),
-              Text(category.advice,
+              Text(categoryAdvice(l10n, category),
                   style: theme.textTheme.bodySmall?.copyWith(height: 1.4)),
             ],
           ),

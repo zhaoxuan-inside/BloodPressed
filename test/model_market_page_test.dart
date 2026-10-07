@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:blood_pressed/features/llm/presentation/model_market_page.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 class _RealNetworkBinding extends AutomatedTestWidgetsFlutterBinding {
   @override
@@ -47,7 +48,12 @@ void main() {
   Future<void> pumpMarket(WidgetTester tester) async {
     await tester.pumpWidget(
       const ProviderScope(
-        child: MaterialApp(home: ModelMarketPage()),
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('zh'),
+          home: ModelMarketPage(),
+        ),
       ),
     );
     await tester.pumpAndSettle();

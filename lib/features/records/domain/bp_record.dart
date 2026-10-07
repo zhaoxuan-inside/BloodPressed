@@ -194,18 +194,21 @@ class BpRecord {
   Map<String, Object?> toSyncPayload() => toMap();
 }
 
-/// 合法性校验：返回错误信息，null 表示合法。
-String? validateBpValues({
+/// 校验错误码（文案由 UI 层按当前语言映射）。
+enum BpValidationError { needSysDia, sysRange, diaRange, sysGreater, pulseRange }
+
+/// 合法性校验：返回错误码，null 表示合法。
+BpValidationError? validateBpValues({
   required int? systolic,
   required int? diastolic,
   int? pulse,
 }) {
-  if (systolic == null || diastolic == null) return '请填写高压与低压';
-  if (systolic < 40 || systolic > 300) return '高压应在 40 ~ 300 之间';
-  if (diastolic < 30 || diastolic > 200) return '低压应在 30 ~ 200 之间';
-  if (systolic <= diastolic) return '高压应大于低压';
+  if (systolic == null || diastolic == null) return BpValidationError.needSysDia;
+  if (systolic < 40 || systolic > 300) return BpValidationError.sysRange;
+  if (diastolic < 30 || diastolic > 200) return BpValidationError.diaRange;
+  if (systolic <= diastolic) return BpValidationError.sysGreater;
   if (pulse != null && (pulse < 20 || pulse > 300)) {
-    return '脉搏应在 20 ~ 300 之间';
+    return BpValidationError.pulseRange;
   }
   return null;
 }

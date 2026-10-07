@@ -14,6 +14,7 @@ import 'package:blood_pressed/features/knowledge/domain/knowledge_article.dart';
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/record_edit_page.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 import 'support/real_test_harness.dart';
 
@@ -403,6 +404,9 @@ void main() {
       ProviderScope(
         overrides: app.overrides,
         child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('zh'),
           home: Builder(
             builder: (context) => Scaffold(
               body: Center(

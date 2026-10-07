@@ -28,7 +28,7 @@
 ## 步骤（任务卡）
 
 - [ ] 1. T1 基建：l10n.yaml + 空 ARB（app_en/app_zh）+ pubspec generate + AppLocaleService（当前语言快照）+ app.dart 接线（delegates/supportedLocales/locale/onGenerateTitle）+ AppSettings 增加 locale 偏好 + 设置页语言行 + 切换后重排通知
-- [ ] 2. T2 records：home_page、record_tile、record_edit_page、core/widgets/common_widgets、stat_card、bp_category/枚举取词助手
+- [x] 2. T2 records：home_page、record_tile、record_edit_page、core/widgets/common_widgets、stat_card、bp_category/枚举取词助手
 - [ ] 3. T3 stats + export：stats_page、export_page、share_card_widgets、csv_exporter 表头
 - [ ] 4. T4 camera_ocr：ocr_flow 用户可见文案
 - [ ] 5. T5 llm：llm_settings_page、model_market_page、remote_profile_edit_page

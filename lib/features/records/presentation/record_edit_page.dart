@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:blood_pressed/core/providers.dart';
 import 'package:blood_pressed/core/design/bp_category_style.dart';
+import 'package:blood_pressed/core/i18n/labels.dart';
 import 'package:blood_pressed/core/utils/bp_category.dart';
 import 'package:blood_pressed/core/utils/formatters.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// 录入 / 编辑页。同时承担"OCR/AI 识别结果确认"角色。
 class RecordEditPage extends ConsumerStatefulWidget {
@@ -105,8 +107,16 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
     final error = validateBpValues(
         systolic: sys, diastolic: dia, pulse: pulse);
     if (error != null) {
+      final l10n = AppLocalizations.of(context);
+      final message = switch (error) {
+        BpValidationError.needSysDia => l10n.errNeedSysDia,
+        BpValidationError.sysRange => l10n.errSysRange,
+        BpValidationError.diaRange => l10n.errDiaRange,
+        BpValidationError.sysGreater => l10n.errSysGreater,
+        BpValidationError.pulseRange => l10n.errPulseRange,
+      };
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error)));
+          .showSnackBar(SnackBar(content: Text(message)));
       return;
     }
     await ref.read(recordsControllerProvider.notifier).save(
@@ -139,10 +149,11 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final category = _previewCategory;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? '编辑记录' : '录入血压'),
+        title: Text(_isEditing ? l10n.editRecordTitle : l10n.newRecordTitle),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -162,7 +173,7 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
                 Expanded(
                   child: _NumberField(
                     controller: _sysCtrl,
-                    label: '高压（收缩压）',
+                    label: l10n.sysLabel,
                     highlight: widget.initialLowConfidence,
                     onChanged: (_) => setState(() {}),
                   ),
@@ -171,7 +182,7 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
                 Expanded(
                   child: _NumberField(
                     controller: _diaCtrl,
-                    label: '低压（舒张压）',
+                    label: l10n.diaLabel,
                     highlight: widget.initialLowConfidence,
                     onChanged: (_) => setState(() {}),
                   ),
@@ -181,15 +192,17 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
             const SizedBox(height: 12),
             _NumberField(
               controller: _pulseCtrl,
-              label: '脉搏（可选）',
-              suffix: '次/分',
+              label: l10n.pulseLabel,
+              suffix: l10n.pulseUnit,
               highlight: widget.initialLowConfidence,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             SegmentedButton<MeasureArm>(
-              segments: const [
-                ButtonSegment(value: MeasureArm.left, label: Text('左臂')),
-                ButtonSegment(value: MeasureArm.right, label: Text('右臂')),
+              segments: [
+                ButtonSegment(
+                    value: MeasureArm.left, label: Text(l10n.armLeft)),
+                ButtonSegment(
+                    value: MeasureArm.right, label: Text(l10n.armRight)),
               ],
               selected: {_arm},
               onSelectionChanged: (s) => setState(() => _arm = s.first),
@@ -200,13 +213,13 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
                 Expanded(
                   child: DropdownButtonFormField<MeasurePosture?>(
                     initialValue: _posture,
-                    decoration: const InputDecoration(labelText: '体位（可选）'),
+                    decoration: InputDecoration(labelText: l10n.postureField),
                     items: [
-                      const DropdownMenuItem(
-                          value: null, child: Text('未记录')),
+                      DropdownMenuItem(
+                          value: null, child: Text(l10n.postureNotRecorded)),
                       ...MeasurePosture.values.map(
                         (p) => DropdownMenuItem(
-                            value: p, child: Text(p.label)),
+                            value: p, child: Text(postureLabel(l10n, p))),
                       ),
                     ],
                     onChanged: (v) => setState(() => _posture = v),
@@ -226,8 +239,7 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
             TextField(
               controller: _noteCtrl,
               maxLines: 2,
-              decoration:
-                  const InputDecoration(labelText: '备注（可选，如运动后、服药前）'),
+              decoration: InputDecoration(labelText: l10n.noteField),
             ),
             if (category != null) ...[
               const SizedBox(height: 16),
@@ -244,7 +256,7 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      '${category.label} — ${category.advice}',
+                      '${categoryLabel(l10n, category)} — ${categoryAdvice(l10n, category)}',
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
@@ -254,7 +266,7 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
             const SizedBox(height: 24),
             FilledButton.icon(
               icon: const Icon(Icons.check),
-              label: Text(_isEditing ? '保存修改' : '保存记录'),
+              label: Text(_isEditing ? l10n.saveEdit : l10n.saveNew),
               onPressed: _save,
             ),
           ],
@@ -279,11 +291,13 @@ class _RecognitionSourceBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final text = source == RecordSource.ocr ? '拍照识别结果' : 'AI 识别结果';
+    final l10n = AppLocalizations.of(context);
+    final text =
+        source == RecordSource.ocr ? l10n.bannerSourceOcr : l10n.bannerSourceAi;
     if (lowConfidence) {
       final detail = confidence == null
-          ? '$text未能读出数值，请手动录入'
-          : '$text置信度低（${(confidence! * 100).toStringAsFixed(0)}%），红框数值仅供参考';
+          ? l10n.bannerLowNoValue(text)
+          : l10n.bannerLowConfidence(text, (confidence! * 100).round());
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -297,7 +311,7 @@ class _RecognitionSourceBanner extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '$detail，请核对修改后保存',
+                detail,
                 style: theme.textTheme.bodySmall
                     ?.copyWith(color: theme.colorScheme.onErrorContainer),
               ),
@@ -308,7 +322,7 @@ class _RecognitionSourceBanner extends StatelessWidget {
     }
     final conf = confidence == null
         ? ''
-        : '（置信度 ${(confidence! * 100).toStringAsFixed(0)}%）';
+        : l10n.confidenceSuffix((confidence! * 100).round());
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -322,7 +336,7 @@ class _RecognitionSourceBanner extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '$text$conf 已自动填入，请核对后保存',
+              l10n.bannerAutoFilled(text, conf),
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.onSecondaryContainer),
             ),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:blood_pressed/core/design/bp_category_style.dart';
+import 'package:blood_pressed/core/i18n/labels.dart';
 import 'package:blood_pressed/core/utils/bp_category.dart';
 import 'package:blood_pressed/core/widgets/category_badge.dart';
 import 'package:blood_pressed/core/utils/formatters.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// 单条血压记录卡片。
 class RecordTile extends StatelessWidget {
@@ -25,6 +27,7 @@ class RecordTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Dismissible(
       key: ValueKey('record-${record.id}'),
       direction: DismissDirection.endToStart,
@@ -93,8 +96,8 @@ class RecordTile extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${Fmt.full(record.measuredAt)} · ${record.arm.label}'
-                        '${record.posture != null ? ' · ${record.posture!.label}' : ''}'
+                        '${Fmt.full(record.measuredAt)} · ${armLabel(l10n, record.arm)}'
+                        '${record.posture != null ? ' · ${postureLabel(l10n, record.posture!)}' : ''}'
                         '${record.note != null ? ' · ${record.note}' : ''}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

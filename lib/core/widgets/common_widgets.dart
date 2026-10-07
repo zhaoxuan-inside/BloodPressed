@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:blood_pressed/l10n/app_localizations.dart';
+
 /// 通用小组件。
 class EmptyState extends StatelessWidget {
   const EmptyState({
@@ -108,29 +110,32 @@ Future<bool> showConfirmDialog(
   BuildContext context, {
   required String title,
   required String content,
-  String confirmText = '确认',
+  String? confirmText,
   bool danger = false,
 }) async {
   final res = await showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(title),
-      content: Text(content),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: const Text('取消'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(ctx).pop(true),
-          style: danger
-              ? FilledButton.styleFrom(
-                  backgroundColor: Theme.of(ctx).colorScheme.error)
-              : null,
-          child: Text(confirmText),
-        ),
-      ],
-    ),
+    builder: (ctx) {
+      final l10n = AppLocalizations.of(ctx);
+      return AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: danger
+                ? FilledButton.styleFrom(
+                    backgroundColor: Theme.of(ctx).colorScheme.error)
+                : null,
+            child: Text(confirmText ?? l10n.confirm),
+          ),
+        ],
+      );
+    },
   );
   return res ?? false;
 }
