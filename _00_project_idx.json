@@ -215,6 +215,7 @@
       "main() 入口",
       "测试函数"
     ],
+    "i18n": "官方 flutter gen-l10n（l10n.yaml；lib/l10n/app_en.arb 模板 + app_zh.arb，生成物入源码目录）。语言偏好 AppSettings.localePref（system/zh/en）驱动 MaterialApp.locale；无 BuildContext 场景经 core/i18n/AppLocaleService.auto 取词；新增 UI 文案一律入 ARB 双语，禁止硬编码",
     "standards": [
       "references/coding-standards.md",
       "references/frontend-spec.md"

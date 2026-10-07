@@ -118,6 +118,25 @@
     "显示行"
    ],
    "domain": "camera_ocr"
+  },
+  {
+   "term": "界面语言",
+   "code_name": "localePref",
+   "definition": "应用界面语言偏好设置（system/zh/en），存于 SharedPreferences；system 时按系统语言解析（zh/en 之外回落 en）",
+   "aliases": [
+    "语言偏好",
+    "语言设置"
+   ],
+   "domain": "core"
+  },
+  {
+   "term": "语言快照",
+   "code_name": "AppLocaleService",
+   "definition": "当前生效 Locale 的进程级静态快照，由 MaterialApp.builder 刷新；供无 BuildContext 场景（通知/CSV/分享卡/Fmt）经 auto 取词实例双语渲染",
+   "aliases": [
+    "当前语言"
+   ],
+   "domain": "core"
   }
  ]
 }
