@@ -821,4 +821,209 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get favorite => '收藏';
+
+  @override
+  String get aiModelSection => 'AI 模型';
+
+  @override
+  String get aiModelConfig => 'AI 模型配置';
+
+  @override
+  String get aiModelNotConfigured => '未配置 · 点击添加本地或远端模型';
+
+  @override
+  String aiModelCurrent(String name, String kind) {
+    return '当前：$name（$kind）';
+  }
+
+  @override
+  String get kindLocal => '本地';
+
+  @override
+  String get kindRemote => '远端';
+
+  @override
+  String llmLoadError(String error) {
+    return '模型加载失败：$error';
+  }
+
+  @override
+  String get sectionPreference => '测量偏好';
+
+  @override
+  String get defaultArm => '默认测量臂';
+
+  @override
+  String get reminderTitle => '测量提醒';
+
+  @override
+  String get reminderOff => '关闭';
+
+  @override
+  String get reminderDaily => '定时';
+
+  @override
+  String get reminderInterval => '周期';
+
+  @override
+  String get reminderDailyTime => '提醒时间';
+
+  @override
+  String get reminderDailySubtitle => '每天在固定时刻提醒测量';
+
+  @override
+  String get reminderWindowTitle => '提醒窗口';
+
+  @override
+  String get reminderWindowSubtitle => '仅在窗口内按周期提醒';
+
+  @override
+  String get reminderIntervalTitle => '提醒周期';
+
+  @override
+  String get reminderIntervalSubtitle => '窗口内每隔该时长提醒一次';
+
+  @override
+  String intervalMinutes(int minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String get windowEndAfterStart => '结束时间需晚于开始时间';
+
+  @override
+  String get notificationDenied => '未获得通知权限，提醒可能无法显示';
+
+  @override
+  String get sectionData => '数据';
+
+  @override
+  String get exportShare => '导出与分享';
+
+  @override
+  String get exportShareSubtitle => 'CSV 导出 · 卡片分享 · 微信';
+
+  @override
+  String get cloudSync => '云同步';
+
+  @override
+  String get cloudSyncSubtitle => '未开启 · 多设备同步（预留）';
+
+  @override
+  String get sectionGeneral => '通用';
+
+  @override
+  String get appearance => '外观';
+
+  @override
+  String get themeSystem => '跟随系统';
+
+  @override
+  String get themeLight => '亮色';
+
+  @override
+  String get themeDark => '暗色';
+
+  @override
+  String get wechatConfig => '微信分享配置';
+
+  @override
+  String get wechatNotConfigured => '未配置 AppID（未配置时使用系统分享）';
+
+  @override
+  String wechatAppIdMasked(String masked) {
+    return 'AppID：$masked';
+  }
+
+  @override
+  String get wechatDialogTitle => '微信分享配置';
+
+  @override
+  String get wechatAppIdField => '微信开放平台 AppID';
+
+  @override
+  String get wechatAppIdHint => '留空则使用系统分享';
+
+  @override
+  String get wechatUniversalLinkField => 'iOS Universal Link（可选）';
+
+  @override
+  String get sectionAbout => '关于';
+
+  @override
+  String get appVersionSubtitle => 'v1.0.0 · 跨平台血压健康助手';
+
+  @override
+  String get disclaimer => '免责声明';
+
+  @override
+  String get disclaimerBody =>
+      '本应用提供的所有内容（包括但不限于血压分级提示、AI 健康指导、健康知识文章）仅用于健康信息参考与自我管理辅助，不构成医学诊断或治疗建议。\n\nAI 生成内容可能存在错误或遗漏，请勿据此调整用药或做出医疗决策。如有健康问题，请咨询专业医疗机构。\n\n本应用数据仅保存在您的设备本地（云同步开启前不上传任何数据），请自行通过导出功能妥善备份。';
+
+  @override
+  String get syncTitle => '云同步';
+
+  @override
+  String get syncOn => '已开启';
+
+  @override
+  String get syncOff => '未开启';
+
+  @override
+  String get syncEnabledBody => '数据将自动同步到云端。';
+
+  @override
+  String get syncDisabledBody =>
+      '云同步是增值服务，当前版本尚未接入云平台。你的所有数据仍完整保存在本机，可通过“导出与分享”随时备份 CSV。';
+
+  @override
+  String get syncReadiness => '同步能力准备情况';
+
+  @override
+  String get readyLocal => '本机数据保护（软删除 + updated_at 时间戳）';
+
+  @override
+  String get readyDeviceId => '跨设备唯一标识（UUID 主键 + 设备ID）';
+
+  @override
+  String readyOutbox(int count) {
+    return '离线变更日志（Outbox，待同步 $count 条）';
+  }
+
+  @override
+  String get readyPlatform => '云平台接入（候选：Supabase / 自建 API 等）';
+
+  @override
+  String get readyE2E => '端到端加密传输';
+
+  @override
+  String get sectionAccount => '账号（预留）';
+
+  @override
+  String get notLoggedIn => '未登录';
+
+  @override
+  String get loginAfterPlatform => '云平台接入后可在此登录账号';
+
+  @override
+  String get syncNote =>
+      '说明：确定云平台后，只需实现 SyncService 接口并替换默认实现，本地数据模型与界面无需改动即可获得多设备同步能力。';
+
+  @override
+  String get notifDailyTitle => '该测量血压啦 🩺';
+
+  @override
+  String get notifDailyBody => '坚持记录，血压趋势才有意义。';
+
+  @override
+  String get channelDailyName => '每日测量提醒';
+
+  @override
+  String get channelDailyDesc => '提醒您每天定时测量血压';
+
+  @override
+  String get channelIntervalName => '周期测量提醒';
+
+  @override
+  String get channelIntervalDesc => '在提醒窗口内按固定周期提醒您测量血压';
 }

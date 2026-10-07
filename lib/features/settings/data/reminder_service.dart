@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
 import 'package:blood_pressed/features/settings/domain/reminder_schedule.dart';
 
@@ -29,27 +30,33 @@ class ReminderService {
   static const int _intervalHorizonDays = 2;
   static bool _initialized = false;
 
-  static const NotificationDetails _dailyDetails = NotificationDetails(
-    android: AndroidNotificationDetails(
-      'daily_reminder',
-      '每日测量提醒',
-      channelDescription: '提醒您每天定时测量血压',
-      importance: Importance.high,
-      priority: Priority.high,
-    ),
-    iOS: DarwinNotificationDetails(),
-  );
+  static NotificationDetails get _dailyDetails {
+    final l10n = AppLocaleService.auto;
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        'daily_reminder',
+        l10n.channelDailyName,
+        channelDescription: l10n.channelDailyDesc,
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: const DarwinNotificationDetails(),
+    );
+  }
 
-  static const NotificationDetails _intervalDetails = NotificationDetails(
-    android: AndroidNotificationDetails(
-      'interval_reminder',
-      '周期测量提醒',
-      channelDescription: '在提醒窗口内按固定周期提醒您测量血压',
-      importance: Importance.high,
-      priority: Priority.high,
-    ),
-    iOS: DarwinNotificationDetails(),
-  );
+  static NotificationDetails get _intervalDetails {
+    final l10n = AppLocaleService.auto;
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        'interval_reminder',
+        l10n.channelIntervalName,
+        channelDescription: l10n.channelIntervalDesc,
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: const DarwinNotificationDetails(),
+    );
+  }
 
   static Future<void> init() async {
     if (_initialized) return;
@@ -83,17 +90,18 @@ class ReminderService {
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     if (android == null) return;
+    final l10n = AppLocaleService.auto;
     try {
-      await android.createNotificationChannel(const AndroidNotificationChannel(
+      await android.createNotificationChannel(AndroidNotificationChannel(
         'daily_reminder',
-        '每日测量提醒',
-        description: '提醒您每天定时测量血压',
+        l10n.channelDailyName,
+        description: l10n.channelDailyDesc,
         importance: Importance.high,
       ));
-      await android.createNotificationChannel(const AndroidNotificationChannel(
+      await android.createNotificationChannel(AndroidNotificationChannel(
         'interval_reminder',
-        '周期测量提醒',
-        description: '在提醒窗口内按固定周期提醒您测量血压',
+        l10n.channelIntervalName,
+        description: l10n.channelIntervalDesc,
         importance: Importance.high,
       ));
     } catch (_) {}
@@ -177,10 +185,11 @@ class ReminderService {
     bool matchTime = false,
   }) async {
     try {
+      final l10n = AppLocaleService.auto;
       await _plugin.zonedSchedule(
         id,
-        '该测量血压啦 🩺',
-        '坚持记录，血压趋势才有意义。',
+        l10n.notifDailyTitle,
+        l10n.notifDailyBody,
         at,
         details,
         // 提醒必须准时：使用精确闹钟（manifest 已声明 USE_EXACT_ALARM）

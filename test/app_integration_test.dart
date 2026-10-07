@@ -350,7 +350,7 @@ void main() {
     await tester.tap(find.text('免责声明'));
     await tester.pumpAndSettle();
     expect(find.textContaining('不构成医学诊断'), findsOneWidget);
-    await tester.tap(find.text('我知道了'));
+    await tester.tap(find.text('知道了'));
     await tester.pumpAndSettle();
 
     // 微信分享配置同样可能被推到视口边缘，滚动到可见后再点

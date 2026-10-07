@@ -21,6 +21,9 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
+  String _mask(String id) =>
+      id.length <= 8 ? id : '${id.substring(0, 4)}****${id.substring(id.length - 4)}';
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -34,17 +37,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 32),
         children: [
-          const SectionHeader('AI 模型'),
+          SectionHeader(l10n.aiModelSection),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.smart_toy_outlined),
-                  title: const Text('AI 模型配置'),
+                  title: Text(l10n.aiModelConfig),
                   subtitle: Text(activeProfile == null
-                      ? '未配置 · 点击添加本地或远端模型'
-                      : '当前：${activeProfile.name}'
-                          '（${activeProfile.kind == LlmKind.local ? '本地' : '远端'}）'),
+                      ? l10n.aiModelNotConfigured
+                      : l10n.aiModelCurrent(
+                          activeProfile.name,
+                          activeProfile.kind == LlmKind.local
+                              ? l10n.kindLocal
+                              : l10n.kindRemote)),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/llm'),
                 ),
@@ -55,7 +61,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     leading: Icon(Icons.error_outline,
                         color: theme.colorScheme.error, size: 20),
                     title: Text(
-                      '模型加载失败：${engineState.error ?? ''}',
+                      l10n.llmLoadError(engineState.error ?? ''),
                       style: TextStyle(
                           fontSize: 12, color: theme.colorScheme.error),
                     ),
@@ -63,19 +69,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ],
             ),
           ),
-          const SectionHeader('测量偏好'),
+          SectionHeader(l10n.sectionPreference),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.pan_tool_alt_outlined),
-                  title: const Text('默认测量臂'),
+                  title: Text(l10n.defaultArm),
                   trailing: SegmentedButton<MeasureArm>(
-                    segments: const [
+                    segments: [
                       ButtonSegment(
-                          value: MeasureArm.left, label: Text('左臂')),
+                          value: MeasureArm.left, label: Text(l10n.armLeft)),
                       ButtonSegment(
-                          value: MeasureArm.right, label: Text('右臂')),
+                          value: MeasureArm.right, label: Text(l10n.armRight)),
                     ],
                     selected: {settings.defaultArm},
                     onSelectionChanged: (s) {
@@ -90,21 +96,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ],
             ),
           ),
-          const SectionHeader('数据'),
+          SectionHeader(l10n.sectionData),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.ios_share_outlined),
-                  title: const Text('导出与分享'),
-                  subtitle: const Text('CSV 导出 · 卡片分享 · 微信'),
+                  title: Text(l10n.exportShare),
+                  subtitle: Text(l10n.exportShareSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/export'),
                 ),
                 ListTile(
                   leading: const Icon(Icons.cloud_outlined),
-                  title: const Text('云同步'),
-                  subtitle: const Text('未开启 · 多设备同步（预留）'),
+                  title: Text(l10n.cloudSync),
+                  subtitle: Text(l10n.cloudSyncSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const SyncPage()),
@@ -113,7 +119,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ],
             ),
           ),
-          const SectionHeader('通用'),
+          SectionHeader(l10n.sectionGeneral),
           Card(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +131,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       Icon(Icons.palette_outlined,
                           size: 22, color: theme.colorScheme.primary),
                       const SizedBox(width: 16),
-                      Text('外观', style: theme.textTheme.titleMedium),
+                      Text(l10n.appearance, style: theme.textTheme.titleMedium),
                     ],
                   ),
                 ),
@@ -134,10 +140,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   child: SizedBox(
                     width: double.infinity,
                     child: SegmentedButton<String>(
-                      segments: const [
-                        ButtonSegment(value: 'system', label: Text('跟随系统')),
-                        ButtonSegment(value: 'light', label: Text('亮色')),
-                        ButtonSegment(value: 'dark', label: Text('暗色')),
+                      segments: [
+                        ButtonSegment(
+                            value: 'system', label: Text(l10n.themeSystem)),
+                        ButtonSegment(
+                            value: 'light', label: Text(l10n.themeLight)),
+                        ButtonSegment(
+                            value: 'dark', label: Text(l10n.themeDark)),
                       ],
                       selected: {settings.themeMode},
                       onSelectionChanged: (s) {
@@ -200,27 +209,27 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.chat_outlined),
-                  title: const Text('微信分享配置'),
+                  title: Text(l10n.wechatConfig),
                   subtitle: Text(settings.wechatAppId.isEmpty
-                      ? '未配置 AppID（未配置时使用系统分享）'
-                      : 'AppID：${_mask(settings.wechatAppId)}'),
+                      ? l10n.wechatNotConfigured
+                      : l10n.wechatAppIdMasked(_mask(settings.wechatAppId))),
                   onTap: () => _editWechat(settings),
                 ),
               ],
             ),
           ),
-          const SectionHeader('关于'),
+          SectionHeader(l10n.sectionAbout),
           Card(
             child: Column(
               children: [
-                const ListTile(
-                  leading: Icon(Icons.monitor_heart_outlined),
-                  title: Text('血压了么'),
-                  subtitle: Text('v1.0.0 · 跨平台血压健康助手'),
+                ListTile(
+                  leading: const Icon(Icons.monitor_heart_outlined),
+                  title: Text(l10n.appTitle),
+                  subtitle: Text(l10n.appVersionSubtitle),
                 ),
                 ListTile(
                   leading: const Icon(Icons.info_outline),
-                  title: const Text('免责声明'),
+                  title: Text(l10n.disclaimer),
                   onTap: () => _showDisclaimer(context),
                 ),
               ],
@@ -231,31 +240,29 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  String _mask(String id) =>
-      id.length <= 8 ? id : '${id.substring(0, 4)}****${id.substring(id.length - 4)}';
-
   Future<void> _editWechat(AppSettings settings) async {
+    final l10n = AppLocalizations.of(context);
     final appIdCtrl = TextEditingController(text: settings.wechatAppId);
     final linkCtrl = TextEditingController(text: settings.wechatUniversalLink);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('微信分享配置'),
+        title: Text(l10n.wechatDialogTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: appIdCtrl,
-              decoration: const InputDecoration(
-                labelText: '微信开放平台 AppID',
-                hintText: '留空则使用系统分享',
+              decoration: InputDecoration(
+                labelText: l10n.wechatAppIdField,
+                hintText: l10n.wechatAppIdHint,
               ),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: linkCtrl,
-              decoration: const InputDecoration(
-                labelText: 'iOS Universal Link（可选）',
+              decoration: InputDecoration(
+                labelText: l10n.wechatUniversalLinkField,
                 hintText: 'https://your-domain/appendix/',
               ),
             ),
@@ -264,10 +271,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         actions: [
           TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('取消')),
+              child: Text(l10n.cancel)),
           FilledButton(
               onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('保存')),
+              child: Text(l10n.saveBtn)),
         ],
       ),
     );
@@ -279,25 +286,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   void _showDisclaimer(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('免责声明'),
-        content: const SingleChildScrollView(
-          child: Text(
-            '本应用提供的所有内容（包括但不限于血压分级提示、AI 健康指导、'
-            '健康知识文章）仅用于健康信息参考与自我管理辅助，'
-            '不构成医学诊断或治疗建议。\n\n'
-            'AI 生成内容可能存在错误或遗漏，请勿据此调整用药或做出医疗决策。'
-            '如有健康问题，请咨询专业医疗机构。\n\n'
-            '本应用数据仅保存在您的设备本地（云同步开启前不上传任何数据），'
-            '请自行通过导出功能妥善备份。',
-          ),
+        title: Text(l10n.disclaimer),
+        content: SingleChildScrollView(
+          child: Text(l10n.disclaimerBody),
         ),
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('我知道了'),
+            child: Text(AppLocalizations.of(ctx).okGotIt),
           ),
         ],
       ),
@@ -326,11 +326,12 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
 
   Future<void> _apply({bool enabling = false}) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
     if (enabling) {
       final granted = await ReminderService.requestExactAlarmPermission();
       if (!granted) {
-        messenger.showSnackBar(const SnackBar(
-            content: Text('未获得通知权限，提醒可能无法显示')));
+        messenger.showSnackBar(
+            SnackBar(content: Text(l10n.notificationDenied)));
       }
     }
     await ReminderService.scheduleFromSettings(settings);
@@ -355,6 +356,7 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
 
   Future<void> _pickWindowTime({required bool isStart}) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
     final initialHour =
         isStart ? settings.intervalStartHour : settings.intervalEndHour;
     final initialMinute =
@@ -369,7 +371,8 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
     final endHour = isStart ? settings.intervalEndHour : time.hour;
     final endMinute = isStart ? settings.intervalEndMinute : time.minute;
     if (startHour * 60 + startMinute >= endHour * 60 + endMinute) {
-      messenger.showSnackBar(const SnackBar(content: Text('结束时间需晚于开始时间')));
+      messenger.showSnackBar(
+          SnackBar(content: Text(l10n.windowEndAfterStart)));
       return;
     }
     await settings.setIntervalWindow(startHour, startMinute, endHour, endMinute);
@@ -384,17 +387,24 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final mode = settings.reminderMode;
     return Column(
       children: [
         ListTile(
           leading: const Icon(Icons.alarm_outlined),
-          title: const Text('测量提醒'),
+          title: Text(AppLocalizations.of(context).reminderTitle),
           trailing: SegmentedButton<ReminderMode>(
-            segments: const [
-              ButtonSegment(value: ReminderMode.off, label: Text('关闭')),
-              ButtonSegment(value: ReminderMode.daily, label: Text('定时')),
-              ButtonSegment(value: ReminderMode.interval, label: Text('周期')),
+            segments: [
+              ButtonSegment(
+                  value: ReminderMode.off,
+                  label: Text(AppLocalizations.of(context).reminderOff)),
+              ButtonSegment(
+                  value: ReminderMode.daily,
+                  label: Text(AppLocalizations.of(context).reminderDaily)),
+              ButtonSegment(
+                  value: ReminderMode.interval,
+                  label: Text(AppLocalizations.of(context).reminderInterval)),
             ],
             selected: {mode},
             onSelectionChanged: (selection) =>
@@ -404,8 +414,8 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
         if (mode == ReminderMode.daily)
           ListTile(
             leading: const Icon(Icons.schedule_outlined),
-            title: const Text('提醒时间'),
-            subtitle: const Text('每天在固定时刻提醒测量'),
+            title: Text(l10n.reminderDailyTime),
+            subtitle: Text(l10n.reminderDailySubtitle),
             trailing: TextButton(
               onPressed: _pickDailyTime,
               child: Text(_clock(settings.reminderHour, settings.reminderMinute)),
@@ -414,8 +424,8 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
         if (mode == ReminderMode.interval) ...[
           ListTile(
             leading: const Icon(Icons.timelapse_outlined),
-            title: const Text('提醒窗口'),
-            subtitle: const Text('仅在窗口内按周期提醒'),
+            title: Text(l10n.reminderWindowTitle),
+            subtitle: Text(l10n.reminderWindowSubtitle),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -435,13 +445,13 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
           ),
           ListTile(
             leading: const Icon(Icons.update_outlined),
-            title: const Text('提醒周期'),
-            subtitle: const Text('窗口内每隔该时长提醒一次'),
+            title: Text(l10n.reminderIntervalTitle),
+            subtitle: Text(l10n.reminderIntervalSubtitle),
             trailing: DropdownButton<int>(
               value: settings.intervalMinutes,
               items: _intervalChoices
                   .map((m) => DropdownMenuItem(
-                      value: m, child: Text('$m 分钟')))
+                      value: m, child: Text(l10n.intervalMinutes(m))))
                   .toList(),
               onChanged: (m) {
                 if (m != null) _pickInterval(m);

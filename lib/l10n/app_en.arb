@@ -505,5 +505,107 @@
   },
   "fontSmaller": "Smaller text",
   "fontLarger": "Larger text",
-  "favorite": "Favorite"
+  "favorite": "Favorite",
+  "aiModelSection": "AI Model",
+  "aiModelConfig": "AI Model Configuration",
+  "aiModelNotConfigured": "Not configured · Tap to add a local or remote model",
+  "aiModelCurrent": "Current: {name} ({kind})",
+  "@aiModelCurrent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "kindLocal": "local",
+  "kindRemote": "remote",
+  "llmLoadError": "Model failed to load: {error}",
+  "@llmLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sectionPreference": "Measurement Preferences",
+  "defaultArm": "Default Measurement Arm",
+  "reminderTitle": "Measurement Reminder",
+  "reminderOff": "Off",
+  "reminderDaily": "Daily",
+  "reminderInterval": "Interval",
+  "reminderDailyTime": "Reminder Time",
+  "reminderDailySubtitle": "Remind at a fixed time every day",
+  "reminderWindowTitle": "Reminder Window",
+  "reminderWindowSubtitle": "Remind within the window at fixed intervals",
+  "reminderIntervalTitle": "Reminder Interval",
+  "reminderIntervalSubtitle": "Repeat at this interval within the window",
+  "intervalMinutes": "{minutes} min",
+  "@intervalMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "windowEndAfterStart": "End time must be after start time",
+  "notificationDenied": "Notification permission not granted; reminders may not show",
+  "sectionData": "Data",
+  "exportShare": "Export & Share",
+  "exportShareSubtitle": "CSV export · Card sharing · WeChat",
+  "cloudSync": "Cloud Sync",
+  "cloudSyncSubtitle": "Off · Multi-device sync (planned)",
+  "sectionGeneral": "General",
+  "appearance": "Appearance",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "wechatConfig": "WeChat Sharing Setup",
+  "wechatNotConfigured": "AppID not set (system share is used until configured)",
+  "wechatAppIdMasked": "AppID: {masked}",
+  "@wechatAppIdMasked": {
+    "placeholders": {
+      "masked": {
+        "type": "String"
+      }
+    }
+  },
+  "wechatDialogTitle": "WeChat Sharing Setup",
+  "wechatAppIdField": "WeChat Open Platform AppID",
+  "wechatAppIdHint": "Leave empty to use system sharing",
+  "wechatUniversalLinkField": "iOS Universal Link (optional)",
+  "sectionAbout": "About",
+  "appVersionSubtitle": "v1.0.0 · Cross-platform blood pressure companion",
+  "disclaimer": "Disclaimer",
+  "disclaimerBody": "All content in this app (blood pressure classification hints, AI health guidance, knowledge articles) is for health information reference and self-management only, and is not medical diagnosis or treatment advice.\n\nAI-generated content may contain errors or omissions. Do not adjust medication or make medical decisions based on it. Consult a professional medical institution for any health concern.\n\nAll data is stored locally on your device (nothing is uploaded before cloud sync is enabled). Please back it up via the export feature.",
+  "syncTitle": "Cloud Sync",
+  "syncOn": "On",
+  "syncOff": "Off",
+  "syncEnabledBody": "Data will sync to the cloud automatically.",
+  "syncDisabledBody": "Cloud sync is a premium feature and is not available yet. All data stays on this device; back it up as CSV anytime via “Export & Share”.",
+  "syncReadiness": "Sync Readiness",
+  "readyLocal": "Local data protection (soft delete + updated_at timestamps)",
+  "readyDeviceId": "Cross-device identity (UUID primary keys + device ID)",
+  "readyOutbox": "Offline change log (outbox, {count} pending)",
+  "@readyOutbox": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "readyPlatform": "Cloud platform integration (candidates: Supabase / self-hosted API)",
+  "readyE2E": "End-to-end encrypted transport",
+  "sectionAccount": "Account (planned)",
+  "notLoggedIn": "Not signed in",
+  "loginAfterPlatform": "Sign in here once the cloud platform is available",
+  "syncNote": "Note: once a cloud platform is chosen, only a SyncService implementation is needed to enable multi-device sync — local data models and UI stay unchanged.",
+  "notifDailyTitle": "Time to measure your blood pressure 🩺",
+  "notifDailyBody": "Keep logging — your blood pressure trend matters.",
+  "channelDailyName": "Daily measurement reminder",
+  "channelDailyDesc": "Daily blood pressure measurement reminders",
+  "channelIntervalName": "Interval measurement reminder",
+  "channelIntervalDesc": "Interval blood pressure reminders within the window"
 }

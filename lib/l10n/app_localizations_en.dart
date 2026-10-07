@@ -858,4 +858,221 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get favorite => 'Favorite';
+
+  @override
+  String get aiModelSection => 'AI Model';
+
+  @override
+  String get aiModelConfig => 'AI Model Configuration';
+
+  @override
+  String get aiModelNotConfigured =>
+      'Not configured · Tap to add a local or remote model';
+
+  @override
+  String aiModelCurrent(String name, String kind) {
+    return 'Current: $name ($kind)';
+  }
+
+  @override
+  String get kindLocal => 'local';
+
+  @override
+  String get kindRemote => 'remote';
+
+  @override
+  String llmLoadError(String error) {
+    return 'Model failed to load: $error';
+  }
+
+  @override
+  String get sectionPreference => 'Measurement Preferences';
+
+  @override
+  String get defaultArm => 'Default Measurement Arm';
+
+  @override
+  String get reminderTitle => 'Measurement Reminder';
+
+  @override
+  String get reminderOff => 'Off';
+
+  @override
+  String get reminderDaily => 'Daily';
+
+  @override
+  String get reminderInterval => 'Interval';
+
+  @override
+  String get reminderDailyTime => 'Reminder Time';
+
+  @override
+  String get reminderDailySubtitle => 'Remind at a fixed time every day';
+
+  @override
+  String get reminderWindowTitle => 'Reminder Window';
+
+  @override
+  String get reminderWindowSubtitle =>
+      'Remind within the window at fixed intervals';
+
+  @override
+  String get reminderIntervalTitle => 'Reminder Interval';
+
+  @override
+  String get reminderIntervalSubtitle =>
+      'Repeat at this interval within the window';
+
+  @override
+  String intervalMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get windowEndAfterStart => 'End time must be after start time';
+
+  @override
+  String get notificationDenied =>
+      'Notification permission not granted; reminders may not show';
+
+  @override
+  String get sectionData => 'Data';
+
+  @override
+  String get exportShare => 'Export & Share';
+
+  @override
+  String get exportShareSubtitle => 'CSV export · Card sharing · WeChat';
+
+  @override
+  String get cloudSync => 'Cloud Sync';
+
+  @override
+  String get cloudSyncSubtitle => 'Off · Multi-device sync (planned)';
+
+  @override
+  String get sectionGeneral => 'General';
+
+  @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get wechatConfig => 'WeChat Sharing Setup';
+
+  @override
+  String get wechatNotConfigured =>
+      'AppID not set (system share is used until configured)';
+
+  @override
+  String wechatAppIdMasked(String masked) {
+    return 'AppID: $masked';
+  }
+
+  @override
+  String get wechatDialogTitle => 'WeChat Sharing Setup';
+
+  @override
+  String get wechatAppIdField => 'WeChat Open Platform AppID';
+
+  @override
+  String get wechatAppIdHint => 'Leave empty to use system sharing';
+
+  @override
+  String get wechatUniversalLinkField => 'iOS Universal Link (optional)';
+
+  @override
+  String get sectionAbout => 'About';
+
+  @override
+  String get appVersionSubtitle =>
+      'v1.0.0 · Cross-platform blood pressure companion';
+
+  @override
+  String get disclaimer => 'Disclaimer';
+
+  @override
+  String get disclaimerBody =>
+      'All content in this app (blood pressure classification hints, AI health guidance, knowledge articles) is for health information reference and self-management only, and is not medical diagnosis or treatment advice.\n\nAI-generated content may contain errors or omissions. Do not adjust medication or make medical decisions based on it. Consult a professional medical institution for any health concern.\n\nAll data is stored locally on your device (nothing is uploaded before cloud sync is enabled). Please back it up via the export feature.';
+
+  @override
+  String get syncTitle => 'Cloud Sync';
+
+  @override
+  String get syncOn => 'On';
+
+  @override
+  String get syncOff => 'Off';
+
+  @override
+  String get syncEnabledBody => 'Data will sync to the cloud automatically.';
+
+  @override
+  String get syncDisabledBody =>
+      'Cloud sync is a premium feature and is not available yet. All data stays on this device; back it up as CSV anytime via “Export & Share”.';
+
+  @override
+  String get syncReadiness => 'Sync Readiness';
+
+  @override
+  String get readyLocal =>
+      'Local data protection (soft delete + updated_at timestamps)';
+
+  @override
+  String get readyDeviceId =>
+      'Cross-device identity (UUID primary keys + device ID)';
+
+  @override
+  String readyOutbox(int count) {
+    return 'Offline change log (outbox, $count pending)';
+  }
+
+  @override
+  String get readyPlatform =>
+      'Cloud platform integration (candidates: Supabase / self-hosted API)';
+
+  @override
+  String get readyE2E => 'End-to-end encrypted transport';
+
+  @override
+  String get sectionAccount => 'Account (planned)';
+
+  @override
+  String get notLoggedIn => 'Not signed in';
+
+  @override
+  String get loginAfterPlatform =>
+      'Sign in here once the cloud platform is available';
+
+  @override
+  String get syncNote =>
+      'Note: once a cloud platform is chosen, only a SyncService implementation is needed to enable multi-device sync — local data models and UI stay unchanged.';
+
+  @override
+  String get notifDailyTitle => 'Time to measure your blood pressure 🩺';
+
+  @override
+  String get notifDailyBody =>
+      'Keep logging — your blood pressure trend matters.';
+
+  @override
+  String get channelDailyName => 'Daily measurement reminder';
+
+  @override
+  String get channelDailyDesc => 'Daily blood pressure measurement reminders';
+
+  @override
+  String get channelIntervalName => 'Interval measurement reminder';
+
+  @override
+  String get channelIntervalDesc =>
+      'Interval blood pressure reminders within the window';
 }

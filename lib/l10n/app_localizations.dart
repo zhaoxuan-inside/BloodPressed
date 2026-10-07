@@ -1591,6 +1591,390 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Favorite'**
   String get favorite;
+
+  /// No description provided for @aiModelSection.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Model'**
+  String get aiModelSection;
+
+  /// No description provided for @aiModelConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Model Configuration'**
+  String get aiModelConfig;
+
+  /// No description provided for @aiModelNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not configured · Tap to add a local or remote model'**
+  String get aiModelNotConfigured;
+
+  /// No description provided for @aiModelCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {name} ({kind})'**
+  String aiModelCurrent(String name, String kind);
+
+  /// No description provided for @kindLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'local'**
+  String get kindLocal;
+
+  /// No description provided for @kindRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'remote'**
+  String get kindRemote;
+
+  /// No description provided for @llmLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Model failed to load: {error}'**
+  String llmLoadError(String error);
+
+  /// No description provided for @sectionPreference.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement Preferences'**
+  String get sectionPreference;
+
+  /// No description provided for @defaultArm.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Measurement Arm'**
+  String get defaultArm;
+
+  /// No description provided for @reminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement Reminder'**
+  String get reminderTitle;
+
+  /// No description provided for @reminderOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get reminderOff;
+
+  /// No description provided for @reminderDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get reminderDaily;
+
+  /// No description provided for @reminderInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval'**
+  String get reminderInterval;
+
+  /// No description provided for @reminderDailyTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder Time'**
+  String get reminderDailyTime;
+
+  /// No description provided for @reminderDailySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind at a fixed time every day'**
+  String get reminderDailySubtitle;
+
+  /// No description provided for @reminderWindowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder Window'**
+  String get reminderWindowTitle;
+
+  /// No description provided for @reminderWindowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind within the window at fixed intervals'**
+  String get reminderWindowSubtitle;
+
+  /// No description provided for @reminderIntervalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder Interval'**
+  String get reminderIntervalTitle;
+
+  /// No description provided for @reminderIntervalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat at this interval within the window'**
+  String get reminderIntervalSubtitle;
+
+  /// No description provided for @intervalMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String intervalMinutes(int minutes);
+
+  /// No description provided for @windowEndAfterStart.
+  ///
+  /// In en, this message translates to:
+  /// **'End time must be after start time'**
+  String get windowEndAfterStart;
+
+  /// No description provided for @notificationDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission not granted; reminders may not show'**
+  String get notificationDenied;
+
+  /// No description provided for @sectionData.
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get sectionData;
+
+  /// No description provided for @exportShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Export & Share'**
+  String get exportShare;
+
+  /// No description provided for @exportShareSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV export · Card sharing · WeChat'**
+  String get exportShareSubtitle;
+
+  /// No description provided for @cloudSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Sync'**
+  String get cloudSync;
+
+  /// No description provided for @cloudSyncSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Off · Multi-device sync (planned)'**
+  String get cloudSyncSubtitle;
+
+  /// No description provided for @sectionGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get sectionGeneral;
+
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @wechatConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'WeChat Sharing Setup'**
+  String get wechatConfig;
+
+  /// No description provided for @wechatNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'AppID not set (system share is used until configured)'**
+  String get wechatNotConfigured;
+
+  /// No description provided for @wechatAppIdMasked.
+  ///
+  /// In en, this message translates to:
+  /// **'AppID: {masked}'**
+  String wechatAppIdMasked(String masked);
+
+  /// No description provided for @wechatDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'WeChat Sharing Setup'**
+  String get wechatDialogTitle;
+
+  /// No description provided for @wechatAppIdField.
+  ///
+  /// In en, this message translates to:
+  /// **'WeChat Open Platform AppID'**
+  String get wechatAppIdField;
+
+  /// No description provided for @wechatAppIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to use system sharing'**
+  String get wechatAppIdHint;
+
+  /// No description provided for @wechatUniversalLinkField.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS Universal Link (optional)'**
+  String get wechatUniversalLinkField;
+
+  /// No description provided for @sectionAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get sectionAbout;
+
+  /// No description provided for @appVersionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'v1.0.0 · Cross-platform blood pressure companion'**
+  String get appVersionSubtitle;
+
+  /// No description provided for @disclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Disclaimer'**
+  String get disclaimer;
+
+  /// No description provided for @disclaimerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All content in this app (blood pressure classification hints, AI health guidance, knowledge articles) is for health information reference and self-management only, and is not medical diagnosis or treatment advice.\n\nAI-generated content may contain errors or omissions. Do not adjust medication or make medical decisions based on it. Consult a professional medical institution for any health concern.\n\nAll data is stored locally on your device (nothing is uploaded before cloud sync is enabled). Please back it up via the export feature.'**
+  String get disclaimerBody;
+
+  /// No description provided for @syncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Sync'**
+  String get syncTitle;
+
+  /// No description provided for @syncOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get syncOn;
+
+  /// No description provided for @syncOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get syncOff;
+
+  /// No description provided for @syncEnabledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Data will sync to the cloud automatically.'**
+  String get syncEnabledBody;
+
+  /// No description provided for @syncDisabledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync is a premium feature and is not available yet. All data stays on this device; back it up as CSV anytime via “Export & Share”.'**
+  String get syncDisabledBody;
+
+  /// No description provided for @syncReadiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Readiness'**
+  String get syncReadiness;
+
+  /// No description provided for @readyLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data protection (soft delete + updated_at timestamps)'**
+  String get readyLocal;
+
+  /// No description provided for @readyDeviceId.
+  ///
+  /// In en, this message translates to:
+  /// **'Cross-device identity (UUID primary keys + device ID)'**
+  String get readyDeviceId;
+
+  /// No description provided for @readyOutbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline change log (outbox, {count} pending)'**
+  String readyOutbox(int count);
+
+  /// No description provided for @readyPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud platform integration (candidates: Supabase / self-hosted API)'**
+  String get readyPlatform;
+
+  /// No description provided for @readyE2E.
+  ///
+  /// In en, this message translates to:
+  /// **'End-to-end encrypted transport'**
+  String get readyE2E;
+
+  /// No description provided for @sectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account (planned)'**
+  String get sectionAccount;
+
+  /// No description provided for @notLoggedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed in'**
+  String get notLoggedIn;
+
+  /// No description provided for @loginAfterPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in here once the cloud platform is available'**
+  String get loginAfterPlatform;
+
+  /// No description provided for @syncNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: once a cloud platform is chosen, only a SyncService implementation is needed to enable multi-device sync — local data models and UI stay unchanged.'**
+  String get syncNote;
+
+  /// No description provided for @notifDailyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to measure your blood pressure 🩺'**
+  String get notifDailyTitle;
+
+  /// No description provided for @notifDailyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep logging — your blood pressure trend matters.'**
+  String get notifDailyBody;
+
+  /// No description provided for @channelDailyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily measurement reminder'**
+  String get channelDailyName;
+
+  /// No description provided for @channelDailyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily blood pressure measurement reminders'**
+  String get channelDailyDesc;
+
+  /// No description provided for @channelIntervalName.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval measurement reminder'**
+  String get channelIntervalName;
+
+  /// No description provided for @channelIntervalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval blood pressure reminders within the window'**
+  String get channelIntervalDesc;
 }
 
 class _AppLocalizationsDelegate

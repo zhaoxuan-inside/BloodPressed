@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:blood_pressed/core/providers.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/features/sync/data/local_only_sync_service.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// 云同步页（增值服务占位：能力已预留，平台待接入）。
 class SyncPage extends ConsumerWidget {
@@ -12,11 +13,12 @@ class SyncPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final sync = ref.watch(syncServiceProvider);
     final outboxCount = ref.watch(outboxCountProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('云同步')),
+      appBar: AppBar(title: Text(l10n.syncTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -38,7 +40,7 @@ class SyncPage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        sync.enabled ? '已开启' : '未开启',
+                        sync.enabled ? l10n.syncOn : l10n.syncOff,
                         style: theme.textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
@@ -52,9 +54,8 @@ class SyncPage extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Text(
                     sync.enabled
-                        ? '数据将自动同步到云端。'
-                        : '云同步是增值服务，当前版本尚未接入云平台。你的所有数据仍完整保存在本机，'
-                            '可通过"导出与分享"随时备份 CSV。',
+                        ? l10n.syncEnabledBody
+                        : l10n.syncDisabledBody,
                     style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.outline, height: 1.6),
                   ),
@@ -62,32 +63,32 @@ class SyncPage extends ConsumerWidget {
               ),
             ),
           ),
-          const SectionHeader('同步能力准备情况'),
+          SectionHeader(l10n.syncReadiness),
           Card(
             child: Column(
               children: [
-                _ReadyTile('本机数据保护（软删除 + updated_at 时间戳）', true),
-                _ReadyTile('跨设备唯一标识（UUID 主键 + 设备ID）', true),
-                _ReadyTile('离线变更日志（Outbox，待同步 $outboxCount 条）', true),
-                _ReadyTile('云平台接入（候选：Supabase / 自建 API 等）', false),
-                _ReadyTile('端到端加密传输', false),
+                _ReadyTile(l10n.readyLocal, true),
+                _ReadyTile(l10n.readyDeviceId, true),
+                _ReadyTile(
+                    l10n.readyOutbox(outboxCount.valueOrNull ?? 0), true),
+                _ReadyTile(l10n.readyPlatform, false),
+                _ReadyTile(l10n.readyE2E, false),
               ],
             ),
           ),
-          const SectionHeader('账号（预留）'),
+          SectionHeader(l10n.sectionAccount),
           Card(
             child: ListTile(
               leading: const Icon(Icons.account_circle_outlined),
-              title: const Text('未登录'),
-              subtitle: const Text('云平台接入后可在此登录账号'),
+              title: Text(l10n.notLoggedIn),
+              subtitle: Text(l10n.loginAfterPlatform),
               enabled: false,
               trailing: const Icon(Icons.lock_outline, size: 18),
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            '说明：确定云平台后，只需实现 SyncService 接口并替换默认实现，'
-            '本地数据模型与界面无需改动即可获得多设备同步能力。',
+            l10n.syncNote,
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: theme.colorScheme.outline, height: 1.6),
           ),
