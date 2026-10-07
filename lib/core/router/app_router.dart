@@ -10,6 +10,7 @@ import 'package:blood_pressed/features/llm/presentation/llm_settings_page.dart';
 import 'package:blood_pressed/features/records/presentation/home_page.dart';
 import 'package:blood_pressed/features/settings/presentation/settings_page.dart';
 import 'package:blood_pressed/features/stats/presentation/stats_page.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// AI助手分支的 branch 索引（StatefulShellRoute 中的固定位置）。
 const int _assistantBranchIndex = 2;
@@ -25,6 +26,7 @@ class ShellScaffold extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final profiles = ref.watch(llmProfilesProvider).valueOrNull ?? const [];
     final hasModel = profiles.isNotEmpty;
 
@@ -45,27 +47,27 @@ class ShellScaffold extends ConsumerWidget {
       4,
     ];
     final destinations = [
-      const NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home),
-          label: '首页'),
-      const NavigationDestination(
-          icon: Icon(Icons.show_chart_outlined),
-          selectedIcon: Icon(Icons.show_chart),
-          label: '趋势'),
+      NavigationDestination(
+          icon: const Icon(Icons.home_outlined),
+          selectedIcon: const Icon(Icons.home),
+          label: l10n.navHome),
+      NavigationDestination(
+          icon: const Icon(Icons.show_chart_outlined),
+          selectedIcon: const Icon(Icons.show_chart),
+          label: l10n.navStats),
       if (hasModel)
-        const NavigationDestination(
-            icon: Icon(Icons.smart_toy_outlined),
-            selectedIcon: Icon(Icons.smart_toy),
-            label: 'AI助手'),
-      const NavigationDestination(
-          icon: Icon(Icons.menu_book_outlined),
-          selectedIcon: Icon(Icons.menu_book),
-          label: '知识'),
-      const NavigationDestination(
-          icon: Icon(Icons.person_outline),
-          selectedIcon: Icon(Icons.person),
-          label: '我的'),
+        NavigationDestination(
+            icon: const Icon(Icons.smart_toy_outlined),
+            selectedIcon: const Icon(Icons.smart_toy),
+            label: l10n.navAssistant),
+      NavigationDestination(
+          icon: const Icon(Icons.menu_book_outlined),
+          selectedIcon: const Icon(Icons.menu_book),
+          label: l10n.navKnowledge),
+      NavigationDestination(
+          icon: const Icon(Icons.person_outline),
+          selectedIcon: const Icon(Icons.person),
+          label: l10n.navMe),
     ];
 
     return Scaffold(

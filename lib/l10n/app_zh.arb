@@ -312,5 +312,18 @@
   "channelDailyName": "每日测量提醒",
   "channelDailyDesc": "提醒您每天定时测量血压",
   "channelIntervalName": "周期测量提醒",
-  "channelIntervalDesc": "在提醒窗口内按固定周期提醒您测量血压"
+  "channelIntervalDesc": "在提醒窗口内按固定周期提醒您测量血压",
+  "settingsTitle": "我的",
+  "avgSystolicCard": "平均高压",
+  "avgDiastolicCard": "平均低压",
+  "avgPulseCard": "平均脉搏",
+  "minMaxHint": "最高 {high} · 最低 {low}",
+  "replyInterrupted": "回复中断：{error}",
+  "llmNotConfigured": "尚未配置大模型",
+  "llmNotReady": "模型尚未就绪",
+  "navHome": "首页",
+  "navStats": "趋势",
+  "navAssistant": "AI助手",
+  "navKnowledge": "知识",
+  "navMe": "我的"
 }

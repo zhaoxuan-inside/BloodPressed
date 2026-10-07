@@ -33,7 +33,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('我的')),
+      appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 32),
         children: [
@@ -76,20 +76,29 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ListTile(
                   leading: const Icon(Icons.pan_tool_alt_outlined),
                   title: Text(l10n.defaultArm),
-                  trailing: SegmentedButton<MeasureArm>(
-                    segments: [
-                      ButtonSegment(
-                          value: MeasureArm.left, label: Text(l10n.armLeft)),
-                      ButtonSegment(
-                          value: MeasureArm.right, label: Text(l10n.armRight)),
-                    ],
-                    selected: {settings.defaultArm},
-                    onSelectionChanged: (s) {
-                      settings.setDefaultArm(s.first);
-                      setState(() {});
-                    },
-                    style: const ButtonStyle(
-                        visualDensity: VisualDensity.compact),
+                ),
+                // 分段按钮独占一行：英文等长文案下 trailing 挤不下（ListTile 宽度断言）
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: SegmentedButton<MeasureArm>(
+                      segments: [
+                        ButtonSegment(
+                            value: MeasureArm.left,
+                            label: Text(l10n.armLeft)),
+                        ButtonSegment(
+                            value: MeasureArm.right,
+                            label: Text(l10n.armRight)),
+                      ],
+                      selected: {settings.defaultArm},
+                      onSelectionChanged: (s) {
+                        settings.setDefaultArm(s.first);
+                        setState(() {});
+                      },
+                      style: const ButtonStyle(
+                          visualDensity: VisualDensity.compact),
+                    ),
                   ),
                 ),
                 _ReminderSection(settings: settings),
@@ -393,22 +402,28 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
       children: [
         ListTile(
           leading: const Icon(Icons.alarm_outlined),
-          title: Text(AppLocalizations.of(context).reminderTitle),
-          trailing: SegmentedButton<ReminderMode>(
-            segments: [
-              ButtonSegment(
-                  value: ReminderMode.off,
-                  label: Text(AppLocalizations.of(context).reminderOff)),
-              ButtonSegment(
-                  value: ReminderMode.daily,
-                  label: Text(AppLocalizations.of(context).reminderDaily)),
-              ButtonSegment(
-                  value: ReminderMode.interval,
-                  label: Text(AppLocalizations.of(context).reminderInterval)),
-            ],
-            selected: {mode},
-            onSelectionChanged: (selection) =>
-                _changeMode(selection.first),
+          title: Text(l10n.reminderTitle),
+        ),
+        // 分段按钮独占一行：英文长文案下 trailing 放不下
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<ReminderMode>(
+              segments: [
+                ButtonSegment(
+                    value: ReminderMode.off, label: Text(l10n.reminderOff)),
+                ButtonSegment(
+                    value: ReminderMode.daily,
+                    label: Text(l10n.reminderDaily)),
+                ButtonSegment(
+                    value: ReminderMode.interval,
+                    label: Text(l10n.reminderInterval)),
+              ],
+              selected: {mode},
+              onSelectionChanged: (selection) =>
+                  _changeMode(selection.first),
+            ),
           ),
         ),
         if (mode == ReminderMode.daily)

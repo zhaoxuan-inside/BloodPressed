@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:blood_pressed/core/i18n/app_locale_service.dart';
+
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 import 'package:blood_pressed/features/assistant/data/chat_repository.dart';
@@ -105,9 +107,9 @@ class AssistantController extends StateNotifier<ChatUiState> {
           String errMsg;
           if (partial.isNotEmpty) {
             await _chatRepo.append(ChatRole.assistant, partial);
-            errMsg = '回复中断：$e';
+            errMsg = AppLocaleService.auto.replyInterrupted(e.toString());
           } else {
-            errMsg = '$e';
+            errMsg = e.toString();
           }
           state = ChatUiState(
             messages: state.messages,

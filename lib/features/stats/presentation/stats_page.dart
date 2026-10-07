@@ -212,6 +212,7 @@ class _StatsCards extends StatelessWidget {
     if (stats.count == 0) {
       return const SizedBox.shrink();
     }
+    final l10n = AppLocalizations.of(context);
     final sysColor = _statsColor(stats.avgSystolic, 135);
     final diaColor = _statsColor(stats.avgDiastolic, 85);
 
@@ -220,22 +221,22 @@ class _StatsCards extends StatelessWidget {
       child: Row(
         children: [
           StatCard(
-            label: '平均高压',
+            label: l10n.avgSystolicCard,
             value: stats.avgSystolic.toStringAsFixed(0),
             color: sysColor,
-            sub: '最高 ${stats.maxSystolic} · 最低 ${stats.minSystolic}',
+            sub: l10n.minMaxHint('${stats.maxSystolic}', '${stats.minSystolic}'),
           ),
           StatCard(
-            label: '平均低压',
+            label: l10n.avgDiastolicCard,
             value: stats.avgDiastolic.toStringAsFixed(0),
             color: diaColor,
-            sub: '最高 ${stats.maxDiastolic} · 最低 ${stats.minDiastolic}',
+            sub: l10n.minMaxHint('${stats.maxDiastolic}', '${stats.minDiastolic}'),
           ),
           StatCard(
-            label: '平均脉搏',
+            label: l10n.avgPulseCard,
             value: stats.avgPulse?.toStringAsFixed(0) ?? '—',
             sub: (stats.maxPulse != null && stats.minPulse != null)
-                ? '最高 ${stats.maxPulse} · 最低 ${stats.minPulse}'
+                ? l10n.minMaxHint('${stats.maxPulse}', '${stats.minPulse}')
                 : null,
           ),
         ],
@@ -346,8 +347,9 @@ class _PulseLineChart extends StatelessWidget {
         .map((p) => FlSpot(xOf(p.date, query), p.avgPulse!))
         .toList();
     if (spots.isEmpty) {
-      return const Center(
-        child: Text('该范围内没有脉搏数据', style: TextStyle(color: Colors.grey)),
+      return Center(
+        child: Text(AppLocalizations.of(context).pulseEmpty,
+            style: const TextStyle(color: Colors.grey)),
       );
     }
     final ys = spots.map((s) => s.y).toList();

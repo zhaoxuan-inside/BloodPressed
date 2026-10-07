@@ -263,13 +263,13 @@ abstract class AppLocalizations {
   /// No description provided for @armLeft.
   ///
   /// In en, this message translates to:
-  /// **'Left arm'**
+  /// **'Left'**
   String get armLeft;
 
   /// No description provided for @armRight.
   ///
   /// In en, this message translates to:
-  /// **'Right arm'**
+  /// **'Right'**
   String get armRight;
 
   /// No description provided for @postureNotRecorded.
@@ -1975,6 +1975,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Interval blood pressure reminders within the window'**
   String get channelIntervalDesc;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get settingsTitle;
+
+  /// No description provided for @avgSystolicCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Systolic'**
+  String get avgSystolicCard;
+
+  /// No description provided for @avgDiastolicCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Diastolic'**
+  String get avgDiastolicCard;
+
+  /// No description provided for @avgPulseCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Pulse'**
+  String get avgPulseCard;
+
+  /// No description provided for @minMaxHint.
+  ///
+  /// In en, this message translates to:
+  /// **'High {high} · Low {low}'**
+  String minMaxHint(String high, String low);
+
+  /// No description provided for @replyInterrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply interrupted: {error}'**
+  String replyInterrupted(String error);
+
+  /// No description provided for @llmNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No LLM configured'**
+  String get llmNotConfigured;
+
+  /// No description provided for @llmNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Model not ready'**
+  String get llmNotReady;
+
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// No description provided for @navStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Trends'**
+  String get navStats;
+
+  /// No description provided for @navAssistant.
+  ///
+  /// In en, this message translates to:
+  /// **'AI'**
+  String get navAssistant;
+
+  /// No description provided for @navKnowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'Knowledge'**
+  String get navKnowledge;
+
+  /// No description provided for @navMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get navMe;
 }
 
 class _AppLocalizationsDelegate

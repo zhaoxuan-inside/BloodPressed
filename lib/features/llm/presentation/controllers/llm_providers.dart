@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
@@ -182,7 +184,9 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
       return null;
     } catch (e) {
       _engine = null;
-      final msg = e is InferenceException ? e.message : '加载失败：$e';
+      final msg = e is InferenceException
+          ? e.message
+          : AppLocaleService.auto.loadFailed(e.toString());
       state = LlmEngineState(status: LlmEngineStatus.error, error: msg);
       return msg;
     }
@@ -191,7 +195,7 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
   /// 确保引擎就绪（未配置/未加载时按激活档案加载）。
   Future<String?> ensureReady() async {
     final p = activeProfile();
-    if (p == null) return '尚未配置大模型';
+    if (p == null) return AppLocaleService.auto.llmNotConfigured;
     if (state.status == LlmEngineStatus.ready &&
         state.activeProfileId == p.id) {
       return null;
@@ -204,7 +208,7 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
       {double temperature = 0.7}) async* {
     final engine = _engine;
     if (engine == null || !engine.isReady) {
-      throw const InferenceException('模型尚未就绪');
+      throw InferenceException(AppLocaleService.auto.llmNotReady);
     }
     yield* engine.chatStream(messages, temperature: temperature);
   }

@@ -59,12 +59,14 @@ class SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
         children: [
-          Text(
-            title,
-            style: theme.textTheme.titleSmall
-                ?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
+          // Expanded：长标题（英文等）可换行/截断，不撑破行
+          Expanded(
+            child: Text(
+              title,
+              style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
+            ),
           ),
-          const Spacer(),
           ?trailing,
         ],
       ),

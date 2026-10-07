@@ -101,10 +101,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pulseUnit => 'bpm';
 
   @override
-  String get armLeft => 'Left arm';
+  String get armLeft => 'Left';
 
   @override
-  String get armRight => 'Right arm';
+  String get armRight => 'Right';
 
   @override
   String get postureNotRecorded => 'Not recorded';
@@ -1075,4 +1075,47 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get channelIntervalDesc =>
       'Interval blood pressure reminders within the window';
+
+  @override
+  String get settingsTitle => 'Me';
+
+  @override
+  String get avgSystolicCard => 'Avg Systolic';
+
+  @override
+  String get avgDiastolicCard => 'Avg Diastolic';
+
+  @override
+  String get avgPulseCard => 'Avg Pulse';
+
+  @override
+  String minMaxHint(String high, String low) {
+    return 'High $high · Low $low';
+  }
+
+  @override
+  String replyInterrupted(String error) {
+    return 'Reply interrupted: $error';
+  }
+
+  @override
+  String get llmNotConfigured => 'No LLM configured';
+
+  @override
+  String get llmNotReady => 'Model not ready';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navStats => 'Trends';
+
+  @override
+  String get navAssistant => 'AI';
+
+  @override
+  String get navKnowledge => 'Knowledge';
+
+  @override
+  String get navMe => 'Me';
 }

@@ -1026,4 +1026,47 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get channelIntervalDesc => '在提醒窗口内按固定周期提醒您测量血压';
+
+  @override
+  String get settingsTitle => '我的';
+
+  @override
+  String get avgSystolicCard => '平均高压';
+
+  @override
+  String get avgDiastolicCard => '平均低压';
+
+  @override
+  String get avgPulseCard => '平均脉搏';
+
+  @override
+  String minMaxHint(String high, String low) {
+    return '最高 $high · 最低 $low';
+  }
+
+  @override
+  String replyInterrupted(String error) {
+    return '回复中断：$error';
+  }
+
+  @override
+  String get llmNotConfigured => '尚未配置大模型';
+
+  @override
+  String get llmNotReady => '模型尚未就绪';
+
+  @override
+  String get navHome => '首页';
+
+  @override
+  String get navStats => '趋势';
+
+  @override
+  String get navAssistant => 'AI助手';
+
+  @override
+  String get navKnowledge => '知识';
+
+  @override
+  String get navMe => '我的';
 }

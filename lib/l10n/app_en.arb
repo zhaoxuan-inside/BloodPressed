@@ -44,8 +44,8 @@
     }
   },
   "pulseUnit": "bpm",
-  "armLeft": "Left arm",
-  "armRight": "Right arm",
+  "armLeft": "Left",
+  "armRight": "Right",
   "postureNotRecorded": "Not recorded",
   "postureLying": "Lying down",
   "postureSitting": "Sitting",
@@ -607,5 +607,35 @@
   "channelDailyName": "Daily measurement reminder",
   "channelDailyDesc": "Daily blood pressure measurement reminders",
   "channelIntervalName": "Interval measurement reminder",
-  "channelIntervalDesc": "Interval blood pressure reminders within the window"
+  "channelIntervalDesc": "Interval blood pressure reminders within the window",
+  "settingsTitle": "Me",
+  "avgSystolicCard": "Avg Systolic",
+  "avgDiastolicCard": "Avg Diastolic",
+  "avgPulseCard": "Avg Pulse",
+  "minMaxHint": "High {high} · Low {low}",
+  "@minMaxHint": {
+    "placeholders": {
+      "high": {
+        "type": "String"
+      },
+      "low": {
+        "type": "String"
+      }
+    }
+  },
+  "replyInterrupted": "Reply interrupted: {error}",
+  "@replyInterrupted": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "llmNotConfigured": "No LLM configured",
+  "llmNotReady": "Model not ready",
+  "navHome": "Home",
+  "navStats": "Trends",
+  "navAssistant": "AI",
+  "navKnowledge": "Knowledge",
+  "navMe": "Me"
 }
