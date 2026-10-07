@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -42,6 +43,11 @@ class _BloodPressedAppState extends ConsumerState<BloodPressedApp> {
     return MaterialApp.router(
       title: '血压了么',
       debugShowCheckedModeBanner: false,
+      // 界面文案硬编码中文，强制中文 locale 使系统弹窗
+      // （日期/时间选择器等）同样以中文渲染
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: const [Locale('zh')],
+      locale: const Locale('zh'),
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,

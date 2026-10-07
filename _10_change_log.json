@@ -217,7 +217,29 @@
    "author": "Agent",
    "verified": true,
    "note": "识别流程改为：可靠结果直接预填确认表单；低置信度/未识别也直接进表单（尽力预填，可能为空），横幅警告 + 三个数值输入框红框强调，不再弹窗打断。移除低置信度弹窗与大模型兜底入口（extractBpFromImage 保留为 llm 模块 API）。服务级异常仍提示。诊断留存逻辑不变。全量 120 测试 + analyze 0。"
+  },
+  {
+   "id": "chg-010",
+   "date": "2026-10-07T12:40:00+08:00",
+   "requirement": "用户要求：血压趋势的自定义按钮里面要用中文；提醒窗口的时间选择要用中文。快速通道。",
+   "plan_id": "plan-007",
+   "changed_files": [
+    "pubspec.yaml",
+    "pubspec.lock",
+    "lib/app.dart",
+    "lib/features/stats/presentation/stats_page.dart",
+    "test/app_integration_test.dart",
+    "_08_task_plan_idx.json",
+    "_08_task_plans/plan-007.md",
+    "_00_project_idx.json",
+    "_10_change_log.json"
+   ],
+   "commits": [],
+   "changed_methods": [],
+   "author": "Agent",
+   "verified": true,
+   "note": "根因：MaterialApp 未配置本地化，showDateRangePicker/showTimePicker 等系统弹窗默认美式英语。引入 flutter_localizations 并强制 locale zh，两个选择器（趋势自定义日期范围、提醒窗口/定时提醒时间）均中文化；趋势页自定义 chip 选中态标签同步改为「10月1日-10月7日」中文格式。附带修正 app_integration_test 两处 pageBack（依赖英文 'Back' tooltip，本地化后返回键 tooltip 为'返回'）。全量 120 测试 + analyze 0。UI 文案改动按 frontend 豁免不入 _07。"
   }
  ],
- "latest": "chg-009"
+ "latest": "chg-010"
 }

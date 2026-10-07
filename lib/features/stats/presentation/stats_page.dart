@@ -41,7 +41,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
   String get _customLabel {
     final s = _custom!.start;
     final e = _custom!.end;
-    String fmt(DateTime d) => '${d.month}/${d.day}';
+    String fmt(DateTime d) => '${d.month}月${d.day}日';
     return '${fmt(s)}-${fmt(e)}';
   }
 

@@ -258,7 +258,8 @@ void main() {
 
     // 等待编辑页 pop 动画结束，避免同时存在两个返回按钮
     await tester.pumpAndSettle();
-    await tester.pageBack();
+    // 中文 locale 下返回键 tooltip 为"返回"，pageBack 找的是英文 'Back'
+    await tester.tap(find.byTooltip('返回'));
     await pumpUntilReal(tester, () => tester.any(find.text('我的')));
     // 设置行图标与底部导航同图标名，取导航栏（树序靠后）的
     await tester.tap(find.byIcon(Icons.smart_toy_outlined).last);
@@ -299,7 +300,8 @@ void main() {
     await tester.tap(find.text('云同步'));
     await pumpUntilReal(tester, () => tester.any(find.text('未开启')));
     expect(find.textContaining('尚未接入云平台'), findsOneWidget);
-    await tester.pageBack();
+    // 中文 locale 下返回键 tooltip 为"返回"，pageBack 找的是英文 'Back'
+    await tester.tap(find.byTooltip('返回'));
     await tester.pumpAndSettle();
     // 列表此前滚动到下方（懒加载），顶部行未构建，向上拖回 AI 模型配置行
     for (var i = 0;
