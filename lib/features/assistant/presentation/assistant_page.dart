@@ -6,6 +6,7 @@ import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 import 'package:blood_pressed/features/assistant/presentation/controllers/assistant_providers.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// AI 健康指导聊天页。
 class AssistantPage extends ConsumerStatefulWidget {
@@ -48,6 +49,7 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final state = ref.watch(assistantProvider);
     final activeProfile = ref.watch(activeLlmProfileProvider);
     final engineState = ref.watch(llmEngineProvider);
@@ -61,10 +63,10 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
       appBar: AppBar(
         title: Column(
           children: [
-            const Text('健康指导'),
+            Text(l10n.assistantTitle),
             if (activeProfile != null)
               Text(
-                '模型：${activeProfile.name}',
+                l10n.assistantModelLabel(activeProfile.name),
                 style: theme.textTheme.labelSmall
                     ?.copyWith(color: theme.colorScheme.outline),
               ),
@@ -73,15 +75,15 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
         actions: [
           if (state.messages.isNotEmpty)
             IconButton(
-              tooltip: '清空对话',
+              tooltip: l10n.clearConversationTooltip,
               icon: const Icon(Icons.delete_sweep_outlined),
               onPressed: () async {
                 final ok = await showConfirmDialog(
                   context,
-                  title: '清空对话',
-                  content: '确定删除全部对话记录吗？',
+                  title: l10n.clearConversationTitle,
+                  content: l10n.clearConversationContent,
                   danger: true,
-                  confirmText: '清空',
+                  confirmText: l10n.clearConversationConfirm,
                 );
                 if (ok) {
                   await ref.read(assistantProvider.notifier).clearConversation();
@@ -139,8 +141,8 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
                       onSubmitted: (_) => _send(),
                       decoration: InputDecoration(
                         hintText: hasModel
-                            ? '例如：我最近血压偏高，饮食上要注意什么？'
-                            : '请先配置模型',
+                            ? l10n.assistantInputHint
+                            : l10n.assistantInputNoModel,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                         ),
@@ -168,7 +170,7 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: Text(
-              'AI 建议仅供参考，不能替代专业医疗意见',
+              l10n.assistantDisclaimer,
               style: theme.textTheme.labelSmall
                   ?.copyWith(color: theme.colorScheme.outline),
             ),
@@ -234,10 +236,11 @@ class _NoModelHint extends StatelessWidget {
             Icon(Icons.smart_toy_outlined,
                 size: 56, color: theme.colorScheme.outline),
             const SizedBox(height: 12),
-            Text('尚未配置 AI 模型', style: theme.textTheme.titleMedium),
+            Text(AppLocalizations.of(context).noModelYet,
+                style: theme.textTheme.titleMedium),
             const SizedBox(height: 6),
             Text(
-              '配置本地模型（离线可用）或远端 API 后，\n即可获得个性化血压健康指导。',
+              AppLocalizations.of(context).noModelHint,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.outline, height: 1.5),
@@ -245,7 +248,7 @@ class _NoModelHint extends StatelessWidget {
             const SizedBox(height: 20),
             FilledButton.icon(
               icon: const Icon(Icons.settings),
-              label: const Text('去配置模型'),
+              label: Text(AppLocalizations.of(context).goConfigure),
               onPressed: onConfigure,
             ),
           ],
@@ -260,30 +263,31 @@ class _Welcome extends StatelessWidget {
 
   final ValueChanged<String> onSuggest;
 
-  static const _suggestions = [
-    '帮我分析一下最近的血压情况',
-    '血压偏高，饮食上应该注意什么？',
-    '如何正确测量血压？',
-    '运动对降压有帮助吗？怎么运动？',
-  ];
+  List<String> _suggestions(AppLocalizations l10n) => [
+        l10n.suggestAnalyze,
+        l10n.suggestDiet,
+        l10n.suggestMeasure,
+        l10n.suggestExercise,
+      ];
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         const SizedBox(height: 12),
-        Text('👋 你好，我是你的血压健康助手',
+        Text(l10n.assistantWelcomeTitle,
             style: theme.textTheme.titleMedium),
         const SizedBox(height: 6),
         Text(
-          '我会结合你近 30 天的血压记录给出建议。\n你可以这样问我：',
+          l10n.assistantWelcomeBody,
           style: theme.textTheme.bodySmall
               ?.copyWith(color: theme.colorScheme.outline, height: 1.5),
         ),
         const SizedBox(height: 16),
-        ..._suggestions.map((s) => Card(
+        ..._suggestions(l10n).map((s) => Card(
               child: ListTile(
                 dense: true,
                 leading: const Icon(Icons.chat_bubble_outline, size: 18),

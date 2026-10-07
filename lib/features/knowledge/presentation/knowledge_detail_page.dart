@@ -5,6 +5,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:blood_pressed/core/providers.dart';
 import 'package:blood_pressed/features/knowledge/domain/knowledge_article.dart';
 import 'package:blood_pressed/features/knowledge/presentation/controllers/knowledge_providers.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// 文章详情页：Markdown 渲染 + 字号调节 + 收藏。
 class KnowledgeDetailPage extends ConsumerStatefulWidget {
@@ -55,17 +56,17 @@ class _KnowledgeDetailPageState extends ConsumerState<KnowledgeDetailPage> {
         title: Text(widget.article.category),
         actions: [
           IconButton(
-            tooltip: '缩小字号',
+            tooltip: AppLocalizations.of(context).fontSmaller,
             icon: const Icon(Icons.text_decrease),
             onPressed: () => _changeFont(-0.1),
           ),
           IconButton(
-            tooltip: '放大字号',
+            tooltip: AppLocalizations.of(context).fontLarger,
             icon: const Icon(Icons.text_increase),
             onPressed: () => _changeFont(0.1),
           ),
           IconButton(
-            tooltip: '收藏',
+            tooltip: AppLocalizations.of(context).favorite,
             icon: Icon(_favorite ? Icons.star : Icons.star_border),
             onPressed: _toggleFavorite,
           ),
@@ -78,7 +79,9 @@ class _KnowledgeDetailPageState extends ConsumerState<KnowledgeDetailPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return Center(child: Text('加载失败：${snap.error}'));
+            return Center(
+                child: Text(AppLocalizations.of(context)
+                    .loadFailed(snap.error.toString())));
           }
           return Markdown(
             data: snap.data!,

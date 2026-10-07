@@ -458,5 +458,52 @@
   "curatedSizeQwen3_4B_GGUF": "about 2.3–4.4 GB",
   "curatedSizeQwen2_5_0_5B_Instruct_GGUF": "about 0.4–0.7 GB",
   "curatedSizeQwen2_5_1_5B_Instruct_GGUF": "about 0.9–1.8 GB",
-  "curatedSizeQwen2_5_3B_Instruct_GGUF": "about 1.8–3.2 GB"
+  "curatedSizeQwen2_5_3B_Instruct_GGUF": "about 1.8–3.2 GB",
+  "assistantTitle": "Health Guidance",
+  "assistantModelLabel": "Model: {name}",
+  "@assistantModelLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clearConversationTooltip": "Clear chat",
+  "clearConversationTitle": "Clear Chat",
+  "clearConversationContent": "Delete the entire conversation?",
+  "clearConversationConfirm": "Clear",
+  "assistantInputHint": "e.g. My blood pressure has been high lately — any diet tips?",
+  "assistantInputNoModel": "Configure a model first",
+  "assistantDisclaimer": "AI suggestions are for reference only and do not replace professional medical advice",
+  "noModelYet": "No AI model configured",
+  "noModelHint": "Set up a local model (offline) or a remote API to get personalized blood pressure guidance.",
+  "goConfigure": "Configure Model",
+  "assistantWelcomeTitle": "👋 Hi, I'm your blood pressure assistant",
+  "assistantWelcomeBody": "I base suggestions on your last 30 days of records.\nTry asking:",
+  "suggestAnalyze": "Analyze my recent blood pressure readings",
+  "suggestDiet": "My BP is high — what should I watch in my diet?",
+  "suggestMeasure": "How do I measure blood pressure correctly?",
+  "suggestExercise": "Does exercise help lower BP? What kind?",
+  "knowledgeTitle": "Health Knowledge",
+  "categoryAll": "All",
+  "noArticlesInCategory": "No articles in this category",
+  "minutesRead": "about {minutes} min read",
+  "@minutesRead": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "loadFailed": "Failed to load: {error}",
+  "@loadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fontSmaller": "Smaller text",
+  "fontLarger": "Larger text",
+  "favorite": "Favorite"
 }

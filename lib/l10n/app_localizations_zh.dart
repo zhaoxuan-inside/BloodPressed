@@ -737,4 +737,88 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get curatedSizeQwen2_5_3B_Instruct_GGUF => '约 1.8~3.2 GB';
+
+  @override
+  String get assistantTitle => '健康指导';
+
+  @override
+  String assistantModelLabel(String name) {
+    return '模型：$name';
+  }
+
+  @override
+  String get clearConversationTooltip => '清空对话';
+
+  @override
+  String get clearConversationTitle => '清空对话';
+
+  @override
+  String get clearConversationContent => '确定删除全部对话记录吗？';
+
+  @override
+  String get clearConversationConfirm => '清空';
+
+  @override
+  String get assistantInputHint => '例如：我最近血压偏高，饮食上要注意什么？';
+
+  @override
+  String get assistantInputNoModel => '请先配置模型';
+
+  @override
+  String get assistantDisclaimer => 'AI 建议仅供参考，不能替代专业医疗意见';
+
+  @override
+  String get noModelYet => '尚未配置 AI 模型';
+
+  @override
+  String get noModelHint => '配置本地模型（离线可用）或远端 API 后，\n即可获得个性化血压健康指导。';
+
+  @override
+  String get goConfigure => '去配置模型';
+
+  @override
+  String get assistantWelcomeTitle => '👋 你好，我是你的血压健康助手';
+
+  @override
+  String get assistantWelcomeBody => '我会结合你近 30 天的血压记录给出建议。\n你可以这样问我：';
+
+  @override
+  String get suggestAnalyze => '帮我分析一下最近的血压情况';
+
+  @override
+  String get suggestDiet => '血压偏高，饮食上应该注意什么？';
+
+  @override
+  String get suggestMeasure => '如何正确测量血压？';
+
+  @override
+  String get suggestExercise => '运动对降压有帮助吗？怎么运动？';
+
+  @override
+  String get knowledgeTitle => '健康知识';
+
+  @override
+  String get categoryAll => '全部';
+
+  @override
+  String get noArticlesInCategory => '该分类暂无文章';
+
+  @override
+  String minutesRead(int minutes) {
+    return '约 $minutes 分钟阅读';
+  }
+
+  @override
+  String loadFailed(String error) {
+    return '加载失败：$error';
+  }
+
+  @override
+  String get fontSmaller => '缩小字号';
+
+  @override
+  String get fontLarger => '放大字号';
+
+  @override
+  String get favorite => '收藏';
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/features/knowledge/domain/knowledge_article.dart';
 import 'package:blood_pressed/features/knowledge/presentation/controllers/knowledge_providers.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 import 'knowledge_detail_page.dart';
 
 /// 健康知识列表页。
@@ -20,13 +21,14 @@ class _KnowledgeListPageState extends ConsumerState<KnowledgeListPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final articles = ref.watch(knowledgeListProvider);
     final filtered = _category == null
         ? articles
         : articles.where((a) => a.category == _category).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('健康知识')),
+      appBar: AppBar(title: Text(l10n.knowledgeTitle)),
       body: Column(
         children: [
           Padding(
@@ -36,7 +38,7 @@ class _KnowledgeListPageState extends ConsumerState<KnowledgeListPage> {
               runSpacing: 8,
               children: [
                 ChoiceChip(
-                  label: const Text('全部'),
+                  label: Text(l10n.categoryAll),
                   selected: _category == null,
                   onSelected: (_) => setState(() => _category = null),
                 ),
@@ -50,9 +52,9 @@ class _KnowledgeListPageState extends ConsumerState<KnowledgeListPage> {
           ),
           Expanded(
             child: filtered.isEmpty
-                ? const EmptyState(
+                ? EmptyState(
                     icon: Icons.menu_book_outlined,
-                    title: '该分类暂无文章',
+                    title: l10n.noArticlesInCategory,
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -67,7 +69,7 @@ class _KnowledgeListPageState extends ConsumerState<KnowledgeListPage> {
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                           subtitle: Text(
-                              '${a.category} · 约 ${a.minutes} 分钟阅读'),
+                              '${a.category} · ${l10n.minutesRead(a.minutes)}'),
                           trailing:
                               const Icon(Icons.chevron_right),
                           onTap: () => Navigator.of(context).push(

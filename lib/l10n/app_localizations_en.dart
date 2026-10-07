@@ -769,4 +769,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get curatedSizeQwen2_5_3B_Instruct_GGUF => 'about 1.8–3.2 GB';
+
+  @override
+  String get assistantTitle => 'Health Guidance';
+
+  @override
+  String assistantModelLabel(String name) {
+    return 'Model: $name';
+  }
+
+  @override
+  String get clearConversationTooltip => 'Clear chat';
+
+  @override
+  String get clearConversationTitle => 'Clear Chat';
+
+  @override
+  String get clearConversationContent => 'Delete the entire conversation?';
+
+  @override
+  String get clearConversationConfirm => 'Clear';
+
+  @override
+  String get assistantInputHint =>
+      'e.g. My blood pressure has been high lately — any diet tips?';
+
+  @override
+  String get assistantInputNoModel => 'Configure a model first';
+
+  @override
+  String get assistantDisclaimer =>
+      'AI suggestions are for reference only and do not replace professional medical advice';
+
+  @override
+  String get noModelYet => 'No AI model configured';
+
+  @override
+  String get noModelHint =>
+      'Set up a local model (offline) or a remote API to get personalized blood pressure guidance.';
+
+  @override
+  String get goConfigure => 'Configure Model';
+
+  @override
+  String get assistantWelcomeTitle =>
+      '👋 Hi, I\'m your blood pressure assistant';
+
+  @override
+  String get assistantWelcomeBody =>
+      'I base suggestions on your last 30 days of records.\nTry asking:';
+
+  @override
+  String get suggestAnalyze => 'Analyze my recent blood pressure readings';
+
+  @override
+  String get suggestDiet => 'My BP is high — what should I watch in my diet?';
+
+  @override
+  String get suggestMeasure => 'How do I measure blood pressure correctly?';
+
+  @override
+  String get suggestExercise => 'Does exercise help lower BP? What kind?';
+
+  @override
+  String get knowledgeTitle => 'Health Knowledge';
+
+  @override
+  String get categoryAll => 'All';
+
+  @override
+  String get noArticlesInCategory => 'No articles in this category';
+
+  @override
+  String minutesRead(int minutes) {
+    return 'about $minutes min read';
+  }
+
+  @override
+  String loadFailed(String error) {
+    return 'Failed to load: $error';
+  }
+
+  @override
+  String get fontSmaller => 'Smaller text';
+
+  @override
+  String get fontLarger => 'Larger text';
+
+  @override
+  String get favorite => 'Favorite';
 }

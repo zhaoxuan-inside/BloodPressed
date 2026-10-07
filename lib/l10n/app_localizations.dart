@@ -1435,6 +1435,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'about 1.8–3.2 GB'**
   String get curatedSizeQwen2_5_3B_Instruct_GGUF;
+
+  /// No description provided for @assistantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Guidance'**
+  String get assistantTitle;
+
+  /// No description provided for @assistantModelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model: {name}'**
+  String assistantModelLabel(String name);
+
+  /// No description provided for @clearConversationTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear chat'**
+  String get clearConversationTooltip;
+
+  /// No description provided for @clearConversationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Chat'**
+  String get clearConversationTitle;
+
+  /// No description provided for @clearConversationContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the entire conversation?'**
+  String get clearConversationContent;
+
+  /// No description provided for @clearConversationConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearConversationConfirm;
+
+  /// No description provided for @assistantInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. My blood pressure has been high lately — any diet tips?'**
+  String get assistantInputHint;
+
+  /// No description provided for @assistantInputNoModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure a model first'**
+  String get assistantInputNoModel;
+
+  /// No description provided for @assistantDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'AI suggestions are for reference only and do not replace professional medical advice'**
+  String get assistantDisclaimer;
+
+  /// No description provided for @noModelYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No AI model configured'**
+  String get noModelYet;
+
+  /// No description provided for @noModelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up a local model (offline) or a remote API to get personalized blood pressure guidance.'**
+  String get noModelHint;
+
+  /// No description provided for @goConfigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure Model'**
+  String get goConfigure;
+
+  /// No description provided for @assistantWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'👋 Hi, I\'m your blood pressure assistant'**
+  String get assistantWelcomeTitle;
+
+  /// No description provided for @assistantWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'I base suggestions on your last 30 days of records.\nTry asking:'**
+  String get assistantWelcomeBody;
+
+  /// No description provided for @suggestAnalyze.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze my recent blood pressure readings'**
+  String get suggestAnalyze;
+
+  /// No description provided for @suggestDiet.
+  ///
+  /// In en, this message translates to:
+  /// **'My BP is high — what should I watch in my diet?'**
+  String get suggestDiet;
+
+  /// No description provided for @suggestMeasure.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I measure blood pressure correctly?'**
+  String get suggestMeasure;
+
+  /// No description provided for @suggestExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Does exercise help lower BP? What kind?'**
+  String get suggestExercise;
+
+  /// No description provided for @knowledgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Knowledge'**
+  String get knowledgeTitle;
+
+  /// No description provided for @categoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get categoryAll;
+
+  /// No description provided for @noArticlesInCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'No articles in this category'**
+  String get noArticlesInCategory;
+
+  /// No description provided for @minutesRead.
+  ///
+  /// In en, this message translates to:
+  /// **'about {minutes} min read'**
+  String minutesRead(int minutes);
+
+  /// No description provided for @loadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load: {error}'**
+  String loadFailed(String error);
+
+  /// No description provided for @fontSmaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Smaller text'**
+  String get fontSmaller;
+
+  /// No description provided for @fontLarger.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger text'**
+  String get fontLarger;
+
+  /// No description provided for @favorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get favorite;
 }
 
 class _AppLocalizationsDelegate
