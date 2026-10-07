@@ -51,3 +51,6 @@ final shareServiceProvider = Provider<ShareService>((ref) {
 
 /// 主题模式名称（system/light/dark），设置页修改时双写。
 final themeModeNameProvider = StateProvider<String>((ref) => 'system');
+
+/// 界面语言偏好（system/zh/en），设置页修改时双写。
+final localePrefProvider = StateProvider<String>((ref) => 'system');

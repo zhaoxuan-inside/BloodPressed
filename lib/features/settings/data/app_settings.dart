@@ -110,6 +110,11 @@ class AppSettings {
   String get themeMode => _prefs.getString(_kThemeMode) ?? 'system';
   Future<void> setThemeMode(String mode) => _prefs.setString(_kThemeMode, mode);
 
+  // ---- 界面语言（system/zh/en）----
+  static const _kLocalePref = 'locale_pref';
+  String get localePref => _prefs.getString(_kLocalePref) ?? 'system';
+  Future<void> setLocalePref(String v) => _prefs.setString(_kLocalePref, v);
+
   // ---- 微信开放平台（分享） ----
   String get wechatAppId => _prefs.getString(_kWechatAppId) ?? '';
   Future<void> setWechatAppId(String v) => _prefs.setString(_kWechatAppId, v);

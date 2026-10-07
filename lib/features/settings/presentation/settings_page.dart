@@ -10,6 +10,7 @@ import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/sync/presentation/sync_page.dart';
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
 import 'package:blood_pressed/features/settings/data/reminder_service.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// "我的"设置页。
 class SettingsPage extends ConsumerStatefulWidget {
@@ -26,6 +27,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final settings = ref.watch(appSettingsProvider);
     final activeProfile = ref.watch(activeLlmProfileProvider);
     final engineState = ref.watch(llmEngineProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('我的')),
@@ -145,6 +147,55 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         setState(() {});
                       },
                     ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.language_outlined,
+                          size: 22, color: theme.colorScheme.primary),
+                      const SizedBox(width: 16),
+                      Text(l10n.langTitle, style: theme.textTheme.titleMedium),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: SegmentedButton<String>(
+                          segments: [
+                            ButtonSegment(
+                                value: 'system',
+                                label: Text(l10n.langSystem)),
+                            ButtonSegment(
+                                value: 'zh', label: Text(l10n.langChinese)),
+                            ButtonSegment(
+                                value: 'en', label: Text(l10n.langEnglish)),
+                          ],
+                          selected: {settings.localePref},
+                          onSelectionChanged: (s) async {
+                            final v = s.first;
+                            await settings.setLocalePref(v);
+                            ref.read(localePrefProvider.notifier).state = v;
+                            setState(() {});
+                            // 已排程的提醒通知按新语言重排
+                            await ReminderService.scheduleFromSettings(
+                                settings);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.langSubtitle,
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: theme.colorScheme.outline),
+                      ),
+                    ],
                   ),
                 ),
                 ListTile(

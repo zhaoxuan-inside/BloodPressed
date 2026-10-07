@@ -189,9 +189,9 @@
     "path": "_08_task_plan_idx.json",
     "details_dir": "_08_task_plans/",
     "latest": {
-      "id": "plan-007",
-      "name": "系统弹窗中文化：趋势自定义日期选择与提醒窗口时间选择",
-      "time": "2026-10-07 12:17:55"
+      "id": "plan-008",
+      "name": "支持英文：全量 UI 文案迁移 gen-l10n + 语言切换",
+      "time": "2026-10-07 13:42:30"
     }
   },
   "dictionary": {

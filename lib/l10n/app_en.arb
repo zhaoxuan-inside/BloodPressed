@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+  "appTitle": "BloodPressed",
+  "@appTitle": { "description": "In-app app title (task switcher)." },
+
+  "langTitle": "Language",
+  "langSubtitle": "UI language · Knowledge articles and AI guidance remain in Chinese",
+  "langSystem": "System",
+  "langChinese": "中文",
+  "langEnglish": "English"
+}

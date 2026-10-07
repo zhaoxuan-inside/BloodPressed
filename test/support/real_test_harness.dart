@@ -75,6 +75,9 @@ class RealAppHarness {
     prefs = await SharedPreferences.getInstance();
     settings = AppSettings(prefs);
     await settings.deviceId();
+    // 固定中文界面语言：测试宿主 platform locale 为 en_US，
+    // 跟随系统会让存量中文断言全部失效
+    await settings.setLocalePref('zh');
 
     AppDatabase.resetInstanceForTest();
     db = await AppDatabase.openForTest(
@@ -107,6 +110,7 @@ class RealAppHarness {
         activeLlmProfileIdProvider
             .overrideWith((ref) => settings.activeLlmProfileId),
         themeModeNameProvider.overrideWith((ref) => settings.themeMode),
+        localePrefProvider.overrideWith((ref) => settings.localePref),
       ];
 
   Future<void> pumpApp(WidgetTester tester) async {

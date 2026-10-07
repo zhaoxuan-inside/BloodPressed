@@ -297,6 +297,9 @@ void main() {
     await tester.pump();
     expect(app.settings.themeMode, 'dark');
 
+    // 新增语言设置区块后页面更长，云同步行需滚入视口再点
+    await tester.ensureVisible(find.text('云同步'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('云同步'));
     await pumpUntilReal(tester, () => tester.any(find.text('未开启')));
     expect(find.textContaining('尚未接入云平台'), findsOneWidget);
@@ -308,6 +311,14 @@ void main() {
         i < 6 && !tester.any(find.text('AI 模型配置'));
         i++) {
       await tester.dragFrom(const Offset(180, 400), const Offset(0, 400));
+      await tester.pumpAndSettle();
+    }
+    // 该行可能停在 AppBar 底下（点击会被 AppBar 拦截），继续下拖直至完全露出
+    for (var i = 0;
+        i < 6 &&
+            tester.getTopLeft(find.text('AI 模型配置')).dy < 100;
+        i++) {
+      await tester.dragFrom(const Offset(180, 400), const Offset(0, 200));
       await tester.pumpAndSettle();
     }
     await tester.tap(find.text('AI 模型配置'));

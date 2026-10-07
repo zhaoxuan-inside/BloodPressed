@@ -55,6 +55,7 @@ Future<void> main() async {
         activeLlmProfileIdProvider
             .overrideWith((ref) => settings.activeLlmProfileId),
         themeModeNameProvider.overrideWith((ref) => settings.themeMode),
+        localePrefProvider.overrideWith((ref) => settings.localePref),
       ],
       child: const BloodPressedApp(),
     ),

@@ -3,10 +3,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/i18n/app_locale_service.dart';
 import 'core/providers.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/llm/presentation/controllers/llm_providers.dart';
+import 'l10n/app_localizations.dart';
 
 /// 应用根组件。[router] 仅供测试注入独立路由实例。
 class BloodPressedApp extends ConsumerStatefulWidget {
@@ -39,15 +41,23 @@ class _BloodPressedAppState extends ConsumerState<BloodPressedApp> {
       'dark' => ThemeMode.dark,
       _ => ThemeMode.system,
     };
+    final localePref = ref.watch(localePrefProvider);
 
     return MaterialApp.router(
-      title: '血压了么',
       debugShowCheckedModeBanner: false,
-      // 界面文案硬编码中文，强制中文 locale 使系统弹窗
-      // （日期/时间选择器等）同样以中文渲染
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      supportedLocales: const [Locale('zh')],
-      locale: const Locale('zh'),
+      // 中英双语：语言偏好为 system 时交给 locale 解析（zh/en 之外回落 en）
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: localePref == 'system' ? null : Locale(localePref),
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+      builder: (context, child) {
+        // 同步当前生效语言快照，供通知/CSV/分享卡等无 context 场景取词
+        AppLocaleService.current = Localizations.localeOf(context);
+        return child!;
+      },
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,

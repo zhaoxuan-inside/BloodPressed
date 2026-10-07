@@ -1,0 +1,10 @@
+{
+  "@@locale": "zh",
+  "appTitle": "血压了么",
+
+  "langTitle": "语言",
+  "langSubtitle": "界面语言 · 知识文章与 AI 指导暂为中文",
+  "langSystem": "跟随系统",
+  "langChinese": "中文",
+  "langEnglish": "English"
+}
