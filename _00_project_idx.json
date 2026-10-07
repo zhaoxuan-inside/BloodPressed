@@ -189,9 +189,9 @@
     "path": "_08_task_plan_idx.json",
     "details_dir": "_08_task_plans/",
     "latest": {
-      "id": "plan-008",
-      "name": "支持英文：全量 UI 文案迁移 gen-l10n + 语言切换",
-      "time": "2026-10-07 13:42:30"
+      "id": "plan-009",
+      "name": "美化微信分享卡片质感（渐变层次/玻璃拟态/装饰元素）",
+      "time": "2026-10-07 18:10:27"
     }
   },
   "dictionary": {
