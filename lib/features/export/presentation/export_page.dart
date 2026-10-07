@@ -165,7 +165,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
           subtitle: l10n.emptyExportSubtitle,
         );
       }
-      return _stage(const Color(0xFF07211C), RecordShareCard(record: latest));
+      return RecordShareCard(record: latest);
     }
     return FutureBuilder<BpStats>(
       future: ref
@@ -178,19 +178,8 @@ class _ExportPageState extends ConsumerState<ExportPage> {
             child: Center(child: CircularProgressIndicator()),
           );
         }
-        return _stage(
-            const Color(0xFF081E33), StatsShareCard(stats: snap.data!, days: _statsDays));
+        return StatsShareCard(stats: snap.data!, days: _statsDays);
       },
-    );
-  }
-
-  /// 深色方形底衬：卡片圆角外不再透出页面白底，
-  /// 导出 PNG 为完整不透明矩形（预览与导出所见即所得）。
-  Widget _stage(Color backdrop, Widget child) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      color: backdrop,
-      child: child,
     );
   }
 

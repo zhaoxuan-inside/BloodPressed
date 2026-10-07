@@ -189,9 +189,9 @@
     "path": "_08_task_plan_idx.json",
     "details_dir": "_08_task_plans/",
     "latest": {
-      "id": "plan-010",
-      "name": "分享卡导出四角白底修复（深色底衬画布）",
-      "time": "2026-10-07 20:11:21"
+      "id": "plan-011",
+      "name": "分享卡四角改透明底衬（导出 PNG 带 alpha）",
+      "time": "2026-10-07 20:33:16"
     }
   },
   "dictionary": {

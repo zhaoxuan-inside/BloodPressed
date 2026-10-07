@@ -334,7 +334,24 @@
    "author": "Agent",
    "verified": true,
    "note": "根因：卡片圆角 24，RepaintBoundary 截图时圆角外四角为透明像素，微信白底聊天页显示为白角。修复：export_page._buildCard 为两种卡片包一层方形不透明深色底衬 _stage（记录卡 #07211C、统计卡 #081E33，取各自渐变起色的更深同系色，12px 边距），导出 PNG 为完整矩形、卡片圆角浮在深色画布上，应用内预览与导出所见即所得。share_card_widgets 与 CardCapturer 零改动。验证：临时渲染测试（白底页面 + 底衬）目视确认两卡四角均为深色，确认后删除；全量 124 测试 + analyze 0。"
+  },
+  {
+   "id": "chg-014",
+   "date": "2026-10-07T20:55:00+08:00",
+   "requirement": "用户拍板「应该在四个角使用透明底衬」——撤掉 chg-013 深色底衬，恢复圆角外透明。快速通道。plan-011。",
+   "plan_id": "plan-011",
+   "changed_files": [
+    "lib/features/export/presentation/export_page.dart",
+    "_08_task_plan_idx.json",
+    "_08_task_plans/plan-011.md",
+    "_10_change_log.json"
+   ],
+   "commits": [],
+   "changed_methods": [],
+   "author": "Agent",
+   "verified": true,
+   "note": "export_page 移除 _stage 底衬（两处包裹 + 方法），_buildCard 恢复直接返回卡片，导出 PNG 圆角外为透明像素（alpha=0），任意聊天背景下呈圆角卡片浮于背景的效果；应用内预览恢复卡片直接置于页面。share_card_widgets / CardCapturer 零改动。客观验证：临时测试渲染导出图后解码 rawRgba，断言四角（3px 内缩避抗锯齿）alpha==0、中心 alpha==255，通过后删除。取舍说明：浅色聊天背景下透明角视觉上与白底融合。全量 124 测试 + analyze 0。"
   }
  ],
- "latest": "chg-013"
+ "latest": "chg-014"
 }
