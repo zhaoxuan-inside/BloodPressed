@@ -436,4 +436,48 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get csvSource => '来源';
+
+  @override
+  String get cameraPermissionTitle => '未获得相机权限';
+
+  @override
+  String get cameraPermissionMessage => '请在系统设置中允许相机后重试。';
+
+  @override
+  String get ocrRecognizing => '正在识别…';
+
+  @override
+  String get ocrNoLcd => 'LCD: 未找到彩色背光屏';
+
+  @override
+  String ocrLcdReadout(String numbers) {
+    return 'LCD 读数: $numbers';
+  }
+
+  @override
+  String get ocrLcdNoNumbers => '无可读数字';
+
+  @override
+  String ocrLineCount(int count) {
+    return '；OCR 行数: $count';
+  }
+
+  @override
+  String get ocrServiceError => '识别服务异常，请重试；若持续失败请改用手动录入';
+
+  @override
+  String ocrFailed(String error) {
+    return '识别失败：$error';
+  }
+
+  @override
+  String get ocrFailedTitle => '识别失败';
+
+  @override
+  String ocrDiagSaved(String folder) {
+    return '（诊断已存 ocr_debug/$folder）';
+  }
+
+  @override
+  String get okGotIt => '知道了';
 }

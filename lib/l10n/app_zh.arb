@@ -130,5 +130,17 @@
   "csvArm": "测量臂",
   "csvPosture": "体位",
   "csvNote": "备注",
-  "csvSource": "来源"
+  "csvSource": "来源",
+  "cameraPermissionTitle": "未获得相机权限",
+  "cameraPermissionMessage": "请在系统设置中允许相机后重试。",
+  "ocrRecognizing": "正在识别…",
+  "ocrNoLcd": "LCD: 未找到彩色背光屏",
+  "ocrLcdReadout": "LCD 读数: {numbers}",
+  "ocrLcdNoNumbers": "无可读数字",
+  "ocrLineCount": "；OCR 行数: {count}",
+  "ocrServiceError": "识别服务异常，请重试；若持续失败请改用手动录入",
+  "ocrFailed": "识别失败：{error}",
+  "ocrFailedTitle": "识别失败",
+  "ocrDiagSaved": "（诊断已存 ocr_debug/{folder}）",
+  "okGotIt": "知道了"
 }

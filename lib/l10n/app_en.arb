@@ -276,5 +276,45 @@
   "csvArm": "Arm",
   "csvPosture": "Posture",
   "csvNote": "Note",
-  "csvSource": "Source"
+  "csvSource": "Source",
+  "cameraPermissionTitle": "Camera Permission Denied",
+  "cameraPermissionMessage": "Please allow camera access in system settings and try again.",
+  "ocrRecognizing": "Recognizing…",
+  "ocrNoLcd": "LCD: no backlit display found",
+  "ocrLcdReadout": "LCD readings: {numbers}",
+  "@ocrLcdReadout": {
+    "placeholders": {
+      "numbers": {
+        "type": "String"
+      }
+    }
+  },
+  "ocrLcdNoNumbers": "no readable digits",
+  "ocrLineCount": "; OCR lines: {count}",
+  "@ocrLineCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrServiceError": "Recognition service error. Please try again; if it keeps failing, enter the values manually.",
+  "ocrFailed": "Recognition failed: {error}",
+  "@ocrFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "ocrFailedTitle": "Recognition Failed",
+  "ocrDiagSaved": "(Diagnostics saved to ocr_debug/{folder})",
+  "@ocrDiagSaved": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "okGotIt": "Got it"
 }

@@ -451,4 +451,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get csvSource => 'Source';
+
+  @override
+  String get cameraPermissionTitle => 'Camera Permission Denied';
+
+  @override
+  String get cameraPermissionMessage =>
+      'Please allow camera access in system settings and try again.';
+
+  @override
+  String get ocrRecognizing => 'Recognizing…';
+
+  @override
+  String get ocrNoLcd => 'LCD: no backlit display found';
+
+  @override
+  String ocrLcdReadout(String numbers) {
+    return 'LCD readings: $numbers';
+  }
+
+  @override
+  String get ocrLcdNoNumbers => 'no readable digits';
+
+  @override
+  String ocrLineCount(int count) {
+    return '; OCR lines: $count';
+  }
+
+  @override
+  String get ocrServiceError =>
+      'Recognition service error. Please try again; if it keeps failing, enter the values manually.';
+
+  @override
+  String ocrFailed(String error) {
+    return 'Recognition failed: $error';
+  }
+
+  @override
+  String get ocrFailedTitle => 'Recognition Failed';
+
+  @override
+  String ocrDiagSaved(String folder) {
+    return '(Diagnostics saved to ocr_debug/$folder)';
+  }
+
+  @override
+  String get okGotIt => 'Got it';
 }

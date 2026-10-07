@@ -883,6 +883,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Source'**
   String get csvSource;
+
+  /// No description provided for @cameraPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera Permission Denied'**
+  String get cameraPermissionTitle;
+
+  /// No description provided for @cameraPermissionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please allow camera access in system settings and try again.'**
+  String get cameraPermissionMessage;
+
+  /// No description provided for @ocrRecognizing.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognizing…'**
+  String get ocrRecognizing;
+
+  /// No description provided for @ocrNoLcd.
+  ///
+  /// In en, this message translates to:
+  /// **'LCD: no backlit display found'**
+  String get ocrNoLcd;
+
+  /// No description provided for @ocrLcdReadout.
+  ///
+  /// In en, this message translates to:
+  /// **'LCD readings: {numbers}'**
+  String ocrLcdReadout(String numbers);
+
+  /// No description provided for @ocrLcdNoNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'no readable digits'**
+  String get ocrLcdNoNumbers;
+
+  /// No description provided for @ocrLineCount.
+  ///
+  /// In en, this message translates to:
+  /// **'; OCR lines: {count}'**
+  String ocrLineCount(int count);
+
+  /// No description provided for @ocrServiceError.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition service error. Please try again; if it keeps failing, enter the values manually.'**
+  String get ocrServiceError;
+
+  /// No description provided for @ocrFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition failed: {error}'**
+  String ocrFailed(String error);
+
+  /// No description provided for @ocrFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition Failed'**
+  String get ocrFailedTitle;
+
+  /// No description provided for @ocrDiagSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'(Diagnostics saved to ocr_debug/{folder})'**
+  String ocrDiagSaved(String folder);
+
+  /// No description provided for @okGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get okGotIt;
 }
 
 class _AppLocalizationsDelegate

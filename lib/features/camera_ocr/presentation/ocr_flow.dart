@@ -9,6 +9,8 @@ import 'package:path_provider/path_provider.dart';
 
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/record_edit_page.dart';
+import 'package:blood_pressed/core/i18n/app_locale_service.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 import 'package:blood_pressed/features/camera_ocr/data/image_utils.dart';
 import 'package:blood_pressed/features/camera_ocr/domain/ocr_parser.dart';
 import 'package:blood_pressed/features/camera_ocr/data/ppocr/ppocr_service.dart';
@@ -26,7 +28,9 @@ class OcrFlow {
     final status = await Permission.camera.request();
     if (!status.isGranted) {
       if (!context.mounted) return;
-      showErrorDialog(context, '未获得相机权限', '请在系统设置中允许相机后重试。');
+      final l10n = AppLocalizations.of(context);
+      showErrorDialog(context, l10n.cameraPermissionTitle,
+          l10n.cameraPermissionMessage);
       return;
     }
     final xfile = await ImagePicker().pickImage(
@@ -52,20 +56,21 @@ class OcrFlow {
 
   static Future<void> _runPipeline(
       BuildContext context, String imagePath) async {
+    final l10n = AppLocalizations.of(context);
     // 加载框
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(
+      builder: (_) => Center(
         child: Card(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 12),
-                Text('正在识别…'),
+                const CircularProgressIndicator(),
+                const SizedBox(height: 12),
+                Text(l10n.ocrRecognizing),
               ],
             ),
           ),
@@ -84,8 +89,10 @@ class OcrFlow {
       final readout = SevenSegmentReader()
           .read(SegImage(image.rgba, image.width, image.height));
       lcdSummary = readout == null
-          ? 'LCD: 未找到彩色背光屏'
-          : 'LCD 读数: ${readout.numbers.isEmpty ? "无可读数字" : readout.numbers}';
+          ? l10n.ocrNoLcd
+          : l10n.ocrLcdReadout(readout.numbers.isEmpty
+              ? l10n.ocrLcdNoNumbers
+              : readout.numbers.join(', '));
       final lcdResult = readout == null ? null : parseLcdReadout(readout);
       if (lcdResult != null && lcdResult.isReliable) {
         debugPrint('OCR LCD readout: $readout');
@@ -94,14 +101,14 @@ class OcrFlow {
         // 2) 通用 PP-OCR 路径（印刷体/非彩色背光照片）
         final lines = await PpOcrService().recognizeImage(image);
         result = parsePositionedLines(lines);
-        lcdSummary += '；OCR 行数: ${lines.length}';
+        lcdSummary += l10n.ocrLineCount(lines.length);
       }
     } on PlatformException catch (e) {
       debugPrint('OCR PlatformException: $e');
-      errorMsg = '识别服务异常，请重试；若持续失败请改用手动录入';
+      errorMsg = l10n.ocrServiceError;
     } catch (e) {
       debugPrint('OCR error: $e');
-      errorMsg = '识别失败：$e';
+      errorMsg = l10n.ocrFailed(e.toString());
     } finally {
       SevenSegmentReader.collectDebugArtifacts = false;
     }
@@ -117,7 +124,7 @@ class OcrFlow {
       // 服务级异常（解码/推理崩溃）仍需提示；识别读不出不算错误，
       // 直接进确认表单交由用户核对
       if (context.mounted) {
-        showErrorDialog(context, '识别失败', '$errorMsg\n$lcdSummary');
+        showErrorDialog(context, l10n.ocrFailedTitle, '$errorMsg\n$lcdSummary');
       }
       return;
     }
@@ -166,7 +173,7 @@ class OcrFlow {
       File(p.join(dir.path, 'summary.txt')).writeAsStringSync(
           '${DateTime.now()}\n$lcdSummary\n',
           flush: true);
-      return '$lcdSummary\n（诊断已存 ocr_debug/${p.basename(dir.path)}）';
+      return '$lcdSummary\n${AppLocaleService.auto.ocrDiagSaved(p.basename(dir.path))}';
     } catch (e) {
       debugPrint('save diagnostics failed: $e');
       return lcdSummary;
@@ -213,7 +220,7 @@ class OcrFlow {
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('知道了'),
+            child: Text(AppLocalizations.of(ctx).okGotIt),
           ),
         ],
       ),
