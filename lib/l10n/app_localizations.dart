@@ -955,6 +955,486 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got it'**
   String get okGotIt;
+
+  /// No description provided for @llmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Models'**
+  String get llmTitle;
+
+  /// No description provided for @llmLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load profiles: {error}'**
+  String llmLoadFailed(String error);
+
+  /// No description provided for @llmIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up a local or remote LLM to enable health guidance, AI photo reading and other smart features.'**
+  String get llmIntro;
+
+  /// No description provided for @llmEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No models configured yet'**
+  String get llmEmptyTitle;
+
+  /// No description provided for @llmEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download a local model from ModelScope (works offline),\nor configure a remote API (more capable).'**
+  String get llmEmptySubtitle;
+
+  /// No description provided for @llmInstallFromMarket.
+  ///
+  /// In en, this message translates to:
+  /// **'Install a model from ModelScope'**
+  String get llmInstallFromMarket;
+
+  /// No description provided for @llmAddRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Remote Model API'**
+  String get llmAddRemote;
+
+  /// No description provided for @llmAddFromFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from downloaded files'**
+  String get llmAddFromFile;
+
+  /// No description provided for @activatedProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Activated “{name}”'**
+  String activatedProfile(String name);
+
+  /// No description provided for @deleteProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Model Profile'**
+  String get deleteProfileTitle;
+
+  /// No description provided for @deleteProfileContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{name}”?{keepFileNote}'**
+  String deleteProfileContent(String name, String keepFileNote);
+
+  /// No description provided for @deleteProfileKeepFile.
+  ///
+  /// In en, this message translates to:
+  /// **'\nThe model file will not be deleted and can be re-added later.'**
+  String get deleteProfileKeepFile;
+
+  /// No description provided for @noModelFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'No downloaded .gguf model files found'**
+  String get noModelFiles;
+
+  /// No description provided for @pickModelFileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Model File'**
+  String get pickModelFileTitle;
+
+  /// No description provided for @profileLocalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local model · {file}'**
+  String profileLocalSubtitle(String file);
+
+  /// No description provided for @profileRemoteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remote API · {model}{multimodal}'**
+  String profileRemoteSubtitle(String model, String multimodal);
+
+  /// No description provided for @profileMultimodalSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **' · supports images'**
+  String get profileMultimodalSuffix;
+
+  /// No description provided for @engineLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get engineLoading;
+
+  /// No description provided for @engineActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get engineActive;
+
+  /// No description provided for @menuActivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate'**
+  String get menuActivate;
+
+  /// No description provided for @menuEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get menuEdit;
+
+  /// No description provided for @menuDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get menuDelete;
+
+  /// No description provided for @remoteEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Remote Model'**
+  String get remoteEditTitle;
+
+  /// No description provided for @remoteAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Remote Model'**
+  String get remoteAddTitle;
+
+  /// No description provided for @presetSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a service preset (optional)'**
+  String get presetSectionTitle;
+
+  /// No description provided for @presetNameModelscope.
+  ///
+  /// In en, this message translates to:
+  /// **'ModelScope API-Inference'**
+  String get presetNameModelscope;
+
+  /// No description provided for @presetNameArk.
+  ///
+  /// In en, this message translates to:
+  /// **'Volcano Ark'**
+  String get presetNameArk;
+
+  /// No description provided for @presetNameDashScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Alibaba DashScope'**
+  String get presetNameDashScope;
+
+  /// No description provided for @presetNameDeepSeek.
+  ///
+  /// In en, this message translates to:
+  /// **'DeepSeek'**
+  String get presetNameDeepSeek;
+
+  /// No description provided for @presetNameOpenAI.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenAI'**
+  String get presetNameOpenAI;
+
+  /// No description provided for @presetNameOllama.
+  ///
+  /// In en, this message translates to:
+  /// **'Ollama (local/LAN)'**
+  String get presetNameOllama;
+
+  /// No description provided for @presetDescModelscope.
+  ///
+  /// In en, this message translates to:
+  /// **'Free inference API from ModelScope. Get a token on the ModelScope website.'**
+  String get presetDescModelscope;
+
+  /// No description provided for @presetDescArk.
+  ///
+  /// In en, this message translates to:
+  /// **'ByteDance Volcano Engine. Get the API key in the Ark console under “API Key Management”.'**
+  String get presetDescArk;
+
+  /// No description provided for @presetDescDashScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Alibaba Cloud Bailian, OpenAI-compatible mode.'**
+  String get presetDescDashScope;
+
+  /// No description provided for @presetDescDeepSeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Official DeepSeek API.'**
+  String get presetDescDeepSeek;
+
+  /// No description provided for @presetDescOpenAI.
+  ///
+  /// In en, this message translates to:
+  /// **'Official OpenAI API (mainland China network access is on you).'**
+  String get presetDescOpenAI;
+
+  /// No description provided for @presetDescOllama.
+  ///
+  /// In en, this message translates to:
+  /// **'Run Ollama on your computer with the port open; keep the phone on the same LAN.'**
+  String get presetDescOllama;
+
+  /// No description provided for @fieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get fieldName;
+
+  /// No description provided for @nameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. ModelScope Qwen / DeepSeek'**
+  String get nameHint;
+
+  /// No description provided for @fieldBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'API base URL (no trailing slash)'**
+  String get fieldBaseUrl;
+
+  /// No description provided for @fieldApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API Key (optional for some services)'**
+  String get fieldApiKey;
+
+  /// No description provided for @fieldModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model name (model)'**
+  String get fieldModel;
+
+  /// No description provided for @modelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Qwen/Qwen3-32B or deepseek-chat'**
+  String get modelHint;
+
+  /// No description provided for @fetchModelsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch model list'**
+  String get fetchModelsTooltip;
+
+  /// No description provided for @multimodalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support image input (multimodal)'**
+  String get multimodalTitle;
+
+  /// No description provided for @multimodalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When on, this model can read blood pressure monitor photos (OCR fallback).'**
+  String get multimodalSubtitle;
+
+  /// No description provided for @saveBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveBtn;
+
+  /// No description provided for @addActivateBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add & Activate'**
+  String get addActivateBtn;
+
+  /// No description provided for @needBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the API base URL first'**
+  String get needBaseUrl;
+
+  /// No description provided for @needAllFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the name, base URL and model name'**
+  String get needAllFields;
+
+  /// No description provided for @fetchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch failed: {error}'**
+  String fetchFailed(String error);
+
+  /// No description provided for @searchModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Search models ({count} total)'**
+  String searchModels(int count);
+
+  /// No description provided for @noMatchModels.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching models'**
+  String get noMatchModels;
+
+  /// No description provided for @marketTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ModelScope Market'**
+  String get marketTitle;
+
+  /// No description provided for @marketIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Download GGUF models from ModelScope to run offline on your phone. Q4-quantized 0.6B–2B models balance quality and memory.'**
+  String get marketIntro;
+
+  /// No description provided for @sectionDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get sectionDownloads;
+
+  /// No description provided for @sectionCurated.
+  ///
+  /// In en, this message translates to:
+  /// **'Curated Models (official Qwen)'**
+  String get sectionCurated;
+
+  /// No description provided for @sectionOtherRepos.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Repositories'**
+  String get sectionOtherRepos;
+
+  /// No description provided for @customRepoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a model ID, e.g. Qwen/Qwen3-1.7B-GGUF'**
+  String get customRepoHint;
+
+  /// No description provided for @viewBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get viewBtn;
+
+  /// No description provided for @customRepo.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom repository'**
+  String get customRepo;
+
+  /// No description provided for @customRepoDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch the GGUF file list of this repository from ModelScope'**
+  String get customRepoDesc;
+
+  /// No description provided for @noGgufFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'No GGUF weights available in this repository'**
+  String get noGgufFiles;
+
+  /// No description provided for @marketConnError.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot reach ModelScope. Check your network and try again.'**
+  String get marketConnError;
+
+  /// No description provided for @listFilesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to fetch file list: {error}'**
+  String listFilesFailed(String error);
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @downloadTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get downloadTooltip;
+
+  /// No description provided for @failedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get failedTooltip;
+
+  /// No description provided for @curatedDescQwen3_0_6B_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'Lightweight pick · works on low-end phones · 0.4–0.6GB'**
+  String get curatedDescQwen3_0_6B_GGUF;
+
+  /// No description provided for @curatedDescQwen3_1_7B_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced quality and speed · mid-range phones or better'**
+  String get curatedDescQwen3_1_7B_GGUF;
+
+  /// No description provided for @curatedDescQwen3_4B_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'Better answers · needs 6GB+ memory'**
+  String get curatedDescQwen3_4B_GGUF;
+
+  /// No description provided for @curatedDescQwen2_5_0_5B_Instruct_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous-gen small model · memory-friendly'**
+  String get curatedDescQwen2_5_0_5B_Instruct_GGUF;
+
+  /// No description provided for @curatedDescQwen2_5_1_5B_Instruct_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous-gen balanced pick'**
+  String get curatedDescQwen2_5_1_5B_Instruct_GGUF;
+
+  /// No description provided for @curatedDescQwen2_5_3B_Instruct_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous-gen quality tier'**
+  String get curatedDescQwen2_5_3B_Instruct_GGUF;
+
+  /// No description provided for @curatedSizeQwen3_0_6B_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'about 0.4–0.7 GB'**
+  String get curatedSizeQwen3_0_6B_GGUF;
+
+  /// No description provided for @curatedSizeQwen3_1_7B_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'about 1.0–1.9 GB'**
+  String get curatedSizeQwen3_1_7B_GGUF;
+
+  /// No description provided for @curatedSizeQwen3_4B_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'about 2.3–4.4 GB'**
+  String get curatedSizeQwen3_4B_GGUF;
+
+  /// No description provided for @curatedSizeQwen2_5_0_5B_Instruct_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'about 0.4–0.7 GB'**
+  String get curatedSizeQwen2_5_0_5B_Instruct_GGUF;
+
+  /// No description provided for @curatedSizeQwen2_5_1_5B_Instruct_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'about 0.9–1.8 GB'**
+  String get curatedSizeQwen2_5_1_5B_Instruct_GGUF;
+
+  /// No description provided for @curatedSizeQwen2_5_3B_Instruct_GGUF.
+  ///
+  /// In en, this message translates to:
+  /// **'about 1.8–3.2 GB'**
+  String get curatedSizeQwen2_5_3B_Instruct_GGUF;
 }
 
 class _AppLocalizationsDelegate

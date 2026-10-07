@@ -497,4 +497,276 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get okGotIt => 'Got it';
+
+  @override
+  String get llmTitle => 'AI Models';
+
+  @override
+  String llmLoadFailed(String error) {
+    return 'Failed to load profiles: $error';
+  }
+
+  @override
+  String get llmIntro =>
+      'Set up a local or remote LLM to enable health guidance, AI photo reading and other smart features.';
+
+  @override
+  String get llmEmptyTitle => 'No models configured yet';
+
+  @override
+  String get llmEmptySubtitle =>
+      'Download a local model from ModelScope (works offline),\nor configure a remote API (more capable).';
+
+  @override
+  String get llmInstallFromMarket => 'Install a model from ModelScope';
+
+  @override
+  String get llmAddRemote => 'Add Remote Model API';
+
+  @override
+  String get llmAddFromFile => 'Add from downloaded files';
+
+  @override
+  String activatedProfile(String name) {
+    return 'Activated “$name”';
+  }
+
+  @override
+  String get deleteProfileTitle => 'Delete Model Profile';
+
+  @override
+  String deleteProfileContent(String name, String keepFileNote) {
+    return 'Delete “$name”?$keepFileNote';
+  }
+
+  @override
+  String get deleteProfileKeepFile =>
+      '\nThe model file will not be deleted and can be re-added later.';
+
+  @override
+  String get noModelFiles => 'No downloaded .gguf model files found';
+
+  @override
+  String get pickModelFileTitle => 'Choose Model File';
+
+  @override
+  String profileLocalSubtitle(String file) {
+    return 'Local model · $file';
+  }
+
+  @override
+  String profileRemoteSubtitle(String model, String multimodal) {
+    return 'Remote API · $model$multimodal';
+  }
+
+  @override
+  String get profileMultimodalSuffix => ' · supports images';
+
+  @override
+  String get engineLoading => 'Loading';
+
+  @override
+  String get engineActive => 'Active';
+
+  @override
+  String get menuActivate => 'Activate';
+
+  @override
+  String get menuEdit => 'Edit';
+
+  @override
+  String get menuDelete => 'Delete';
+
+  @override
+  String get remoteEditTitle => 'Edit Remote Model';
+
+  @override
+  String get remoteAddTitle => 'Add Remote Model';
+
+  @override
+  String get presetSectionTitle => 'Choose a service preset (optional)';
+
+  @override
+  String get presetNameModelscope => 'ModelScope API-Inference';
+
+  @override
+  String get presetNameArk => 'Volcano Ark';
+
+  @override
+  String get presetNameDashScope => 'Alibaba DashScope';
+
+  @override
+  String get presetNameDeepSeek => 'DeepSeek';
+
+  @override
+  String get presetNameOpenAI => 'OpenAI';
+
+  @override
+  String get presetNameOllama => 'Ollama (local/LAN)';
+
+  @override
+  String get presetDescModelscope =>
+      'Free inference API from ModelScope. Get a token on the ModelScope website.';
+
+  @override
+  String get presetDescArk =>
+      'ByteDance Volcano Engine. Get the API key in the Ark console under “API Key Management”.';
+
+  @override
+  String get presetDescDashScope =>
+      'Alibaba Cloud Bailian, OpenAI-compatible mode.';
+
+  @override
+  String get presetDescDeepSeek => 'Official DeepSeek API.';
+
+  @override
+  String get presetDescOpenAI =>
+      'Official OpenAI API (mainland China network access is on you).';
+
+  @override
+  String get presetDescOllama =>
+      'Run Ollama on your computer with the port open; keep the phone on the same LAN.';
+
+  @override
+  String get fieldName => 'Name';
+
+  @override
+  String get nameHint => 'e.g. ModelScope Qwen / DeepSeek';
+
+  @override
+  String get fieldBaseUrl => 'API base URL (no trailing slash)';
+
+  @override
+  String get fieldApiKey => 'API Key (optional for some services)';
+
+  @override
+  String get fieldModel => 'Model name (model)';
+
+  @override
+  String get modelHint => 'e.g. Qwen/Qwen3-32B or deepseek-chat';
+
+  @override
+  String get fetchModelsTooltip => 'Fetch model list';
+
+  @override
+  String get multimodalTitle => 'Support image input (multimodal)';
+
+  @override
+  String get multimodalSubtitle =>
+      'When on, this model can read blood pressure monitor photos (OCR fallback).';
+
+  @override
+  String get saveBtn => 'Save';
+
+  @override
+  String get addActivateBtn => 'Add & Activate';
+
+  @override
+  String get needBaseUrl => 'Enter the API base URL first';
+
+  @override
+  String get needAllFields => 'Fill in the name, base URL and model name';
+
+  @override
+  String fetchFailed(String error) {
+    return 'Fetch failed: $error';
+  }
+
+  @override
+  String searchModels(int count) {
+    return 'Search models ($count total)';
+  }
+
+  @override
+  String get noMatchModels => 'No matching models';
+
+  @override
+  String get marketTitle => 'ModelScope Market';
+
+  @override
+  String get marketIntro =>
+      'Download GGUF models from ModelScope to run offline on your phone. Q4-quantized 0.6B–2B models balance quality and memory.';
+
+  @override
+  String get sectionDownloads => 'Downloads';
+
+  @override
+  String get sectionCurated => 'Curated Models (official Qwen)';
+
+  @override
+  String get sectionOtherRepos => 'Other Repositories';
+
+  @override
+  String get customRepoHint => 'Enter a model ID, e.g. Qwen/Qwen3-1.7B-GGUF';
+
+  @override
+  String get viewBtn => 'View';
+
+  @override
+  String get customRepo => 'Custom repository';
+
+  @override
+  String get customRepoDesc =>
+      'Fetch the GGUF file list of this repository from ModelScope';
+
+  @override
+  String get noGgufFiles => 'No GGUF weights available in this repository';
+
+  @override
+  String get marketConnError =>
+      'Cannot reach ModelScope. Check your network and try again.';
+
+  @override
+  String listFilesFailed(String error) {
+    return 'Failed to fetch file list: $error';
+  }
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get downloadTooltip => 'Download';
+
+  @override
+  String get failedTooltip => 'Failed';
+
+  @override
+  String get curatedDescQwen3_0_6B_GGUF =>
+      'Lightweight pick · works on low-end phones · 0.4–0.6GB';
+
+  @override
+  String get curatedDescQwen3_1_7B_GGUF =>
+      'Balanced quality and speed · mid-range phones or better';
+
+  @override
+  String get curatedDescQwen3_4B_GGUF => 'Better answers · needs 6GB+ memory';
+
+  @override
+  String get curatedDescQwen2_5_0_5B_Instruct_GGUF =>
+      'Previous-gen small model · memory-friendly';
+
+  @override
+  String get curatedDescQwen2_5_1_5B_Instruct_GGUF =>
+      'Previous-gen balanced pick';
+
+  @override
+  String get curatedDescQwen2_5_3B_Instruct_GGUF => 'Previous-gen quality tier';
+
+  @override
+  String get curatedSizeQwen3_0_6B_GGUF => 'about 0.4–0.7 GB';
+
+  @override
+  String get curatedSizeQwen3_1_7B_GGUF => 'about 1.0–1.9 GB';
+
+  @override
+  String get curatedSizeQwen3_4B_GGUF => 'about 2.3–4.4 GB';
+
+  @override
+  String get curatedSizeQwen2_5_0_5B_Instruct_GGUF => 'about 0.4–0.7 GB';
+
+  @override
+  String get curatedSizeQwen2_5_1_5B_Instruct_GGUF => 'about 0.9–1.8 GB';
+
+  @override
+  String get curatedSizeQwen2_5_3B_Instruct_GGUF => 'about 1.8–3.2 GB';
 }

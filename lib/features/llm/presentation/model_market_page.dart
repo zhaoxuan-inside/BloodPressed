@@ -4,8 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:blood_pressed/core/utils/formatters.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 import 'package:blood_pressed/features/llm/data/model_downloader.dart';
 import 'package:blood_pressed/features/llm/data/modelscope_client.dart';
 import 'package:blood_pressed/features/llm/domain/inference_engine.dart';
@@ -33,38 +35,38 @@ class _ModelMarketPageState extends ConsumerState<ModelMarketPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final downloader = ref.watch(modelDownloaderProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('魔搭模型市场')),
+      appBar: AppBar(title: Text(l10n.marketTitle)),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 32),
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
             child: Text(
-              '从魔搭社区（ModelScope）下载 GGUF 模型到手机，离线运行。'
-              '建议选择 0.6B~2B 的 Q4 量化版本，兼顾效果与内存。',
+              l10n.marketIntro,
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.outline, height: 1.5),
             ),
           ),
           if (downloader.tasks.isNotEmpty) ...[
-            const SectionHeader('下载任务'),
+            SectionHeader(l10n.sectionDownloads),
             ...downloader.tasks.map(_DownloadTile.new),
           ],
-          const SectionHeader('精选模型（Qwen 官方）'),
+          SectionHeader(l10n.sectionCurated),
           ...ModelScopeClient.curated.map((m) => _RepoCard(
                 repoId: m.repoId,
                 title: m.title,
-                subtitle: '${m.repoId} · ${m.sizeHint}',
-                desc: m.desc,
+                subtitle: '${m.repoId} · ${_sizeLabel(l10n, m)}',
+                desc: _descLabel(l10n, m),
                 expanded: _openRepoId == m.repoId,
                 onToggle: () => setState(() {
                   _openRepoId = _openRepoId == m.repoId ? null : m.repoId;
                 }),
               )),
-          const SectionHeader('其他仓库'),
+          SectionHeader(l10n.sectionOtherRepos),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -72,8 +74,8 @@ class _ModelMarketPageState extends ConsumerState<ModelMarketPage> {
                 Expanded(
                   child: TextField(
                     controller: _customCtrl,
-                    decoration: const InputDecoration(
-                      hintText: '输入模型ID，如 Qwen/Qwen3-1.7B-GGUF',
+                    decoration: InputDecoration(
+                      hintText: l10n.customRepoHint,
                       isDense: true,
                     ),
                     onSubmitted: (_) => _openCustom(),
@@ -82,7 +84,7 @@ class _ModelMarketPageState extends ConsumerState<ModelMarketPage> {
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: _openCustom,
-                  child: const Text('查看'),
+                  child: Text(l10n.viewBtn),
                 ),
               ],
             ),
@@ -94,8 +96,8 @@ class _ModelMarketPageState extends ConsumerState<ModelMarketPage> {
               key: ValueKey(_customRepoId),
               repoId: _customRepoId!,
               title: _customRepoId!,
-              subtitle: '自定义仓库',
-              desc: '从魔搭拉取该仓库的 GGUF 文件列表',
+              subtitle: l10n.customRepo,
+              desc: l10n.customRepoDesc,
               expanded: _openRepoId == _customRepoId,
               onToggle: () => setState(() {
                 _openRepoId = _openRepoId == _customRepoId ? null : _customRepoId;
@@ -105,6 +107,36 @@ class _ModelMarketPageState extends ConsumerState<ModelMarketPage> {
         ],
       ),
     );
+  }
+
+  static String _sizeLabel(AppLocalizations l10n, CuratedModel m) {
+    if (AppLocaleService.isEn) {
+      return switch (m.repoId) {
+        'Qwen/Qwen3-0.6B-GGUF' => l10n.curatedSizeQwen3_0_6B_GGUF,
+        'Qwen/Qwen3-1.7B-GGUF' => l10n.curatedSizeQwen3_1_7B_GGUF,
+        'Qwen/Qwen3-4B-GGUF' => l10n.curatedSizeQwen3_4B_GGUF,
+        'Qwen/Qwen2_5-0_5B-Instruct-GGUF' => l10n.curatedSizeQwen2_5_0_5B_Instruct_GGUF,
+        'Qwen/Qwen2_5-1_5B-Instruct-GGUF' => l10n.curatedSizeQwen2_5_1_5B_Instruct_GGUF,
+        'Qwen/Qwen2_5-3B-Instruct-GGUF' => l10n.curatedSizeQwen2_5_3B_Instruct_GGUF,
+        _ => m.sizeHint,
+      };
+    }
+    return m.sizeHint;
+  }
+
+  static String _descLabel(AppLocalizations l10n, CuratedModel m) {
+    if (AppLocaleService.isEn) {
+      return switch (m.repoId) {
+        'Qwen/Qwen3-0.6B-GGUF' => l10n.curatedDescQwen3_0_6B_GGUF,
+        'Qwen/Qwen3-1.7B-GGUF' => l10n.curatedDescQwen3_1_7B_GGUF,
+        'Qwen/Qwen3-4B-GGUF' => l10n.curatedDescQwen3_4B_GGUF,
+        'Qwen/Qwen2_5-0_5B-Instruct-GGUF' => l10n.curatedDescQwen2_5_0_5B_Instruct_GGUF,
+        'Qwen/Qwen2_5-1_5B-Instruct-GGUF' => l10n.curatedDescQwen2_5_1_5B_Instruct_GGUF,
+        'Qwen/Qwen2_5-3B-Instruct-GGUF' => l10n.curatedDescQwen2_5_3B_Instruct_GGUF,
+        _ => m.desc,
+      };
+    }
+    return m.desc;
   }
 
   void _openCustom() {
@@ -232,7 +264,7 @@ class _RepoCardState extends ConsumerState<_RepoCard> {
                     }
                     final files = snap.data ?? [];
                     if (files.isEmpty) {
-                      return Text('该仓库没有可用的 GGUF 权重文件',
+                      return Text(AppLocalizations.of(context).noGgufFiles,
                           style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.outline));
                     }
@@ -259,10 +291,10 @@ class _RepoCardState extends ConsumerState<_RepoCard> {
       if (error.type == DioExceptionType.connectionError ||
           error.type == DioExceptionType.connectionTimeout ||
           cause is SocketException) {
-        return '无法连接魔搭服务器，请检查网络后重试';
+        return AppLocaleService.auto.marketConnError;
       }
     }
-    return '获取文件列表失败：$error';
+    return AppLocaleService.auto.listFilesFailed(error.toString());
   }
 }
 
@@ -286,7 +318,9 @@ class _FileListError extends StatelessWidget {
                     ?.copyWith(color: theme.colorScheme.error)),
           ),
           const SizedBox(width: 8),
-          TextButton(onPressed: onRetry, child: const Text('重试')),
+          TextButton(
+              onPressed: onRetry,
+              child: Text(AppLocalizations.of(context).retry)),
         ],
       ),
     );
@@ -311,7 +345,7 @@ class _FileTile extends ConsumerWidget {
     if (task == null) {
       trailing = IconButton(
         icon: const Icon(Icons.download_outlined),
-        tooltip: '下载',
+        tooltip: AppLocalizations.of(context).downloadTooltip,
         onPressed: () {
           ref
               .read(modelDownloaderProvider.notifier)
@@ -356,7 +390,7 @@ class _FileTile extends ConsumerWidget {
         case DownloadStatus.failed:
           trailing = IconButton(
             icon: const Icon(Icons.error_outline, color: Colors.red, size: 20),
-            tooltip: task.error ?? '失败',
+            tooltip: task.error ?? AppLocalizations.of(context).failedTooltip,
             onPressed: () {
               ref
                   .read(modelDownloaderProvider.notifier)

@@ -5,49 +5,64 @@ import 'package:blood_pressed/features/llm/data/remote_chat_engine.dart';
 import 'package:blood_pressed/features/llm/domain/inference_engine.dart';
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
-/// 常用远端 API 预设。
+/// 常用远端 API 预设（name/desc 的展示文案经 l10n 按 [id] 映射）。
 class _RemotePreset {
-  const _RemotePreset(this.name, this.baseUrl, this.modelHint, this.desc);
+  const _RemotePreset(this.id, this.name, this.baseUrl, this.modelHint,
+      this.desc,
+      {this.clearModelOnSelect = false});
 
+  final String id;
   final String name;
   final String baseUrl;
   final String modelHint;
   final String desc;
+
+  /// 选中该预设时是否清空模型名（预设给出的只是示例而非可用模型名）。
+  final bool clearModelOnSelect;
 }
 
 const _presets = [
   _RemotePreset(
+    'modelscope',
     'ModelScope API-Inference（魔搭）',
     'https://api-inference.modelscope.cn/v1',
     '如 Qwen/Qwen3-32B',
     '魔搭社区提供的免费推理 API，需在魔搭官网获取 Token',
+    clearModelOnSelect: true,
   ),
   _RemotePreset(
+    'ark',
     '火山方舟 Ark',
     'https://ark.cn-beijing.volces.com/api/v3',
     '如 doubao-seed-1-6 或推理接入点 ep-xxxxxxxx',
     '字节跳动火山引擎；API Key 在方舟控制台「API Key 管理」获取',
   ),
   _RemotePreset(
+    'dashscope',
     '阿里云百炼 DashScope',
     'https://dashscope.aliyuncs.com/compatible-mode/v1',
     '如 qwen-plus、qwen-vl-plus（多模态）',
     '阿里云百炼 OpenAI 兼容模式',
   ),
   _RemotePreset(
+    'deepseek',
     'DeepSeek',
     'https://api.deepseek.com/v1',
     '如 deepseek-chat',
     'DeepSeek 官方 API',
+    clearModelOnSelect: true,
   ),
   _RemotePreset(
+    'openai',
     'OpenAI',
     'https://api.openai.com/v1',
     '如 gpt-4o-mini（多模态）',
     'OpenAI 官方 API（国内访问需自行解决网络）',
   ),
   _RemotePreset(
+    'ollama',
     'Ollama（本地/局域网）',
     'http://127.0.0.1:11434/v1',
     '如 qwen2.5:3b',
@@ -99,23 +114,45 @@ class _RemoteProfileEditPageState
   }
 
   void _applyPreset(_RemotePreset p) {
+    final l10n = AppLocalizations.of(context);
     setState(() {
       _preset = p.name;
       _baseUrlCtrl.text = p.baseUrl;
-      _nameCtrl.text = _nameCtrl.text.isEmpty ? p.name : _nameCtrl.text;
-      _modelCtrl.text = p.modelHint.startsWith('如')
-          ? ''
-          : _modelCtrl.text;
+      final displayName = _presetName(l10n, p.id);
+      _nameCtrl.text =
+          _nameCtrl.text.isEmpty ? displayName : _nameCtrl.text;
+      _modelCtrl.text =
+          p.clearModelOnSelect ? '' : _modelCtrl.text;
       _multimodal = p.baseUrl.contains('dashscope') && p.modelHint.contains('vl');
     });
   }
+
+  String _presetName(AppLocalizations l10n, String id) => switch (id) {
+        'modelscope' => l10n.presetNameModelscope,
+        'ark' => l10n.presetNameArk,
+        'dashscope' => l10n.presetNameDashScope,
+        'deepseek' => l10n.presetNameDeepSeek,
+        'openai' => l10n.presetNameOpenAI,
+        'ollama' => l10n.presetNameOllama,
+        _ => id,
+      };
+
+  String _presetDesc(AppLocalizations l10n, String id) => switch (id) {
+        'modelscope' => l10n.presetDescModelscope,
+        'ark' => l10n.presetDescArk,
+        'dashscope' => l10n.presetDescDashScope,
+        'deepseek' => l10n.presetDescDeepSeek,
+        'openai' => l10n.presetDescOpenAI,
+        'ollama' => l10n.presetDescOllama,
+        _ => '',
+      };
 
   /// 拉取远端可用模型列表，弹出选择器；选中后填入 model 字段。
   Future<void> _fetchModels() async {
     final baseUrl = _baseUrlCtrl.text.trim();
     if (baseUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('请先填写 API 地址（baseUrl）')));
+          SnackBar(content: Text(AppLocalizations.of(context).needBaseUrl)));
       return;
     }
     setState(() => _fetchingModels = true);
@@ -142,7 +179,9 @@ class _RemoteProfileEditPageState
       }
     } catch (e) {
       if (!mounted) return;
-      final msg = e is InferenceException ? e.message : '获取失败：$e';
+      final msg = e is InferenceException
+          ? e.message
+          : AppLocalizations.of(context).fetchFailed(e.toString());
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 4)));
     } finally {
@@ -157,7 +196,7 @@ class _RemoteProfileEditPageState
     final model = _modelCtrl.text.trim();
     if (name.isEmpty || baseUrl.isEmpty || model.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('请填写名称、服务地址和模型名称')));
+          SnackBar(content: Text(AppLocalizations.of(context).needAllFields)));
       return;
     }
     final controller = ref.read(llmProfilesProvider.notifier);
@@ -190,19 +229,21 @@ class _RemoteProfileEditPageState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? '编辑远端模型' : '添加远端模型')),
+      appBar: AppBar(
+          title: Text(_isEditing ? l10n.remoteEditTitle : l10n.remoteAddTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
-          Text('选择服务预设（可选）', style: theme.textTheme.labelLarge),
+          Text(l10n.presetSectionTitle, style: theme.textTheme.labelLarge),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: _presets
                 .map((p) => ChoiceChip(
-                      label: Text(p.name),
+                      label: Text(_presetName(l10n, p.id)),
                       selected: _preset == p.name,
                       onSelected: (_) => _applyPreset(p),
                     ))
@@ -210,24 +251,27 @@ class _RemoteProfileEditPageState
           ),
           const SizedBox(height: 8),
           Text(
-            _presets.firstWhere((p) => p.name == _preset,
-                    orElse: () => const _RemotePreset('', '', '', ''))
-                .desc,
+            _presetDesc(
+                l10n,
+                _presets
+                    .firstWhere((p) => p.name == _preset,
+                        orElse: () => const _RemotePreset('', '', '', '', ''))
+                    .id),
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: theme.colorScheme.outline),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _nameCtrl,
-            decoration: const InputDecoration(
-                labelText: '名称', hintText: '如：魔搭 Qwen / DeepSeek'),
+            decoration: InputDecoration(
+                labelText: l10n.fieldName, hintText: l10n.nameHint),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _baseUrlCtrl,
             keyboardType: TextInputType.url,
-            decoration: const InputDecoration(
-              labelText: 'API 地址（baseUrl，无需以 / 结尾）',
+            decoration: InputDecoration(
+              labelText: l10n.fieldBaseUrl,
               hintText: 'https://api.example.com/v1',
             ),
           ),
@@ -235,16 +279,16 @@ class _RemoteProfileEditPageState
           TextField(
             controller: _apiKeyCtrl,
             obscureText: true,
-            decoration: const InputDecoration(
-              labelText: 'API Key（部分服务可留空）',
+            decoration: InputDecoration(
+              labelText: l10n.fieldApiKey,
             ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _modelCtrl,
             decoration: InputDecoration(
-              labelText: '模型名称（model）',
-              hintText: '如 Qwen/Qwen3-32B 或 deepseek-chat',
+              labelText: l10n.fieldModel,
+              hintText: l10n.modelHint,
               suffixIcon: _fetchingModels
                   ? const Padding(
                       padding: EdgeInsets.all(12),
@@ -254,7 +298,7 @@ class _RemoteProfileEditPageState
                           child: CircularProgressIndicator(strokeWidth: 2)),
                     )
                   : IconButton(
-                      tooltip: '获取模型列表',
+                      tooltip: l10n.fetchModelsTooltip,
                       icon: const Icon(Icons.cloud_download_outlined),
                       onPressed: _fetchModels,
                     ),
@@ -262,15 +306,15 @@ class _RemoteProfileEditPageState
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('支持图片输入（多模态）'),
-            subtitle: const Text('开启后可用该模型识别血压计照片（OCR 兜底）'),
+            title: Text(l10n.multimodalTitle),
+            subtitle: Text(l10n.multimodalSubtitle),
             value: _multimodal,
             onChanged: (v) => setState(() => _multimodal = v),
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
             icon: const Icon(Icons.check),
-            label: Text(_isEditing ? '保存' : '添加并启用'),
+            label: Text(_isEditing ? l10n.saveBtn : l10n.addActivateBtn),
             onPressed: _save,
           ),
         ],
@@ -295,6 +339,7 @@ class _ModelPickerSheetState extends State<_ModelPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final filtered = _query.isEmpty
         ? widget.models
         : widget.models
@@ -311,7 +356,7 @@ class _ModelPickerSheetState extends State<_ModelPickerSheet> {
                 autofocus: true,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search),
-                  hintText: '搜索模型（共 ${widget.models.length} 个）',
+                  hintText: l10n.searchModels(widget.models.length),
                   isDense: true,
                 ),
                 onChanged: (v) => setState(() => _query = v),
@@ -319,7 +364,7 @@ class _ModelPickerSheetState extends State<_ModelPickerSheet> {
             ),
             Expanded(
               child: filtered.isEmpty
-                  ? const Center(child: Text('无匹配模型'))
+                  ? Center(child: Text(l10n.noMatchModels))
                   : ListView.builder(
                       itemCount: filtered.length,
                       itemBuilder: (ctx, i) => ListTile(

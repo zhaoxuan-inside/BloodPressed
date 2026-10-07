@@ -480,4 +480,261 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get okGotIt => '知道了';
+
+  @override
+  String get llmTitle => 'AI 模型';
+
+  @override
+  String llmLoadFailed(String error) {
+    return '配置加载失败：$error';
+  }
+
+  @override
+  String get llmIntro => '配置本地或远端大模型后，可以使用健康指导、AI 识别血压照片等智能功能。';
+
+  @override
+  String get llmEmptyTitle => '尚未配置任何模型';
+
+  @override
+  String get llmEmptySubtitle => '从魔搭社区下载一个本地模型（离线可用），\n或配置一个远端 API（能力更强）。';
+
+  @override
+  String get llmInstallFromMarket => '从魔搭社区安装模型';
+
+  @override
+  String get llmAddRemote => '添加远端模型 API';
+
+  @override
+  String get llmAddFromFile => '从已下载文件添加';
+
+  @override
+  String activatedProfile(String name) {
+    return '已启用「$name」';
+  }
+
+  @override
+  String get deleteProfileTitle => '删除模型配置';
+
+  @override
+  String deleteProfileContent(String name, String keepFileNote) {
+    return '删除「$name」？$keepFileNote';
+  }
+
+  @override
+  String get deleteProfileKeepFile => '\n模型文件不会被删除，可稍后重新添加。';
+
+  @override
+  String get noModelFiles => '没有找到已下载的 .gguf 模型文件';
+
+  @override
+  String get pickModelFileTitle => '选择模型文件';
+
+  @override
+  String profileLocalSubtitle(String file) {
+    return '本地模型 · $file';
+  }
+
+  @override
+  String profileRemoteSubtitle(String model, String multimodal) {
+    return '远端 API · $model$multimodal';
+  }
+
+  @override
+  String get profileMultimodalSuffix => ' · 支持图片';
+
+  @override
+  String get engineLoading => '加载中';
+
+  @override
+  String get engineActive => '使用中';
+
+  @override
+  String get menuActivate => '启用';
+
+  @override
+  String get menuEdit => '编辑';
+
+  @override
+  String get menuDelete => '删除';
+
+  @override
+  String get remoteEditTitle => '编辑远端模型';
+
+  @override
+  String get remoteAddTitle => '添加远端模型';
+
+  @override
+  String get presetSectionTitle => '选择服务预设（可选）';
+
+  @override
+  String get presetNameModelscope => 'ModelScope API-Inference（魔搭）';
+
+  @override
+  String get presetNameArk => '火山方舟 Ark';
+
+  @override
+  String get presetNameDashScope => '阿里云百炼 DashScope';
+
+  @override
+  String get presetNameDeepSeek => 'DeepSeek';
+
+  @override
+  String get presetNameOpenAI => 'OpenAI';
+
+  @override
+  String get presetNameOllama => 'Ollama（本地/局域网）';
+
+  @override
+  String get presetDescModelscope => '魔搭社区提供的免费推理 API，需在魔搭官网获取 Token';
+
+  @override
+  String get presetDescArk => '字节跳动火山引擎；API Key 在方舟控制台「API Key 管理」获取';
+
+  @override
+  String get presetDescDashScope => '阿里云百炼 OpenAI 兼容模式';
+
+  @override
+  String get presetDescDeepSeek => 'DeepSeek 官方 API';
+
+  @override
+  String get presetDescOpenAI => 'OpenAI 官方 API（国内访问需自行解决网络）';
+
+  @override
+  String get presetDescOllama => '电脑上运行 Ollama 并开放端口，手机与电脑同一局域网';
+
+  @override
+  String get fieldName => '名称';
+
+  @override
+  String get nameHint => '如：魔搭 Qwen / DeepSeek';
+
+  @override
+  String get fieldBaseUrl => 'API 地址（baseUrl，无需以 / 结尾）';
+
+  @override
+  String get fieldApiKey => 'API Key（部分服务可留空）';
+
+  @override
+  String get fieldModel => '模型名称（model）';
+
+  @override
+  String get modelHint => '如 Qwen/Qwen3-32B 或 deepseek-chat';
+
+  @override
+  String get fetchModelsTooltip => '获取模型列表';
+
+  @override
+  String get multimodalTitle => '支持图片输入（多模态）';
+
+  @override
+  String get multimodalSubtitle => '开启后可用该模型识别血压计照片（OCR 兜底）';
+
+  @override
+  String get saveBtn => '保存';
+
+  @override
+  String get addActivateBtn => '添加并启用';
+
+  @override
+  String get needBaseUrl => '请先填写 API 地址（baseUrl）';
+
+  @override
+  String get needAllFields => '请填写名称、服务地址和模型名称';
+
+  @override
+  String fetchFailed(String error) {
+    return '获取失败：$error';
+  }
+
+  @override
+  String searchModels(int count) {
+    return '搜索模型（共 $count 个）';
+  }
+
+  @override
+  String get noMatchModels => '无匹配模型';
+
+  @override
+  String get marketTitle => '魔搭模型市场';
+
+  @override
+  String get marketIntro =>
+      '从魔搭社区（ModelScope）下载 GGUF 模型到手机，离线运行。建议选择 0.6B~2B 的 Q4 量化版本，兼顾效果与内存。';
+
+  @override
+  String get sectionDownloads => '下载任务';
+
+  @override
+  String get sectionCurated => '精选模型（Qwen 官方）';
+
+  @override
+  String get sectionOtherRepos => '其他仓库';
+
+  @override
+  String get customRepoHint => '输入模型ID，如 Qwen/Qwen3-1.7B-GGUF';
+
+  @override
+  String get viewBtn => '查看';
+
+  @override
+  String get customRepo => '自定义仓库';
+
+  @override
+  String get customRepoDesc => '从魔搭拉取该仓库的 GGUF 文件列表';
+
+  @override
+  String get noGgufFiles => '该仓库没有可用的 GGUF 权重文件';
+
+  @override
+  String get marketConnError => '无法连接魔搭服务器，请检查网络后重试';
+
+  @override
+  String listFilesFailed(String error) {
+    return '获取文件列表失败：$error';
+  }
+
+  @override
+  String get retry => '重试';
+
+  @override
+  String get downloadTooltip => '下载';
+
+  @override
+  String get failedTooltip => '失败';
+
+  @override
+  String get curatedDescQwen3_0_6B_GGUF => '轻量首选 · 低端机可用 · 0.4~0.6GB';
+
+  @override
+  String get curatedDescQwen3_1_7B_GGUF => '效果与速度均衡 · 推荐中端及以上机型';
+
+  @override
+  String get curatedDescQwen3_4B_GGUF => '回答质量更好 · 需要 6GB+ 内存';
+
+  @override
+  String get curatedDescQwen2_5_0_5B_Instruct_GGUF => '上一代小模型 · 省内存';
+
+  @override
+  String get curatedDescQwen2_5_1_5B_Instruct_GGUF => '上一代均衡之选';
+
+  @override
+  String get curatedDescQwen2_5_3B_Instruct_GGUF => '上一代质量档';
+
+  @override
+  String get curatedSizeQwen3_0_6B_GGUF => '约 0.4~0.7 GB';
+
+  @override
+  String get curatedSizeQwen3_1_7B_GGUF => '约 1.0~1.9 GB';
+
+  @override
+  String get curatedSizeQwen3_4B_GGUF => '约 2.3~4.4 GB';
+
+  @override
+  String get curatedSizeQwen2_5_0_5B_Instruct_GGUF => '约 0.4~0.7 GB';
+
+  @override
+  String get curatedSizeQwen2_5_1_5B_Instruct_GGUF => '约 0.9~1.8 GB';
+
+  @override
+  String get curatedSizeQwen2_5_3B_Instruct_GGUF => '约 1.8~3.2 GB';
 }

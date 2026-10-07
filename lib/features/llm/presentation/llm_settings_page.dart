@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'package:blood_pressed/core/providers.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 import 'model_market_page.dart';
@@ -23,15 +24,16 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final profilesAsync = ref.watch(llmProfilesProvider);
     final activeId = ref.watch(activeLlmProfileIdProvider);
     final engineState = ref.watch(llmEngineProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('AI 模型')),
+      appBar: AppBar(title: Text(l10n.llmTitle)),
       body: profilesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => ErrorBanner('配置加载失败：$e'),
+        error: (e, _) => ErrorBanner(l10n.llmLoadFailed(e.toString())),
         data: (profiles) {
           return ListView(
             padding: const EdgeInsets.only(bottom: 32),
@@ -39,7 +41,7 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                 child: Text(
-                  '配置本地或远端大模型后，可以使用健康指导、AI 识别血压照片等智能功能。',
+                  l10n.llmIntro,
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: theme.colorScheme.outline),
                 ),
@@ -47,10 +49,10 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
               if (engineState.error != null)
                 ErrorBanner(engineState.error!),
               if (profiles.isEmpty)
-                const EmptyState(
+                EmptyState(
                   icon: Icons.smart_toy_outlined,
-                  title: '尚未配置任何模型',
-                  subtitle: '从魔搭社区下载一个本地模型（离线可用），\n或配置一个远端 API（能力更强）。',
+                  title: l10n.llmEmptyTitle,
+                  subtitle: l10n.llmEmptySubtitle,
                 )
               else
                 ...profiles.map((p) => _ProfileCard(
@@ -69,7 +71,7 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
                   children: [
                     FilledButton.tonalIcon(
                       icon: const Icon(Icons.cloud_download_outlined),
-                      label: const Text('从魔搭社区安装模型'),
+                      label: Text(l10n.llmInstallFromMarket),
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
                             builder: (_) => const ModelMarketPage()),
@@ -78,7 +80,7 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
                     const SizedBox(height: 8),
                     OutlinedButton.icon(
                       icon: const Icon(Icons.dns_outlined),
-                      label: const Text('添加远端模型 API'),
+                      label: Text(l10n.llmAddRemote),
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
                             builder: (_) => const RemoteProfileEditPage()),
@@ -87,7 +89,7 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
                     if (_hasDownloadedFiles())
                       OutlinedButton.icon(
                         icon: const Icon(Icons.folder_open),
-                        label: const Text('从已下载文件添加'),
+                        label: Text(l10n.llmAddFromFile),
                         onPressed: _addFromFile,
                       ),
                   ],
@@ -112,8 +114,9 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
       await ref.read(appSettingsProvider).setActiveLlmProfile(p.id);
       if (!mounted) return;
       ref.read(activeLlmProfileIdProvider.notifier).state = p.id;
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('已启用「${p.name}」')));
+          .showSnackBar(SnackBar(content: Text(l10n.activatedProfile(p.name))));
     } else {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(err)));
@@ -121,13 +124,15 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
   }
 
   Future<void> _delete(LlmProfile p) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showConfirmDialog(
       context,
-      title: '删除模型配置',
-      content: '删除「${p.name}」？'
-          '${p.kind == LlmKind.local ? '\n模型文件不会被删除，可稍后重新添加。' : ''}',
+      title: l10n.deleteProfileTitle,
+      content: l10n.deleteProfileContent(
+          p.name,
+          p.kind == LlmKind.local ? l10n.deleteProfileKeepFile : ''),
       danger: true,
-      confirmText: '删除',
+      confirmText: l10n.menuDelete,
     );
     if (!ok) return;
     final activeId = ref.read(activeLlmProfileIdProvider);
@@ -150,13 +155,13 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
     if (!mounted) return;
     if (files.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('没有找到已下载的 .gguf 模型文件')));
+          SnackBar(content: Text(AppLocalizations.of(context).noModelFiles)));
       return;
     }
     final picked = await showDialog<File>(
       context: context,
       builder: (ctx) => SimpleDialog(
-        title: const Text('选择模型文件'),
+        title: Text(AppLocalizations.of(ctx).pickModelFileTitle),
         children: files
             .map((f) => SimpleDialogOption(
                   onPressed: () => Navigator.of(ctx).pop(f),
@@ -212,11 +217,13 @@ class _ProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isLocal = profile.kind == LlmKind.local;
     final subtitle = isLocal
-        ? '本地模型 · ${profile.modelPath.split(Platform.pathSeparator).last}'
-        : '远端 API · ${profile.remoteModel}'
-            '${profile.multimodal ? ' · 支持图片' : ''}';
+        ? l10n.profileLocalSubtitle(
+            profile.modelPath.split(Platform.pathSeparator).last)
+        : l10n.profileRemoteSubtitle(profile.remoteModel,
+            profile.multimodal ? l10n.profileMultimodalSuffix : '');
 
     return Card(
       child: ListTile(
@@ -243,7 +250,7 @@ class _ProfileCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  engineBusy ? '加载中' : '使用中',
+                  engineBusy ? l10n.engineLoading : l10n.engineActive,
                   style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onPrimaryContainer),
                 ),
@@ -267,10 +274,16 @@ class _ProfileCard extends StatelessWidget {
           },
           itemBuilder: (ctx) => [
             if (!active)
-              const PopupMenuItem(value: 'activate', child: Text('启用')),
+              PopupMenuItem(
+                  value: 'activate',
+                  child: Text(AppLocalizations.of(ctx).menuActivate)),
             if (onEdit != null)
-              const PopupMenuItem(value: 'edit', child: Text('编辑')),
-            const PopupMenuItem(value: 'delete', child: Text('删除')),
+              PopupMenuItem(
+                  value: 'edit',
+                  child: Text(AppLocalizations.of(ctx).menuEdit)),
+            PopupMenuItem(
+                value: 'delete',
+                child: Text(AppLocalizations.of(ctx).menuDelete)),
           ],
         ),
         onTap: active ? null : onActivate,

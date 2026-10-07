@@ -316,5 +316,147 @@
       }
     }
   },
-  "okGotIt": "Got it"
+  "okGotIt": "Got it",
+  "llmTitle": "AI Models",
+  "llmLoadFailed": "Failed to load profiles: {error}",
+  "@llmLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "llmIntro": "Set up a local or remote LLM to enable health guidance, AI photo reading and other smart features.",
+  "llmEmptyTitle": "No models configured yet",
+  "llmEmptySubtitle": "Download a local model from ModelScope (works offline),\nor configure a remote API (more capable).",
+  "llmInstallFromMarket": "Install a model from ModelScope",
+  "llmAddRemote": "Add Remote Model API",
+  "llmAddFromFile": "Add from downloaded files",
+  "activatedProfile": "Activated “{name}”",
+  "@activatedProfile": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteProfileTitle": "Delete Model Profile",
+  "deleteProfileContent": "Delete “{name}”?{keepFileNote}",
+  "@deleteProfileContent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "keepFileNote": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteProfileKeepFile": "\nThe model file will not be deleted and can be re-added later.",
+  "noModelFiles": "No downloaded .gguf model files found",
+  "pickModelFileTitle": "Choose Model File",
+  "profileLocalSubtitle": "Local model · {file}",
+  "@profileLocalSubtitle": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "profileRemoteSubtitle": "Remote API · {model}{multimodal}",
+  "@profileRemoteSubtitle": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "multimodal": {
+        "type": "String"
+      }
+    }
+  },
+  "profileMultimodalSuffix": " · supports images",
+  "engineLoading": "Loading",
+  "engineActive": "Active",
+  "menuActivate": "Activate",
+  "menuEdit": "Edit",
+  "menuDelete": "Delete",
+  "remoteEditTitle": "Edit Remote Model",
+  "remoteAddTitle": "Add Remote Model",
+  "presetSectionTitle": "Choose a service preset (optional)",
+  "presetNameModelscope": "ModelScope API-Inference",
+  "presetNameArk": "Volcano Ark",
+  "presetNameDashScope": "Alibaba DashScope",
+  "presetNameDeepSeek": "DeepSeek",
+  "presetNameOpenAI": "OpenAI",
+  "presetNameOllama": "Ollama (local/LAN)",
+  "presetDescModelscope": "Free inference API from ModelScope. Get a token on the ModelScope website.",
+  "presetDescArk": "ByteDance Volcano Engine. Get the API key in the Ark console under “API Key Management”.",
+  "presetDescDashScope": "Alibaba Cloud Bailian, OpenAI-compatible mode.",
+  "presetDescDeepSeek": "Official DeepSeek API.",
+  "presetDescOpenAI": "Official OpenAI API (mainland China network access is on you).",
+  "presetDescOllama": "Run Ollama on your computer with the port open; keep the phone on the same LAN.",
+  "fieldName": "Name",
+  "nameHint": "e.g. ModelScope Qwen / DeepSeek",
+  "fieldBaseUrl": "API base URL (no trailing slash)",
+  "fieldApiKey": "API Key (optional for some services)",
+  "fieldModel": "Model name (model)",
+  "modelHint": "e.g. Qwen/Qwen3-32B or deepseek-chat",
+  "fetchModelsTooltip": "Fetch model list",
+  "multimodalTitle": "Support image input (multimodal)",
+  "multimodalSubtitle": "When on, this model can read blood pressure monitor photos (OCR fallback).",
+  "saveBtn": "Save",
+  "addActivateBtn": "Add & Activate",
+  "needBaseUrl": "Enter the API base URL first",
+  "needAllFields": "Fill in the name, base URL and model name",
+  "fetchFailed": "Fetch failed: {error}",
+  "@fetchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "searchModels": "Search models ({count} total)",
+  "@searchModels": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noMatchModels": "No matching models",
+  "marketTitle": "ModelScope Market",
+  "marketIntro": "Download GGUF models from ModelScope to run offline on your phone. Q4-quantized 0.6B–2B models balance quality and memory.",
+  "sectionDownloads": "Downloads",
+  "sectionCurated": "Curated Models (official Qwen)",
+  "sectionOtherRepos": "Other Repositories",
+  "customRepoHint": "Enter a model ID, e.g. Qwen/Qwen3-1.7B-GGUF",
+  "viewBtn": "View",
+  "customRepo": "Custom repository",
+  "customRepoDesc": "Fetch the GGUF file list of this repository from ModelScope",
+  "noGgufFiles": "No GGUF weights available in this repository",
+  "marketConnError": "Cannot reach ModelScope. Check your network and try again.",
+  "listFilesFailed": "Failed to fetch file list: {error}",
+  "@listFilesFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "retry": "Retry",
+  "downloadTooltip": "Download",
+  "failedTooltip": "Failed",
+  "curatedDescQwen3_0_6B_GGUF": "Lightweight pick · works on low-end phones · 0.4–0.6GB",
+  "curatedDescQwen3_1_7B_GGUF": "Balanced quality and speed · mid-range phones or better",
+  "curatedDescQwen3_4B_GGUF": "Better answers · needs 6GB+ memory",
+  "curatedDescQwen2_5_0_5B_Instruct_GGUF": "Previous-gen small model · memory-friendly",
+  "curatedDescQwen2_5_1_5B_Instruct_GGUF": "Previous-gen balanced pick",
+  "curatedDescQwen2_5_3B_Instruct_GGUF": "Previous-gen quality tier",
+  "curatedSizeQwen3_0_6B_GGUF": "about 0.4–0.7 GB",
+  "curatedSizeQwen3_1_7B_GGUF": "about 1.0–1.9 GB",
+  "curatedSizeQwen3_4B_GGUF": "about 2.3–4.4 GB",
+  "curatedSizeQwen2_5_0_5B_Instruct_GGUF": "about 0.4–0.7 GB",
+  "curatedSizeQwen2_5_1_5B_Instruct_GGUF": "about 0.9–1.8 GB",
+  "curatedSizeQwen2_5_3B_Instruct_GGUF": "about 1.8–3.2 GB"
 }
