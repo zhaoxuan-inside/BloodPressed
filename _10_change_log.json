@@ -317,7 +317,24 @@
    "author": "Agent",
    "verified": true,
    "note": "两张分享卡重设计：深色三段渐变（记录卡墨绿/统计卡蓝青）+ 右上径向光斑 + 左下装饰圆 + 顶部光泽 + 1px 白高光描边；CustomPainter 绘制低透明度 ECG 心电波形横贯卡片（贴合血压主题）；记录卡品牌玻璃徽章 + hero 数值 62px 带阴影 + mmHg pill + 分级 pill（分类色发光圆点）+ 脉搏 pill；统计卡 2×2 玻璃拟态指标瓦片 + 全宽血压范围瓦片；渐隐分隔线与 footer。API（CardCapturer/构造参数）与全部 l10n 键不变，export_page 零改动。验证方式：临时测试加载 SimHei 字体 + MaterialIcons 后渲染两卡 PNG（pixelRatio 3）目视迭代 3 轮（修复 ECG 二次贝塞尔控制点绝对坐标 bug——P/T 波飞到卡片顶形成贯穿拱门），确认后删除临时测试。全量 124 测试 + analyze 0。UI 组件按 frontend 豁免不入 _07。"
+  },
+  {
+   "id": "chg-013",
+   "date": "2026-10-07T20:30:00+08:00",
+   "requirement": "用户反馈分享卡片四个角有白色底色，不美观。快速通道。plan-010。",
+   "plan_id": "plan-010",
+   "changed_files": [
+    "lib/features/export/presentation/export_page.dart",
+    "_08_task_plan_idx.json",
+    "_08_task_plans/plan-010.md",
+    "_10_change_log.json"
+   ],
+   "commits": [],
+   "changed_methods": [],
+   "author": "Agent",
+   "verified": true,
+   "note": "根因：卡片圆角 24，RepaintBoundary 截图时圆角外四角为透明像素，微信白底聊天页显示为白角。修复：export_page._buildCard 为两种卡片包一层方形不透明深色底衬 _stage（记录卡 #07211C、统计卡 #081E33，取各自渐变起色的更深同系色，12px 边距），导出 PNG 为完整矩形、卡片圆角浮在深色画布上，应用内预览与导出所见即所得。share_card_widgets 与 CardCapturer 零改动。验证：临时渲染测试（白底页面 + 底衬）目视确认两卡四角均为深色，确认后删除；全量 124 测试 + analyze 0。"
   }
  ],
- "latest": "chg-012"
+ "latest": "chg-013"
 }
