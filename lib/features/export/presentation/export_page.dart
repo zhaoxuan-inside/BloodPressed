@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'package:blood_pressed/core/i18n/labels.dart';
 import 'package:blood_pressed/core/providers.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/features/records/data/records_repository.dart';
@@ -12,6 +13,7 @@ import 'package:blood_pressed/features/records/presentation/controllers/records_
 import 'package:blood_pressed/features/export/data/csv_exporter.dart';
 import 'package:blood_pressed/features/export/data/wechat_share_service.dart';
 import 'share_card_widgets.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 enum _CardType { record, stats }
 
@@ -42,22 +44,23 @@ class _ExportPageState extends ConsumerState<ExportPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final latest = ref.watch(latestRecordProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('导出与分享')),
+      appBar: AppBar(title: Text(l10n.exportTitle)),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 32),
         children: [
-          const SectionHeader('卡片分享'),
+          SectionHeader(l10n.sectionCardShare),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SegmentedButton<_CardType>(
-              segments: const [
+              segments: [
                 ButtonSegment(
-                    value: _CardType.record, label: Text('单次记录卡')),
+                    value: _CardType.record, label: Text(l10n.cardTypeRecord)),
                 ButtonSegment(
-                    value: _CardType.stats, label: Text('统计摘要卡')),
+                    value: _CardType.stats, label: Text(l10n.cardTypeStats)),
               ],
               selected: {_cardType},
               onSelectionChanged: (s) =>
@@ -72,7 +75,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
                 children: kStatsRanges
                     .take(3)
                     .map((r) => ChoiceChip(
-                          label: Text(r.label),
+                          label: Text(statsRangeLabel(l10n, r.days)),
                           selected: _statsDays == r.days,
                           onSelected: (_) =>
                               setState(() => _statsDays = r.days),
@@ -98,7 +101,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
                     Expanded(
                       child: FilledButton.icon(
                         icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                        label: const Text('微信好友'),
+                        label: Text(l10n.shareWechat),
                         onPressed: latest == null && _cardType == _CardType.record
                             ? null
                             : () => _shareCard(toTimeline: false),
@@ -108,7 +111,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
                     Expanded(
                       child: FilledButton.tonalIcon(
                         icon: const Icon(Icons.public, size: 18),
-                        label: const Text('朋友圈'),
+                        label: Text(l10n.shareMoments),
                         onPressed: latest == null && _cardType == _CardType.record
                             ? null
                             : () => _shareCard(toTimeline: true),
@@ -119,7 +122,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.ios_share, size: 18),
-                  label: const Text('更多方式分享'),
+                  label: Text(l10n.shareMore),
                   onPressed: latest == null && _cardType == _CardType.record
                       ? null
                       : () => _shareCard(system: true),
@@ -127,7 +130,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
               ],
             ),
           ),
-          const SectionHeader('数据导出'),
+          SectionHeader(l10n.sectionDataExport),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
@@ -135,12 +138,12 @@ class _ExportPageState extends ConsumerState<ExportPage> {
               children: [
                 OutlinedButton.icon(
                   icon: const Icon(Icons.table_view, size: 18),
-                  label: const Text('导出全部记录为 CSV（Excel 可打开）'),
+                  label: Text(l10n.exportCsvButton),
                   onPressed: _exportCsv,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'CSV 包含：时间、高压、低压、脉搏、测量臂、体位、备注、来源。',
+                  l10n.csvContentsHint,
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: theme.colorScheme.outline),
                 ),
@@ -155,10 +158,11 @@ class _ExportPageState extends ConsumerState<ExportPage> {
   Widget _buildCard(BpRecord? latest) {
     if (_cardType == _CardType.record) {
       if (latest == null) {
-        return const EmptyState(
+        final l10n = AppLocalizations.of(context);
+        return EmptyState(
           icon: Icons.image_not_supported_outlined,
-          title: '暂无记录',
-          subtitle: '先添加一条血压记录再分享卡片',
+          title: l10n.emptyExportTitle,
+          subtitle: l10n.emptyExportSubtitle,
         );
       }
       return RecordShareCard(record: latest);
@@ -181,6 +185,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
 
   Future<void> _shareCard({bool system = false, bool toTimeline = false}) async {
     if (_busy) return;
+    final l10n = AppLocalizations.of(context);
     setState(() => _busy = true);
     try {
       final bytes = await CardCapturer.capture(_cardKey);
@@ -194,12 +199,12 @@ class _ExportPageState extends ConsumerState<ExportPage> {
       if (system) {
         result = await service.shareFile(
           file,
-          text: '我的血压记录（来自血压了么）',
+          text: l10n.shareText,
         );
       } else {
         result = await service.shareImage(
           file,
-          text: '我的血压记录（来自血压了么）',
+          text: l10n.shareText,
           toTimeline: toTimeline,
         );
       }
@@ -210,7 +215,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('分享失败：$e')));
+            .showSnackBar(SnackBar(content: Text(l10n.shareFailed(e.toString()))));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -219,6 +224,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
 
   Future<void> _exportCsv() async {
     if (_busy) return;
+    final l10n = AppLocalizations.of(context);
     setState(() => _busy = true);
     try {
       final repo = ref.read(recordsRepositoryProvider);
@@ -226,14 +232,14 @@ class _ExportPageState extends ConsumerState<ExportPage> {
       if (records.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('暂无记录可导出')));
+              .showSnackBar(SnackBar(content: Text(l10n.exportEmpty)));
         }
         return;
       }
       final file = await const CsvExporter().exportToFile(records);
       final result = await shareService.shareFile(
         file,
-        text: '血压了么 血压记录导出',
+        text: l10n.csvShareText,
       );
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -242,7 +248,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('导出失败：$e')));
+            .showSnackBar(SnackBar(content: Text(l10n.exportFailed(e.toString()))));
       }
     } finally {
       if (mounted) setState(() => _busy = false);

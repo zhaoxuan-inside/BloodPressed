@@ -1,20 +1,25 @@
 {
   "@@locale": "en",
   "appTitle": "BloodPressed",
-  "@appTitle": { "description": "In-app app title (task switcher)." },
-
+  "@appTitle": {
+    "description": "In-app app title (task switcher)."
+  },
   "langTitle": "Language",
   "langSubtitle": "UI language · Knowledge articles and AI guidance remain in Chinese",
   "langSystem": "System",
   "langChinese": "中文",
   "langEnglish": "English",
-
   "cancel": "Cancel",
   "confirm": "Confirm",
   "delete": "Delete",
   "loadDataFailed": "Failed to load data: {error}",
-  "@loadDataFailed": { "placeholders": { "error": { "type": "String" } } },
-
+  "@loadDataFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "sectionEntry": "Record Blood Pressure",
   "actionManual": "Manual Entry",
   "actionCamera": "Camera Scan",
@@ -31,9 +36,14 @@
   "welcomeSubtitle": "Record your first blood pressure and start your health journey",
   "latestMeasurement": "Latest measurement",
   "todayMeasuredTimes": "Measured {count} times today",
-  "@todayMeasuredTimes": { "placeholders": { "count": { "type": "int" } } },
+  "@todayMeasuredTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "pulseUnit": "bpm",
-
   "armLeft": "Left arm",
   "armRight": "Right arm",
   "postureNotRecorded": "Not recorded",
@@ -43,7 +53,6 @@
   "sourceManual": "Manual",
   "sourceOcr": "Camera scan",
   "sourceAi": "AI scan",
-
   "categoryLow": "Low",
   "categoryNormal": "Normal",
   "categoryElevated": "Elevated",
@@ -54,7 +63,6 @@
   "adviceElevated": "Blood pressure is high but not yet hypertension. Reduce salt, exercise, and re-measure regularly.",
   "adviceGrade1": "Blood pressure has reached stage 1 hypertension (home measurement). Re-measure and consult a doctor.",
   "adviceGrade2": "Blood pressure is markedly high. Seek medical care promptly; never adjust medication on your own.",
-
   "editRecordTitle": "Edit Record",
   "newRecordTitle": "Record Blood Pressure",
   "sysLabel": "Systolic (high)",
@@ -64,25 +72,209 @@
   "noteField": "Note (optional, e.g. after exercise, before medication)",
   "saveEdit": "Save Changes",
   "saveNew": "Save Record",
-
   "bannerSourceOcr": "Camera scan result",
   "bannerSourceAi": "AI scan result",
   "bannerLowNoValue": "{source} could not read any values. Please enter them manually and review before saving.",
-  "@bannerLowNoValue": { "placeholders": { "source": { "type": "String" } } },
+  "@bannerLowNoValue": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
   "bannerLowConfidence": "{source} returned low confidence ({percent}%). Values in red boxes are for reference only — please review and correct before saving.",
-  "@bannerLowConfidence": { "placeholders": { "source": { "type": "String" }, "percent": { "type": "int" } } },
+  "@bannerLowConfidence": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "bannerAutoFilled": "{source}{confidence} was filled in automatically. Please review and save.",
-  "@bannerAutoFilled": { "placeholders": { "source": { "type": "String" }, "confidence": { "type": "String" } } },
+  "@bannerAutoFilled": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "confidence": {
+        "type": "String"
+      }
+    }
+  },
   "confidenceSuffix": " ({percent}% confidence)",
-  "@confidenceSuffix": { "placeholders": { "percent": { "type": "int" } } },
-
+  "@confidenceSuffix": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "errNeedSysDia": "Please enter systolic and diastolic values",
   "errSysRange": "Systolic must be between 40 and 300",
   "errDiaRange": "Diastolic must be between 30 and 200",
   "errSysGreater": "Systolic must be greater than diastolic",
   "errPulseRange": "Pulse must be between 20 and 300",
-
   "deleteRecordTitle": "Delete Record",
   "deleteRecordContent": "Delete the record from {datetime} ({sys}/{dia})? This cannot be undone.",
-  "@deleteRecordContent": { "placeholders": { "datetime": { "type": "String" }, "sys": { "type": "int" }, "dia": { "type": "int" } } }
+  "@deleteRecordContent": {
+    "placeholders": {
+      "datetime": {
+        "type": "String"
+      },
+      "sys": {
+        "type": "int"
+      },
+      "dia": {
+        "type": "int"
+      }
+    }
+  },
+  "statsTitle": "Blood Pressure Trends",
+  "statsCustom": "Custom",
+  "armBoth": "Both arms",
+  "onlyLeftArm": "Left arm only",
+  "onlyRightArm": "Right arm only",
+  "seriesBp": "BP",
+  "seriesPulse": "Pulse",
+  "statsLoadFailed": "Failed to load stats: {error}",
+  "@statsLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trendLoadFailed": "Failed to load trend: {error}",
+  "@trendLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "statsEmptyTitle": "No data in this range",
+  "statsEmptySubtitle": "Adjust the time range or add a few records first",
+  "pulseEmpty": "No pulse data in this range",
+  "chartReferenceHint": "Dashed lines are home-measurement reference levels (systolic 135 / diastolic 85; above means elevated). Multiple readings on the same day are averaged.",
+  "refSystolic": "Systolic {value}",
+  "@refSystolic": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "refDiastolic": "Diastolic {value}",
+  "@refDiastolic": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "range7": "Last 7 days",
+  "range30": "Last 30 days",
+  "range90": "Last 90 days",
+  "rangeAll": "All",
+  "exportTitle": "Export & Share",
+  "sectionCardShare": "Card Sharing",
+  "cardTypeRecord": "Single Record Card",
+  "cardTypeStats": "Stats Summary Card",
+  "shareWechat": "WeChat Chat",
+  "shareMoments": "Moments",
+  "shareMore": "More Ways to Share",
+  "sectionDataExport": "Data Export",
+  "exportCsvButton": "Export all records as CSV (opens in Excel)",
+  "csvContentsHint": "CSV includes: time, systolic, diastolic, pulse, arm, posture, note, source.",
+  "emptyExportTitle": "No records yet",
+  "emptyExportSubtitle": "Add a blood pressure record before sharing a card",
+  "shareText": "My blood pressure record (from BloodPressed)",
+  "csvShareText": "BloodPressed blood pressure record export",
+  "shareFailed": "Sharing failed: {error}",
+  "@shareFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportEmpty": "No records to export",
+  "exportFailed": "Export failed: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cardNotReady": "Share card has not finished rendering",
+  "cardExportFailed": "Failed to export card",
+  "shareCardRecordHeader": "BloodPressed · BP Record",
+  "cardMeasuredAt": "{datetime} · Measured with {arm}",
+  "@cardMeasuredAt": {
+    "placeholders": {
+      "datetime": {
+        "type": "String"
+      },
+      "arm": {
+        "type": "String"
+      }
+    }
+  },
+  "cardFooterRecord": "Keep measuring to protect your heart",
+  "shareCardStatsHeader": "BloodPressed · BP Summary",
+  "statsOverviewTitle": "BP Overview — last {days}",
+  "@statsOverviewTitle": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "avgBpLabel": "Average BP",
+  "bpRangeLabel": "BP Range",
+  "avgPulseLabel": "Average Pulse",
+  "countLabel": "Measurements",
+  "onTargetRateLabel": "On-target rate (<135/85)",
+  "bpRangeValue": "Sys {smin}~{smax} · Dia {dmin}~{dmax}",
+  "@bpRangeValue": {
+    "placeholders": {
+      "smin": {
+        "type": "int"
+      },
+      "smax": {
+        "type": "int"
+      },
+      "dmin": {
+        "type": "int"
+      },
+      "dmax": {
+        "type": "int"
+      }
+    }
+  },
+  "timesValue": "{count} times",
+  "@timesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardFooterStats": "Measure regularly, stay in control",
+  "days7": "7 days",
+  "days30": "30 days",
+  "days90": "90 days",
+  "daysPeriod": "a period",
+  "csvTime": "Time",
+  "csvSystolic": "Systolic(mmHg)",
+  "csvDiastolic": "Diastolic(mmHg)",
+  "csvPulse": "Pulse(bpm)",
+  "csvArm": "Arm",
+  "csvPosture": "Posture",
+  "csvNote": "Note",
+  "csvSource": "Source"
 }

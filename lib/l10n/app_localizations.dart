@@ -505,6 +505,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete the record from {datetime} ({sys}/{dia})? This cannot be undone.'**
   String deleteRecordContent(String datetime, int sys, int dia);
+
+  /// No description provided for @statsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood Pressure Trends'**
+  String get statsTitle;
+
+  /// No description provided for @statsCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get statsCustom;
+
+  /// No description provided for @armBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Both arms'**
+  String get armBoth;
+
+  /// No description provided for @onlyLeftArm.
+  ///
+  /// In en, this message translates to:
+  /// **'Left arm only'**
+  String get onlyLeftArm;
+
+  /// No description provided for @onlyRightArm.
+  ///
+  /// In en, this message translates to:
+  /// **'Right arm only'**
+  String get onlyRightArm;
+
+  /// No description provided for @seriesBp.
+  ///
+  /// In en, this message translates to:
+  /// **'BP'**
+  String get seriesBp;
+
+  /// No description provided for @seriesPulse.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulse'**
+  String get seriesPulse;
+
+  /// No description provided for @statsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load stats: {error}'**
+  String statsLoadFailed(String error);
+
+  /// No description provided for @trendLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load trend: {error}'**
+  String trendLoadFailed(String error);
+
+  /// No description provided for @statsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No data in this range'**
+  String get statsEmptyTitle;
+
+  /// No description provided for @statsEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust the time range or add a few records first'**
+  String get statsEmptySubtitle;
+
+  /// No description provided for @pulseEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No pulse data in this range'**
+  String get pulseEmpty;
+
+  /// No description provided for @chartReferenceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashed lines are home-measurement reference levels (systolic 135 / diastolic 85; above means elevated). Multiple readings on the same day are averaged.'**
+  String get chartReferenceHint;
+
+  /// No description provided for @refSystolic.
+  ///
+  /// In en, this message translates to:
+  /// **'Systolic {value}'**
+  String refSystolic(int value);
+
+  /// No description provided for @refDiastolic.
+  ///
+  /// In en, this message translates to:
+  /// **'Diastolic {value}'**
+  String refDiastolic(int value);
+
+  /// No description provided for @range7.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get range7;
+
+  /// No description provided for @range30.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get range30;
+
+  /// No description provided for @range90.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 days'**
+  String get range90;
+
+  /// No description provided for @rangeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get rangeAll;
+
+  /// No description provided for @exportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export & Share'**
+  String get exportTitle;
+
+  /// No description provided for @sectionCardShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Sharing'**
+  String get sectionCardShare;
+
+  /// No description provided for @cardTypeRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Single Record Card'**
+  String get cardTypeRecord;
+
+  /// No description provided for @cardTypeStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats Summary Card'**
+  String get cardTypeStats;
+
+  /// No description provided for @shareWechat.
+  ///
+  /// In en, this message translates to:
+  /// **'WeChat Chat'**
+  String get shareWechat;
+
+  /// No description provided for @shareMoments.
+  ///
+  /// In en, this message translates to:
+  /// **'Moments'**
+  String get shareMoments;
+
+  /// No description provided for @shareMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More Ways to Share'**
+  String get shareMore;
+
+  /// No description provided for @sectionDataExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Export'**
+  String get sectionDataExport;
+
+  /// No description provided for @exportCsvButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Export all records as CSV (opens in Excel)'**
+  String get exportCsvButton;
+
+  /// No description provided for @csvContentsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV includes: time, systolic, diastolic, pulse, arm, posture, note, source.'**
+  String get csvContentsHint;
+
+  /// No description provided for @emptyExportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No records yet'**
+  String get emptyExportTitle;
+
+  /// No description provided for @emptyExportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a blood pressure record before sharing a card'**
+  String get emptyExportSubtitle;
+
+  /// No description provided for @shareText.
+  ///
+  /// In en, this message translates to:
+  /// **'My blood pressure record (from BloodPressed)'**
+  String get shareText;
+
+  /// No description provided for @csvShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'BloodPressed blood pressure record export'**
+  String get csvShareText;
+
+  /// No description provided for @shareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing failed: {error}'**
+  String shareFailed(String error);
+
+  /// No description provided for @exportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No records to export'**
+  String get exportEmpty;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String exportFailed(String error);
+
+  /// No description provided for @cardNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Share card has not finished rendering'**
+  String get cardNotReady;
+
+  /// No description provided for @cardExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to export card'**
+  String get cardExportFailed;
+
+  /// No description provided for @shareCardRecordHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'BloodPressed · BP Record'**
+  String get shareCardRecordHeader;
+
+  /// No description provided for @cardMeasuredAt.
+  ///
+  /// In en, this message translates to:
+  /// **'{datetime} · Measured with {arm}'**
+  String cardMeasuredAt(String datetime, String arm);
+
+  /// No description provided for @cardFooterRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep measuring to protect your heart'**
+  String get cardFooterRecord;
+
+  /// No description provided for @shareCardStatsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'BloodPressed · BP Summary'**
+  String get shareCardStatsHeader;
+
+  /// No description provided for @statsOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'BP Overview — last {days}'**
+  String statsOverviewTitle(String days);
+
+  /// No description provided for @avgBpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Average BP'**
+  String get avgBpLabel;
+
+  /// No description provided for @bpRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'BP Range'**
+  String get bpRangeLabel;
+
+  /// No description provided for @avgPulseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Average Pulse'**
+  String get avgPulseLabel;
+
+  /// No description provided for @countLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurements'**
+  String get countLabel;
+
+  /// No description provided for @onTargetRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'On-target rate (<135/85)'**
+  String get onTargetRateLabel;
+
+  /// No description provided for @bpRangeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Sys {smin}~{smax} · Dia {dmin}~{dmax}'**
+  String bpRangeValue(int smin, int smax, int dmin, int dmax);
+
+  /// No description provided for @timesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} times'**
+  String timesValue(int count);
+
+  /// No description provided for @cardFooterStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Measure regularly, stay in control'**
+  String get cardFooterStats;
+
+  /// No description provided for @days7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get days7;
+
+  /// No description provided for @days30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get days30;
+
+  /// No description provided for @days90.
+  ///
+  /// In en, this message translates to:
+  /// **'90 days'**
+  String get days90;
+
+  /// No description provided for @daysPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'a period'**
+  String get daysPeriod;
+
+  /// No description provided for @csvTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get csvTime;
+
+  /// No description provided for @csvSystolic.
+  ///
+  /// In en, this message translates to:
+  /// **'Systolic(mmHg)'**
+  String get csvSystolic;
+
+  /// No description provided for @csvDiastolic.
+  ///
+  /// In en, this message translates to:
+  /// **'Diastolic(mmHg)'**
+  String get csvDiastolic;
+
+  /// No description provided for @csvPulse.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulse(bpm)'**
+  String get csvPulse;
+
+  /// No description provided for @csvArm.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm'**
+  String get csvArm;
+
+  /// No description provided for @csvPosture.
+  ///
+  /// In en, this message translates to:
+  /// **'Posture'**
+  String get csvPosture;
+
+  /// No description provided for @csvNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get csvNote;
+
+  /// No description provided for @csvSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get csvSource;
 }
 
 class _AppLocalizationsDelegate

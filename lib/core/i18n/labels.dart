@@ -41,3 +41,11 @@ String categoryAdvice(AppLocalizations l10n, BpCategory category) =>
       BpCategory.grade1 => l10n.adviceGrade1,
       BpCategory.grade2 => l10n.adviceGrade2,
     };
+
+/// 统计范围标签（近7天/近30天/近90天/全部），对应 kStatsRanges 的 days。
+String statsRangeLabel(AppLocalizations l10n, int days) {
+  if (days <= 7) return l10n.range7;
+  if (days <= 30) return l10n.range30;
+  if (days <= 90) return l10n.range90;
+  return l10n.rangeAll;
+}

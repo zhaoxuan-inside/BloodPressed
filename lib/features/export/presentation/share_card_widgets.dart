@@ -4,10 +4,13 @@ import 'dart:ui' show ImageByteFormat;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'package:blood_pressed/core/i18n/app_locale_service.dart';
+import 'package:blood_pressed/core/i18n/labels.dart';
 import 'package:blood_pressed/core/utils/bp_category.dart';
 import 'package:blood_pressed/features/records/data/records_repository.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/core/utils/formatters.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// 卡片截图工具。
 class CardCapturer {
@@ -18,13 +21,13 @@ class CardCapturer {
     final boundary = key.currentContext?.findRenderObject()
         as RenderRepaintBoundary?;
     if (boundary == null) {
-      throw StateError('分享卡片尚未渲染完成');
+      throw StateError(AppLocaleService.auto.cardNotReady);
     }
     final image = await boundary.toImage(pixelRatio: pixelRatio);
     final data = await image.toByteData(format: ImageByteFormat.png);
     image.dispose();
     if (data == null) {
-      throw StateError('卡片导出失败');
+      throw StateError(AppLocaleService.auto.cardExportFailed);
     }
     return data.buffer.asUint8List();
   }
@@ -39,6 +42,7 @@ class RecordShareCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final category = BpCategory.fromValues(record.systolic, record.diastolic);
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: 340,
       padding: const EdgeInsets.all(24),
@@ -54,13 +58,13 @@ class RecordShareCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.favorite, color: Colors.white70, size: 18),
-              SizedBox(width: 6),
+              const Icon(Icons.favorite, color: Colors.white70, size: 18),
+              const SizedBox(width: 6),
               Text(
-                '血压了么 · 血压记录',
-                style: TextStyle(
+                l10n.shareCardRecordHeader,
+                style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 13,
                     fontWeight: FontWeight.w600),
@@ -109,7 +113,7 @@ class RecordShareCard extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text(category.label,
+                child: Text(categoryLabel(l10n, category),
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
@@ -122,7 +126,7 @@ class RecordShareCard extends StatelessWidget {
                     const Icon(Icons.favorite_border,
                         color: Colors.white70, size: 14),
                     const SizedBox(width: 4),
-                    Text('${record.pulse} 次/分',
+                    Text('${record.pulse} ${l10n.pulseUnit}',
                         style: const TextStyle(
                             color: Colors.white, fontSize: 13)),
                   ],
@@ -131,13 +135,14 @@ class RecordShareCard extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           Text(
-            '${Fmt.full(record.measuredAt)} · ${record.arm.label}测量',
+            l10n.cardMeasuredAt(
+                Fmt.full(record.measuredAt), armLabel(l10n, record.arm)),
             style: const TextStyle(color: Colors.white70, fontSize: 12),
           ),
           const Divider(color: Colors.white24, height: 28),
-          const Text(
-            '坚持测量，守护心血管健康 💪',
-            style: TextStyle(color: Colors.white, fontSize: 12),
+          Text(
+            l10n.cardFooterRecord,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
           ),
         ],
       ),
@@ -154,6 +159,7 @@ class StatsShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: 340,
       padding: const EdgeInsets.all(24),
@@ -169,13 +175,13 @@ class StatsShareCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.monitor_heart, color: Colors.white70, size: 18),
-              SizedBox(width: 6),
+              const Icon(Icons.monitor_heart, color: Colors.white70, size: 18),
+              const SizedBox(width: 6),
               Text(
-                '血压了么 · 血压周报',
-                style: TextStyle(
+                l10n.shareCardStatsHeader,
+                style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 13,
                     fontWeight: FontWeight.w600),
@@ -184,27 +190,27 @@ class StatsShareCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '近${_daysLabel(days)}血压概览',
+            l10n.statsOverviewTitle(_daysLabel(l10n, days)),
             style: const TextStyle(
                 color: Colors.white,
                 fontSize: 22,
                 fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 16),
-          _row('平均血压',
+          _row(l10n.avgBpLabel,
               '${stats.avgSystolic.toStringAsFixed(0)} / ${stats.avgDiastolic.toStringAsFixed(0)} mmHg'),
-          _row('血压范围',
-              '高压 ${stats.minSystolic}~${stats.maxSystolic} · 低压 ${stats.minDiastolic}~${stats.maxDiastolic}'),
+          _row(l10n.bpRangeLabel,
+              l10n.bpRangeValue(stats.minSystolic, stats.maxSystolic, stats.minDiastolic, stats.maxDiastolic)),
           if (stats.avgPulse != null)
-            _row('平均脉搏',
-                '${stats.avgPulse!.toStringAsFixed(0)} 次/分'),
-          _row('测量次数', '${stats.count} 次'),
-          _row('达标率（<135/85）',
+            _row(l10n.avgPulseLabel,
+                '${stats.avgPulse!.toStringAsFixed(0)} ${l10n.pulseUnit}'),
+          _row(l10n.countLabel, l10n.timesValue(stats.count)),
+          _row(l10n.onTargetRateLabel,
               '${(stats.normalRate * 100).toStringAsFixed(0)}%'),
           const Divider(color: Colors.white24, height: 28),
-          const Text(
-            '规律监测，心中有数 📈',
-            style: TextStyle(color: Colors.white, fontSize: 12),
+          Text(
+            l10n.cardFooterStats,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
           ),
         ],
       ),
@@ -232,10 +238,10 @@ class StatsShareCard extends StatelessWidget {
         ),
       );
 
-  static String _daysLabel(int days) {
-    if (days <= 7) return '7天';
-    if (days <= 30) return '30天';
-    if (days <= 90) return '90天';
-    return '一段时间';
+  static String _daysLabel(AppLocalizations l10n, int days) {
+    if (days <= 7) return l10n.days7;
+    if (days <= 30) return l10n.days30;
+    if (days <= 90) return l10n.days90;
+    return l10n.daysPeriod;
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers.dart' show recordsRepositoryProvider;
+import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:blood_pressed/core/utils/formatters.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
@@ -215,7 +216,8 @@ class ChartBase {
               show: true,
               alignment: Alignment.topRight,
               style: const TextStyle(fontSize: 10, color: sysColor),
-              labelResolver: (_) => '高压135',
+              labelResolver: (_) =>
+                  AppLocaleService.auto.refSystolic(135),
             ),
           ),
           HorizontalLine(
@@ -227,7 +229,8 @@ class ChartBase {
               show: true,
               alignment: Alignment.topRight,
               style: const TextStyle(fontSize: 10, color: diaColor),
-              labelResolver: (_) => '低压85',
+              labelResolver: (_) =>
+                  AppLocaleService.auto.refDiastolic(85),
             ),
           ),
         ],

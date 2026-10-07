@@ -3,14 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:blood_pressed/core/design/app_colors.dart';
+import 'package:blood_pressed/core/i18n/labels.dart';
 import 'package:blood_pressed/core/utils/bp_category.dart';
 import 'package:blood_pressed/core/design/bp_category_style.dart';
+import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/core/widgets/stat_card.dart';
 import 'package:blood_pressed/features/records/data/records_repository.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
 import 'controllers/trend_providers.dart';
+import 'package:blood_pressed/l10n/app_localizations.dart';
 
 enum _Series { bp, pulse }
 
@@ -41,7 +44,9 @@ class _StatsPageState extends ConsumerState<StatsPage> {
   String get _customLabel {
     final s = _custom!.start;
     final e = _custom!.end;
-    String fmt(DateTime d) => '${d.month}月${d.day}日';
+    String fmt(DateTime d) => AppLocaleService.isEn
+        ? '${d.month}/${d.day}'
+        : '${d.month}月${d.day}日';
     return '${fmt(s)}-${fmt(e)}';
   }
 
@@ -67,12 +72,13 @@ class _StatsPageState extends ConsumerState<StatsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final query = _query;
     final trend = ref.watch(trendDataProvider(query));
     final stats = ref.watch(statsProvider(_statsRange));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('血压趋势')),
+      appBar: AppBar(title: Text(l10n.statsTitle)),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 32),
         children: [
@@ -84,7 +90,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
               runSpacing: 8,
               children: [
                 ...kStatsRanges.map((r) => ChoiceChip(
-                      label: Text(r.label),
+                      label: Text(statsRangeLabel(l10n, r.days)),
                       selected: !_isCustom && _days == r.days,
                       onSelected: (_) => setState(() {
                         _days = r.days;
@@ -92,15 +98,17 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                       }),
                     )),
                 ChoiceChip(
-                  label: Text(_isCustom ? _customLabel : '自定义'),
+                  label: Text(_isCustom ? _customLabel : l10n.statsCustom),
                   selected: _isCustom,
                   onSelected: (_) => _pickCustomRange(),
                 ),
                 const SizedBox(width: 4),
                 FilterChip(
                   label: Text(_arm == null
-                      ? '双臂'
-                      : (_arm == MeasureArm.left ? '仅左臂' : '仅右臂')),
+                      ? l10n.armBoth
+                      : (_arm == MeasureArm.left
+                          ? l10n.onlyLeftArm
+                          : l10n.onlyRightArm)),
                   selected: _arm != null,
                   onSelected: (_) => setState(() {
                     _arm = _arm == null
@@ -119,7 +127,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
               padding: EdgeInsets.all(24),
               child: Center(child: CircularProgressIndicator()),
             ),
-            error: (e, _) => ErrorBanner('统计加载失败：$e'),
+            error: (e, _) => ErrorBanner(l10n.statsLoadFailed(e.toString())),
             data: (s) => _StatsCards(stats: s),
           ),
           // 图表
@@ -128,13 +136,13 @@ class _StatsPageState extends ConsumerState<StatsPage> {
               padding: EdgeInsets.all(40),
               child: Center(child: CircularProgressIndicator()),
             ),
-            error: (e, _) => ErrorBanner('趋势加载失败：$e'),
+            error: (e, _) => ErrorBanner(l10n.trendLoadFailed(e.toString())),
             data: (points) {
               if (points.isEmpty) {
-                return const EmptyState(
+                return EmptyState(
                   icon: Icons.show_chart,
-                  title: '该范围内暂无数据',
-                  subtitle: '调整时间范围或先添加几条记录',
+                  title: l10n.statsEmptyTitle,
+                  subtitle: l10n.statsEmptySubtitle,
                 );
               }
               return Padding(
@@ -148,11 +156,11 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             SegmentedButton<_Series>(
-                              segments: const [
+                              segments: [
                                 ButtonSegment(
-                                    value: _Series.bp, label: Text('血压')),
+                                    value: _Series.bp, label: Text(l10n.seriesBp)),
                                 ButtonSegment(
-                                    value: _Series.pulse, label: Text('脉搏')),
+                                    value: _Series.pulse, label: Text(l10n.seriesPulse)),
                               ],
                               selected: {_series},
                               onSelectionChanged: (s) =>
@@ -183,8 +191,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                '水平虚线为家庭自测参考线（高压 135 / 低压 85，超过即为升高）。'
-                '同日多次测量取平均值。',
+                l10n.chartReferenceHint,
                 style: theme.textTheme.bodySmall
                     ?.copyWith(color: theme.colorScheme.outline, height: 1.5),
               ),

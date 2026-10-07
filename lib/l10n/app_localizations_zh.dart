@@ -226,4 +226,214 @@ class AppLocalizationsZh extends AppLocalizations {
   String deleteRecordContent(String datetime, int sys, int dia) {
     return '删除 $datetime 的记录（$sys/$dia）？删除后不可恢复。';
   }
+
+  @override
+  String get statsTitle => '血压趋势';
+
+  @override
+  String get statsCustom => '自定义';
+
+  @override
+  String get armBoth => '双臂';
+
+  @override
+  String get onlyLeftArm => '仅左臂';
+
+  @override
+  String get onlyRightArm => '仅右臂';
+
+  @override
+  String get seriesBp => '血压';
+
+  @override
+  String get seriesPulse => '脉搏';
+
+  @override
+  String statsLoadFailed(String error) {
+    return '统计加载失败：$error';
+  }
+
+  @override
+  String trendLoadFailed(String error) {
+    return '趋势加载失败：$error';
+  }
+
+  @override
+  String get statsEmptyTitle => '该范围内暂无数据';
+
+  @override
+  String get statsEmptySubtitle => '调整时间范围或先添加几条记录';
+
+  @override
+  String get pulseEmpty => '该范围内没有脉搏数据';
+
+  @override
+  String get chartReferenceHint =>
+      '水平虚线为家庭自测参考线（高压 135 / 低压 85，超过即为升高）。同日多次测量取平均值。';
+
+  @override
+  String refSystolic(int value) {
+    return '高压$value';
+  }
+
+  @override
+  String refDiastolic(int value) {
+    return '低压$value';
+  }
+
+  @override
+  String get range7 => '近7天';
+
+  @override
+  String get range30 => '近30天';
+
+  @override
+  String get range90 => '近90天';
+
+  @override
+  String get rangeAll => '全部';
+
+  @override
+  String get exportTitle => '导出与分享';
+
+  @override
+  String get sectionCardShare => '卡片分享';
+
+  @override
+  String get cardTypeRecord => '单次记录卡';
+
+  @override
+  String get cardTypeStats => '统计摘要卡';
+
+  @override
+  String get shareWechat => '微信好友';
+
+  @override
+  String get shareMoments => '朋友圈';
+
+  @override
+  String get shareMore => '更多方式分享';
+
+  @override
+  String get sectionDataExport => '数据导出';
+
+  @override
+  String get exportCsvButton => '导出全部记录为 CSV（Excel 可打开）';
+
+  @override
+  String get csvContentsHint => 'CSV 包含：时间、高压、低压、脉搏、测量臂、体位、备注、来源。';
+
+  @override
+  String get emptyExportTitle => '暂无记录';
+
+  @override
+  String get emptyExportSubtitle => '先添加一条血压记录再分享卡片';
+
+  @override
+  String get shareText => '我的血压记录（来自血压了么）';
+
+  @override
+  String get csvShareText => '血压了么 血压记录导出';
+
+  @override
+  String shareFailed(String error) {
+    return '分享失败：$error';
+  }
+
+  @override
+  String get exportEmpty => '暂无记录可导出';
+
+  @override
+  String exportFailed(String error) {
+    return '导出失败：$error';
+  }
+
+  @override
+  String get cardNotReady => '分享卡片尚未渲染完成';
+
+  @override
+  String get cardExportFailed => '卡片导出失败';
+
+  @override
+  String get shareCardRecordHeader => '血压了么 · 血压记录';
+
+  @override
+  String cardMeasuredAt(String datetime, String arm) {
+    return '$datetime · $arm测量';
+  }
+
+  @override
+  String get cardFooterRecord => '坚持测量，守护心血管健康 💪';
+
+  @override
+  String get shareCardStatsHeader => '血压了么 · 血压周报';
+
+  @override
+  String statsOverviewTitle(String days) {
+    return '近$days血压概览';
+  }
+
+  @override
+  String get avgBpLabel => '平均血压';
+
+  @override
+  String get bpRangeLabel => '血压范围';
+
+  @override
+  String get avgPulseLabel => '平均脉搏';
+
+  @override
+  String get countLabel => '测量次数';
+
+  @override
+  String get onTargetRateLabel => '达标率（<135/85）';
+
+  @override
+  String bpRangeValue(int smin, int smax, int dmin, int dmax) {
+    return '高压 $smin~$smax · 低压 $dmin~$dmax';
+  }
+
+  @override
+  String timesValue(int count) {
+    return '$count 次';
+  }
+
+  @override
+  String get cardFooterStats => '规律监测，心中有数 📈';
+
+  @override
+  String get days7 => '7天';
+
+  @override
+  String get days30 => '30天';
+
+  @override
+  String get days90 => '90天';
+
+  @override
+  String get daysPeriod => '一段时间';
+
+  @override
+  String get csvTime => '测量时间';
+
+  @override
+  String get csvSystolic => '高压(mmHg)';
+
+  @override
+  String get csvDiastolic => '低压(mmHg)';
+
+  @override
+  String get csvPulse => '脉搏(次/分)';
+
+  @override
+  String get csvArm => '测量臂';
+
+  @override
+  String get csvPosture => '体位';
+
+  @override
+  String get csvNote => '备注';
+
+  @override
+  String get csvSource => '来源';
 }

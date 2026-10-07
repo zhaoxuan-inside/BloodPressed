@@ -238,4 +238,217 @@ class AppLocalizationsEn extends AppLocalizations {
   String deleteRecordContent(String datetime, int sys, int dia) {
     return 'Delete the record from $datetime ($sys/$dia)? This cannot be undone.';
   }
+
+  @override
+  String get statsTitle => 'Blood Pressure Trends';
+
+  @override
+  String get statsCustom => 'Custom';
+
+  @override
+  String get armBoth => 'Both arms';
+
+  @override
+  String get onlyLeftArm => 'Left arm only';
+
+  @override
+  String get onlyRightArm => 'Right arm only';
+
+  @override
+  String get seriesBp => 'BP';
+
+  @override
+  String get seriesPulse => 'Pulse';
+
+  @override
+  String statsLoadFailed(String error) {
+    return 'Failed to load stats: $error';
+  }
+
+  @override
+  String trendLoadFailed(String error) {
+    return 'Failed to load trend: $error';
+  }
+
+  @override
+  String get statsEmptyTitle => 'No data in this range';
+
+  @override
+  String get statsEmptySubtitle =>
+      'Adjust the time range or add a few records first';
+
+  @override
+  String get pulseEmpty => 'No pulse data in this range';
+
+  @override
+  String get chartReferenceHint =>
+      'Dashed lines are home-measurement reference levels (systolic 135 / diastolic 85; above means elevated). Multiple readings on the same day are averaged.';
+
+  @override
+  String refSystolic(int value) {
+    return 'Systolic $value';
+  }
+
+  @override
+  String refDiastolic(int value) {
+    return 'Diastolic $value';
+  }
+
+  @override
+  String get range7 => 'Last 7 days';
+
+  @override
+  String get range30 => 'Last 30 days';
+
+  @override
+  String get range90 => 'Last 90 days';
+
+  @override
+  String get rangeAll => 'All';
+
+  @override
+  String get exportTitle => 'Export & Share';
+
+  @override
+  String get sectionCardShare => 'Card Sharing';
+
+  @override
+  String get cardTypeRecord => 'Single Record Card';
+
+  @override
+  String get cardTypeStats => 'Stats Summary Card';
+
+  @override
+  String get shareWechat => 'WeChat Chat';
+
+  @override
+  String get shareMoments => 'Moments';
+
+  @override
+  String get shareMore => 'More Ways to Share';
+
+  @override
+  String get sectionDataExport => 'Data Export';
+
+  @override
+  String get exportCsvButton => 'Export all records as CSV (opens in Excel)';
+
+  @override
+  String get csvContentsHint =>
+      'CSV includes: time, systolic, diastolic, pulse, arm, posture, note, source.';
+
+  @override
+  String get emptyExportTitle => 'No records yet';
+
+  @override
+  String get emptyExportSubtitle =>
+      'Add a blood pressure record before sharing a card';
+
+  @override
+  String get shareText => 'My blood pressure record (from BloodPressed)';
+
+  @override
+  String get csvShareText => 'BloodPressed blood pressure record export';
+
+  @override
+  String shareFailed(String error) {
+    return 'Sharing failed: $error';
+  }
+
+  @override
+  String get exportEmpty => 'No records to export';
+
+  @override
+  String exportFailed(String error) {
+    return 'Export failed: $error';
+  }
+
+  @override
+  String get cardNotReady => 'Share card has not finished rendering';
+
+  @override
+  String get cardExportFailed => 'Failed to export card';
+
+  @override
+  String get shareCardRecordHeader => 'BloodPressed · BP Record';
+
+  @override
+  String cardMeasuredAt(String datetime, String arm) {
+    return '$datetime · Measured with $arm';
+  }
+
+  @override
+  String get cardFooterRecord => 'Keep measuring to protect your heart';
+
+  @override
+  String get shareCardStatsHeader => 'BloodPressed · BP Summary';
+
+  @override
+  String statsOverviewTitle(String days) {
+    return 'BP Overview — last $days';
+  }
+
+  @override
+  String get avgBpLabel => 'Average BP';
+
+  @override
+  String get bpRangeLabel => 'BP Range';
+
+  @override
+  String get avgPulseLabel => 'Average Pulse';
+
+  @override
+  String get countLabel => 'Measurements';
+
+  @override
+  String get onTargetRateLabel => 'On-target rate (<135/85)';
+
+  @override
+  String bpRangeValue(int smin, int smax, int dmin, int dmax) {
+    return 'Sys $smin~$smax · Dia $dmin~$dmax';
+  }
+
+  @override
+  String timesValue(int count) {
+    return '$count times';
+  }
+
+  @override
+  String get cardFooterStats => 'Measure regularly, stay in control';
+
+  @override
+  String get days7 => '7 days';
+
+  @override
+  String get days30 => '30 days';
+
+  @override
+  String get days90 => '90 days';
+
+  @override
+  String get daysPeriod => 'a period';
+
+  @override
+  String get csvTime => 'Time';
+
+  @override
+  String get csvSystolic => 'Systolic(mmHg)';
+
+  @override
+  String get csvDiastolic => 'Diastolic(mmHg)';
+
+  @override
+  String get csvPulse => 'Pulse(bpm)';
+
+  @override
+  String get csvArm => 'Arm';
+
+  @override
+  String get csvPosture => 'Posture';
+
+  @override
+  String get csvNote => 'Note';
+
+  @override
+  String get csvSource => 'Source';
 }
