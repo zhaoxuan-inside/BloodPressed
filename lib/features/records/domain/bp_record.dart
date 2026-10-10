@@ -40,11 +40,12 @@ enum MeasurePosture {
   }
 }
 
-/// 记录来源：手动录入 / OCR 识别 / 大模型识别。
+/// 记录来源：手动录入 / OCR 识别 / 大模型识别 / 语音录入。
 enum RecordSource {
   manual('手动'),
   ocr('拍照识别'),
-  ai('AI识别');
+  ai('AI识别'),
+  voice('语音录入');
 
   const RecordSource(this.label);
   final String label;
@@ -55,6 +56,8 @@ enum RecordSource {
         return RecordSource.ocr;
       case 'ai':
         return RecordSource.ai;
+      case 'voice':
+        return RecordSource.voice;
       default:
         return RecordSource.manual;
     }
@@ -68,6 +71,8 @@ enum RecordSource {
         return 'ocr';
       case RecordSource.ai:
         return 'ai';
+      case RecordSource.voice:
+        return 'voice';
     }
   }
 }

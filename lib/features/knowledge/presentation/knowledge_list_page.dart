@@ -27,6 +27,11 @@ class _KnowledgeListPageState extends ConsumerState<KnowledgeListPage> {
         ? articles
         : articles.where((a) => a.category == _category).toList();
 
+    final categories = KnowledgeArticle.categoriesForLocale(AppLocaleService.isEn);
+    if (_category != null && !categories.contains(_category)) {
+      _category = null;
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text(l10n.knowledgeTitle)),
       body: Column(
@@ -42,7 +47,7 @@ class _KnowledgeListPageState extends ConsumerState<KnowledgeListPage> {
                   selected: _category == null,
                   onSelected: (_) => setState(() => _category = null),
                 ),
-                ...KnowledgeArticle.categories.map((c) => ChoiceChip(
+                ...categories.map((c) => ChoiceChip(
                       label: Text(c),
                       selected: _category == c,
                       onSelected: (_) => setState(() => _category = c),
@@ -50,6 +55,7 @@ class _KnowledgeListPageState extends ConsumerState<KnowledgeListPage> {
               ],
             ),
           ),
+
           Expanded(
             child: filtered.isEmpty
                 ? EmptyState(

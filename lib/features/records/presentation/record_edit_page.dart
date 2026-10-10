@@ -8,8 +8,12 @@ import 'package:blood_pressed/core/i18n/labels.dart';
 import 'package:blood_pressed/core/utils/bp_category.dart';
 import 'package:blood_pressed/core/utils/formatters.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
+import 'package:blood_pressed/features/records/data/voice_input_service.dart'
+    show VoiceInputStatus;
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
+import 'package:blood_pressed/features/records/presentation/controllers/voice_input_provider.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
+
 
 /// 录入 / 编辑页。同时承担"OCR/AI 识别结果确认"角色。
 class RecordEditPage extends ConsumerStatefulWidget {
@@ -50,7 +54,11 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
   MeasurePosture? _posture;
   late DateTime _measuredAt;
 
+  /// 是否经过语音识别填充（影响保存时的 source 字段）。
+  bool _voiceFilled = false;
+
   bool get _isEditing => widget.existing != null;
+
 
   @override
   void initState() {
@@ -129,7 +137,8 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
           note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
           source: _isEditing
               ? widget.existing!.source
-              : widget.initialSource,
+              : (_voiceFilled ? RecordSource.voice : widget.initialSource),
+
           photoPath: _isEditing
               ? widget.existing!.photoPath
               : widget.initialPhotoPath,
@@ -145,11 +154,45 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
     return BpCategory.fromValues(sys, dia);
   }
 
+  /// 语音识别结果回填：当 status 变为 done 时触发一次。
+  void _onVoiceResult(VoiceInputState? prev, VoiceInputState next) {
+    if (next.status != VoiceInputStatus.done) return;
+    final r = next.result;
+    if (r == null || !r.hasAny) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('未识别到血压数值，请手动输入')),
+      );
+      ref.read(voiceInputProvider.notifier).consumeResult();
+      return;
+    }
+    // 回填已识别字段（不覆盖未识别字段）
+    if (r.systolic != null) _sysCtrl.text = '${r.systolic}';
+    if (r.diastolic != null) _diaCtrl.text = '${r.diastolic}';
+    if (r.pulse != null) _pulseCtrl.text = '${r.pulse}';
+    _voiceFilled = true;
+    setState(() {}); // 刷新血压分级预览
+
+
+    final count = r.recognizedCount;
+    final hint = count == 3
+        ? '已识别收缩压、舒张压、脉搏'
+        : '已识别 $count 项，请补充其余字段';
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(hint)));
+    ref.read(voiceInputProvider.notifier).consumeResult();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final category = _previewCategory;
     final l10n = AppLocalizations.of(context);
+
+    // 监听语音识别结果，自动回填并提示
+    ref.listen<VoiceInputState>(voiceInputProvider, _onVoiceResult);
+    final voiceState = ref.watch(voiceInputProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -167,6 +210,7 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
                 lowConfidence: widget.initialLowConfidence,
               ),
             const SizedBox(height: 4),
+
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -196,6 +240,17 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
               suffix: l10n.pulseUnit,
               highlight: widget.initialLowConfidence,
             ),
+            // ── 语音输入按钮（设备不支持时隐藏）───────────────────────────────
+            if (voiceState.status != VoiceInputStatus.notAvailable) ...[
+              const SizedBox(height: 8),
+              _VoiceMicRow(
+                voiceState: voiceState,
+                onTap: voiceState.isListening
+                    ? () => ref.read(voiceInputProvider.notifier).stopListening()
+                    : () => ref.read(voiceInputProvider.notifier).startListening(),
+              ),
+            ],
+
             const SizedBox(height: 12),
             SegmentedButton<MeasureArm>(
               segments: [
@@ -292,8 +347,13 @@ class _RecognitionSourceBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final text =
-        source == RecordSource.ocr ? l10n.bannerSourceOcr : l10n.bannerSourceAi;
+    final text = switch (source) {
+      RecordSource.ocr => l10n.bannerSourceOcr,
+      RecordSource.ai => l10n.bannerSourceAi,
+      RecordSource.voice => '语音录入',
+      RecordSource.manual => '',
+    };
+
     if (lowConfidence) {
       final detail = confidence == null
           ? l10n.bannerLowNoValue(text)
@@ -394,6 +454,74 @@ class _NumberField extends StatelessWidget {
             : null,
       ),
       onChanged: onChanged,
+    );
+  }
+}
+
+/// 语音输入触发行：麦克风按钮 + 实时识别文本气泡。
+class _VoiceMicRow extends StatelessWidget {
+  const _VoiceMicRow({
+    required this.voiceState,
+    required this.onTap,
+  });
+
+  final VoiceInputState voiceState;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isListening = voiceState.isListening;
+    final partial = voiceState.partialText;
+
+    return Row(
+      children: [
+        // 麦克风按钮
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isListening
+                ? theme.colorScheme.error.withValues(alpha: 0.12)
+                : Colors.transparent,
+          ),
+          child: IconButton(
+            iconSize: 28,
+            icon: Icon(
+              isListening ? Icons.mic : Icons.mic_none_outlined,
+              color: isListening
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.primary,
+            ),
+            tooltip: isListening ? '点击停止聆听' : '语音输入血压数值',
+            onPressed: onTap,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: isListening
+                ? Text(
+                    partial.isEmpty ? '正在聆听…' : partial,
+                    key: const ValueKey('listening'),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : Text(
+                    '点击麦克风，说出血压数值',
+                    key: const ValueKey('idle'),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+          ),
+        ),
+      ],
     );
   }
 }
