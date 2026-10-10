@@ -123,6 +123,25 @@ SegImage _grayLcd() {
   return SegImage(c.pixels, c.width, c.height);
 }
 
+/// 椭圆反光斑：把底色向白色混合，中心强度 [core]、边缘 [edge]（线性衰减）。
+/// 模拟灯光/窗户在 LCD 上的镜面高光（过曝区域饱和度骤降）。
+void _glareBlob(_Canvas c, double cx, double cy, double rx, double ry,
+    {required double core, required double edge}) {
+  for (var y = (cy - ry).floor(); y <= (cy + ry).ceil(); y++) {
+    for (var x = (cx - rx).floor(); x <= (cx + rx).ceil(); x++) {
+      if (x < 0 || y < 0 || x >= c.width || y >= c.height) continue;
+      final nx = (x - cx) / rx, ny = (y - cy) / ry;
+      final d2 = nx * nx + ny * ny;
+      if (d2 > 1) continue;
+      final t = core + (edge - core) * d2;
+      final i = (y * c.width + x) * 4;
+      for (var ch = 0; ch < 3; ch++) {
+        c.pixels[i + ch] = (c.pixels[i + ch] * (1 - t) + 255 * t).round();
+      }
+    }
+  }
+}
+
 /// 双线性旋转（绕中心），模拟手持拍摄倾斜。
 SegImage _rotate(SegImage img, double rad) {
   final out = Uint8List(img.width * img.height * 4);
@@ -179,6 +198,61 @@ void main() {
 
   test('横版彩色背光屏：读出 205 / 88', () {
     final readout = SevenSegmentReader().read(_landscapeLcd());
+    expect(readout, isNotNull);
+    expect(readout!.numbers.map((n) => n.value).toList(), [205, 88]);
+  });
+
+  test('竖版屏右上角强反光（核心全曝）：定位与读数不受影响', () {
+    final c = _Canvas(500, 740)
+      ..fillRect(0, 0, 500, 740, _body)
+      ..fillRect(60, 60, 400, 620, _lcdBg);
+    const gw = 40, gh = 76, t = 9, gap = 1;
+    _drawNumber(c, 120, 3, 100, 90,
+        gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
+    _drawNumber(c, 80, 2, 140, 250,
+        gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
+    _drawNumber(c, 75, 2, 100, 410,
+        gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
+    _drawNumber(c, 3, 1, 252, 410,
+        gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
+    // 反光斑吃掉 LCD 右上角（含边缘），中心全曝，不触及任何数字
+    _glareBlob(c, 430, 110, 130, 110, core: 1.0, edge: 0.4);
+    final readout = SevenSegmentReader().read(SegImage(c.pixels, c.width, c.height));
+    expect(readout, isNotNull);
+    expect(readout!.numbers.map((n) => n.value).toList(), [120, 80, 75, 3]);
+  });
+
+  test('反光斑压住数字（笔画对比度被冲淡）：读数不变', () {
+    final c = _Canvas(500, 740)
+      ..fillRect(0, 0, 500, 740, _body)
+      ..fillRect(60, 60, 400, 620, _lcdBg);
+    const gw = 40, gh = 76, t = 9, gap = 1;
+    _drawNumber(c, 120, 3, 100, 90,
+        gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
+    _drawNumber(c, 80, 2, 140, 250,
+        gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
+    _drawNumber(c, 75, 2, 100, 410,
+        gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
+    _drawNumber(c, 3, 1, 252, 410,
+        gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
+    // 反光斑中心压在 "8" 字形上（笔画比值被抬到 ~0.86，超过固定 0.72 阈值）
+    _glareBlob(c, 160, 288, 70, 60, core: 0.65, edge: 0.25);
+    final readout = SevenSegmentReader().read(SegImage(c.pixels, c.width, c.height));
+    expect(readout, isNotNull);
+    expect(readout!.numbers.map((n) => n.value).toList(), [120, 80, 75, 3]);
+  });
+
+  test('横版屏强反光核心（全白）：读出 205 / 88', () {
+    final c = _Canvas(740, 540)
+      ..fillRect(0, 0, 740, 540, _body)
+      ..fillRect(50, 60, 640, 420, _lcdBg);
+    const gw = 33, gh = 60, t = 7, gap = 0;
+    _drawNumber(c, 205, 3, 250, 90,
+        gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
+    _drawNumber(c, 88, 2, 270, 260,
+        gw: gw, gh: gh, t: t, gap: gap, gapX: 12);
+    _glareBlob(c, 640, 90, 110, 80, core: 1.0, edge: 0.4);
+    final readout = SevenSegmentReader().read(SegImage(c.pixels, c.width, c.height));
     expect(readout, isNotNull);
     expect(readout!.numbers.map((n) => n.value).toList(), [205, 88]);
   });

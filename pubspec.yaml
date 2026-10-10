@@ -41,6 +41,9 @@ dependencies:
   image_picker: ^1.1.0
   permission_handler: ">=11.3.0 <13.0.0"
 
+  # 语音输入（血压录入页：系统原生 STT，零网络依赖）
+  speech_to_text: ">=6.7.0 <8.0.0"
+
   # OCR（ML Kit 文字识别，含中文）
   google_mlkit_text_recognition: ">=0.14.0 <0.21.0"
 
@@ -76,7 +79,9 @@ flutter:
 
   assets:
     - assets/knowledge/
+    - assets/knowledge/en/
     - assets/models/ppocr/
+
 
 # sqlite3 包的构建钩子默认从 github.com 下载 Android/iOS 预编译库，
 # 国内网络直连 GitHub 常超时，这里改用镜像前缀（若镜像失效可替换其它 gh 加速前缀）。

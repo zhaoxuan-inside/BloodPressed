@@ -115,12 +115,15 @@ class RecordTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     if (record.source != RecordSource.manual)
                       Icon(
-                        record.source == RecordSource.ocr
-                            ? Icons.photo_camera_outlined
-                            : Icons.auto_awesome,
+                        switch (record.source) {
+                          RecordSource.ocr => Icons.photo_camera_outlined,
+                          RecordSource.voice => Icons.mic_none_outlined,
+                          _ => Icons.auto_awesome,
+                        },
                         size: 14,
                         color: theme.colorScheme.outline,
                       ),
+
                   ],
                 ),
               ],

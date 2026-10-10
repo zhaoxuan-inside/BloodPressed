@@ -14,14 +14,31 @@ class KnowledgeArticle {
   final String assetPath;
   final int minutes;
 
-  static const List<String> categories = [
+  /// 中文分类列表
+  static const List<String> categoriesZh = [
     '测量方法',
     '认识血压',
     '生活方式',
     '监测管理',
   ];
 
-  static const List<KnowledgeArticle> all = [
+  /// 英文分类列表
+  static const List<String> categoriesEn = [
+    'Measurement',
+    'Understanding BP',
+    'Lifestyle',
+    'Monitoring',
+  ];
+
+  /// 保持向后兼容的默认分类列表
+  static const List<String> categories = categoriesZh;
+
+  /// 根据当前语言获取分类列表
+  static List<String> categoriesForLocale(bool isEn) =>
+      isEn ? categoriesEn : categoriesZh;
+
+  /// 中文知识库（依据《中国高血压防治指南》和《中国居民膳食指南》）
+  static const List<KnowledgeArticle> allZh = [
     KnowledgeArticle(
       id: 'measure-guide',
       title: '在家如何正确测量血压？',
@@ -114,4 +131,105 @@ class KnowledgeArticle {
       minutes: 3,
     ),
   ];
+
+  /// 英文知识库（依据美国 ACC/AHA、CDC、DASH 及 HHS 指南）
+  static const List<KnowledgeArticle> allEn = [
+    KnowledgeArticle(
+      id: 'measure-guide',
+      title: 'How to Measure Blood Pressure Accurately at Home',
+      category: 'Measurement',
+      assetPath: 'assets/knowledge/en/measure_guide.md',
+      minutes: 4,
+    ),
+    KnowledgeArticle(
+      id: 'arm-choice',
+      title: 'Left Arm or Right Arm? Choosing the Measurement Arm',
+      category: 'Measurement',
+      assetPath: 'assets/knowledge/en/arm_choice.md',
+      minutes: 3,
+    ),
+    KnowledgeArticle(
+      id: 'common-mistakes',
+      title: '8 Common Mistakes That Artificially Inflate Blood Pressure',
+      category: 'Measurement',
+      assetPath: 'assets/knowledge/en/common_mistakes.md',
+      minutes: 4,
+    ),
+    KnowledgeArticle(
+      id: 'bp-basics',
+      title: 'Systolic, Diastolic, and Pulse: What Do the Numbers Mean?',
+      category: 'Understanding BP',
+      assetPath: 'assets/knowledge/en/bp_basics.md',
+      minutes: 5,
+    ),
+    KnowledgeArticle(
+      id: 'bp-categories',
+      title: 'Blood Pressure Categories: Where Do Your Numbers Stand?',
+      category: 'Understanding BP',
+      assetPath: 'assets/knowledge/en/bp_categories.md',
+      minutes: 4,
+    ),
+    KnowledgeArticle(
+      id: 'home-vs-clinic',
+      title: 'Home vs. Clinic Readings: Why the Targets Differ',
+      category: 'Understanding BP',
+      assetPath: 'assets/knowledge/en/home_vs_clinic.md',
+      minutes: 3,
+    ),
+    KnowledgeArticle(
+      id: 'diet-salt',
+      title: 'Sodium Reduction and the DASH Diet: Food as Medicine',
+      category: 'Lifestyle',
+      assetPath: 'assets/knowledge/en/diet_salt.md',
+      minutes: 5,
+    ),
+    KnowledgeArticle(
+      id: 'exercise',
+      title: 'Exercise and Physical Activity: Natural Blood Pressure Therapy',
+      category: 'Lifestyle',
+      assetPath: 'assets/knowledge/en/exercise.md',
+      minutes: 5,
+    ),
+    KnowledgeArticle(
+      id: 'sleep-stress',
+      title: 'Sleep and Stress: The Silent Accelerators of Hypertension',
+      category: 'Lifestyle',
+      assetPath: 'assets/knowledge/en/sleep_stress.md',
+      minutes: 4,
+    ),
+    KnowledgeArticle(
+      id: 'weight-alcohol',
+      title: 'Body Weight and Alcohol: Two Critical Cardiovascular Levers',
+      category: 'Lifestyle',
+      assetPath: 'assets/knowledge/en/weight_alcohol.md',
+      minutes: 4,
+    ),
+    KnowledgeArticle(
+      id: 'monitor-habit',
+      title: 'The Proper Routine for Home BP Monitoring: Frequency & Logging',
+      category: 'Monitoring',
+      assetPath: 'assets/knowledge/en/monitor_habit.md',
+      minutes: 4,
+    ),
+    KnowledgeArticle(
+      id: 'medication-note',
+      title: 'Taking Blood Pressure Medications: Why Home Monitoring Matters',
+      category: 'Monitoring',
+      assetPath: 'assets/knowledge/en/medication_note.md',
+      minutes: 4,
+    ),
+    KnowledgeArticle(
+      id: 'warning-signs',
+      title: 'Warning Signs: When to Seek Immediate Medical Attention',
+      category: 'Monitoring',
+      assetPath: 'assets/knowledge/en/warning_signs.md',
+      minutes: 3,
+    ),
+  ];
+
+  /// 默认全量知识库（保持向后兼容）
+  static const List<KnowledgeArticle> all = allZh;
+
+  /// 根据当前语言返回对应的知识库文章列表
+  static List<KnowledgeArticle> forLocale(bool isEn) => isEn ? allEn : allZh;
 }

@@ -109,6 +109,13 @@ class SevenSegmentReader {
   /// 矫正后 LCD 长边上限（统一处理尺度，控制耗时与噪声粒度）。
   static const int _lcdMaxSide = 900;
 
+  /// 过曝高光判定：明度显著高于彩色背光的正常水平（val ~200~220）。
+  static const int _glareVal = 226;
+
+  /// 反光区二值化阈值：反光把局部背景抬亮、笔画对比度冲淡，
+  /// 比值阈值放宽（正常区维持 0.72）。
+  static const double _glareRatio = 0.90;
+
   /// 七段段检测（在 32×56 采样网格上，行列填充峰值法）。
   ///
   /// 竖墙（b/c/e/f）= 对应侧条带内的**列**填充峰值；横杠（a/d/g）=
@@ -194,9 +201,7 @@ class SevenSegmentReader {
     }
     _log('locate candidates: ${cands.length}');
     return cands;
-  }
-
-  double _quadDist(List<Offset> a, List<Offset> b) {
+  }  double _quadDist(List<Offset> a, List<Offset> b) {
     var d = 0.0;
     for (var i = 0; i < 4; i++) {
       d += _dist(a[i], b[i]);
@@ -219,7 +224,11 @@ class SevenSegmentReader {
     final step = math.max(1, math.max(img.width, img.height) ~/ 360);
     final dw = img.width ~/ step;
     final dh = img.height ~/ step;
-    final mask = _blueMask(img, dw, dh, step, inMask);
+    final masks = _hsvMasks(img, dw, dh, step, inMask);
+    // 反光修补：高光核心饱和度掉窗会在掩码上打出空洞。测地生长
+    // （仅向高光像素扩张）把与背光连通的空洞填回来，同时不会把
+    // 不连通的背景（如天空）并入候选。
+    final mask = _geodesicFill(masks.$1, masks.$2, dw, dh, 3);
     final solid = _closeOpen(mask, dw, dh, 4);
     _log('locate stage: mask on=${mask.fold(0, (a, v) => a + v)}');
 
@@ -287,10 +296,13 @@ class SevenSegmentReader {
   List<Offset> _rotated(List<Offset> corners) =>
       [corners[1], corners[2], corners[3], corners[0]];
 
-  /// 背光掩码：按 [inMask] 的 HSV 条件（hue 为 0~360 度，sat/val 0~255）。
-  Uint8List _blueMask(SegImage img, int dw, int dh, int step,
+  /// HSV 单趟分类：[inMask] 命中为背光候选；过曝高光（明度 ≥ [_glareVal]
+  /// 且保留蓝青色相）单独成掩码，供定位掩码做测地反光修补。
+  /// hue 为 0~360 度，sat/val 0~255。
+  (Uint8List, Uint8List) _hsvMasks(SegImage img, int dw, int dh, int step,
       bool Function(int, int, int) inMask) {
-    final out = Uint8List(dw * dh);
+    final base = Uint8List(dw * dh);
+    final glare = Uint8List(dw * dh);
     for (var y = 0; y < dh; y++) {
       final int srcY = math.min(img.height - 1, y * step);
       for (var x = 0; x < dw; x++) {
@@ -310,7 +322,26 @@ class SevenSegmentReader {
           hue = 240 + 60 * (r - g) / (maxC - minC);
         }
         if (hue < 0) hue += 360;
-        if (inMask(hue.round(), s, maxC)) out[y * dw + x] = 1;
+        if (inMask(hue.round(), s, maxC)) base[y * dw + x] = 1;
+        if (maxC >= _glareVal &&
+            hue >= 140 &&
+            hue <= 280 &&
+            s >= 6) {
+          glare[y * dw + x] = 1;
+        }
+      }
+    }
+    return (base, glare);
+  }
+
+  /// 测地反光修补：[rounds] 轮内把与背光掩码相邻的高光像素并入掩码。
+  Uint8List _geodesicFill(
+      Uint8List base, Uint8List glare, int w, int h, int rounds) {
+    final out = Uint8List.fromList(base);
+    for (var i = 0; i < rounds; i++) {
+      final grown = _maxFilter(out, w, h, 2);
+      for (var k = 0; k < out.length; k++) {
+        if (glare[k] == 1 && grown[k] == 1) out[k] = 1;
       }
     }
     return out;
@@ -318,11 +349,13 @@ class SevenSegmentReader {
 
   // ---------------- 2) 矫正为灰度图 ----------------
 
-  /// 四边形（左上→右上→右下→左下）→ 正置灰度图，长边 ≤ [_lcdMaxSide]。
+  /// 四边形（左上→右上→右下→左下）→ 正置灰度图 + 过曝反光标记，
+  /// 长边 ≤ [_lcdMaxSide]。
   ///
   /// 四点透视矫正（解 dst→src 单应性），消除俯拍梯形畸变——仅旋转的
   /// 仿射矫正在俯角大时会让上半部数字挤歪（"80" 行并簇、大数字读不出）。
-  (int, int, Uint8List) _rectifyToGray(SegImage img, List<Offset> quad) {
+  (int, int, Uint8List, Uint8List) _rectifyToGray(
+      SegImage img, List<Offset> quad) {
     final top = _dist(quad[0], quad[1]);
     final bottom = _dist(quad[2], quad[3]);
     final left = _dist(quad[0], quad[3]);
@@ -334,15 +367,18 @@ class SevenSegmentReader {
 
     final hh = _homographyDstToSrc(quad, w, h);
     final out = Uint8List(w * h);
+    final glare = Uint8List(w * h);
     for (var y = 0; y < h; y++) {
       for (var x = 0; x < w; x++) {
         final d = hh[6] * x + hh[7] * y + 1;
         final sx = (hh[0] * x + hh[1] * y + hh[2]) / d;
         final sy = (hh[3] * x + hh[4] * y + hh[5]) / d;
-        out[y * w + x] = _sampleGray(img, sx, sy).round();
+        final px = _samplePixel(img, sx, sy);
+        out[y * w + x] = px.$1.round();
+        if (px.$2 >= _glareVal) glare[y * w + x] = 1;
       }
     }
-    return (w, h, out);
+    return (w, h, out, glare);
   }
 
   /// 解 4 点对应（矩形 → 四边形）的单应性，返回 [a,b,c,d,e,f,g,h]：
@@ -396,20 +432,26 @@ class SevenSegmentReader {
     return math.sqrt(dx * dx + dy * dy);
   }
 
-  double _sampleGray(SegImage img, double sx, double sy) {
+  /// 双线性采样，返回 (灰度, 亮度 maxC)。越界返回 (0, 0)。
+  (double, int) _samplePixel(SegImage img, double sx, double sy) {
     final xi = sx.floor(), yi = sy.floor();
     if (xi < 0 || yi < 0 || xi >= img.width - 1 || yi >= img.height - 1) {
-      return 0;
+      return (0, 0);
     }
     final fx = sx - xi, fy = sy - yi;
     final i00 = (yi * img.width + xi) * 4;
     final row = img.width * 4;
-    double lum(int i) =>
-        0.299 * img.rgba[i] + 0.587 * img.rgba[i + 1] + 0.114 * img.rgba[i + 2];
-    return lum(i00) * (1 - fx) * (1 - fy) +
-        lum(i00 + 4) * fx * (1 - fy) +
-        lum(i00 + row) * (1 - fx) * fy +
-        lum(i00 + row + 4) * fx * fy;
+    var g = 0.0, maxC = 0.0;
+    const weights = [0.299, 0.587, 0.114];
+    for (var c = 0; c < 3; c++) {
+      final v = img.rgba[i00 + c] * (1 - fx) * (1 - fy) +
+          img.rgba[i00 + 4 + c] * fx * (1 - fy) +
+          img.rgba[i00 + row + c] * (1 - fx) * fy +
+          img.rgba[i00 + row + 4 + c] * fx * fy;
+      g += v * weights[c];
+      if (v > maxC) maxC = v;
+    }
+    return (g, maxC.round());
   }
 
   // ---------------- 3) 二值化 ----------------
