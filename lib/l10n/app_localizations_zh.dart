@@ -496,6 +496,39 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get builtinModelTitle => '内置模型 · Qwen3-1.7B';
+
+  @override
+  String get builtinModelReadySubtitle => '已下载 · 离线可用';
+
+  @override
+  String get builtinModelMissingSubtitle => 'AI 助手与功能搜索的默认模型，约 1.8GB，下载后离线可用';
+
+  @override
+  String get builtinDownloadTitle => '下载内置模型？';
+
+  @override
+  String get builtinDownloadBody =>
+      'Qwen3-1.7B（Q8_0 量化）约 1.8GB，下载完成后 AI 助手与功能搜索即可离线使用。建议在 Wi-Fi 环境下下载。';
+
+  @override
+  String get builtinDownloadConfirm => '开始下载';
+
+  @override
+  String builtinDownloading(int percent) {
+    return '下载中 $percent%';
+  }
+
+  @override
+  String get builtinDownloadPaused => '已暂停';
+
+  @override
+  String get builtinDownloadFailed => '下载失败';
+
+  @override
+  String get builtinUseNow => '使用内置模型';
+
+  @override
   String get llmIntro => '配置本地或远端大模型后，可以使用健康指导、AI 识别血压照片等智能功能。';
 
   @override

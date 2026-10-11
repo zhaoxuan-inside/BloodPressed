@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
+import 'package:blood_pressed/features/llm/presentation/widgets/builtin_model_card.dart';
 import 'package:blood_pressed/features/assistant/presentation/controllers/assistant_providers.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
@@ -51,10 +52,12 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(assistantProvider);
-    final activeProfile = ref.watch(activeLlmProfileProvider);
+    final effectiveProfile = ref.watch(effectiveLlmProfileProvider);
     final engineState = ref.watch(llmEngineProvider);
+    final hasUserModel = ref.watch(activeLlmProfileProvider) != null;
+    final builtinReady = ref.watch(builtinModelReadyProvider);
 
-    final hasModel = activeProfile != null &&
+    final hasModel = effectiveProfile != null &&
         (engineState.status == LlmEngineStatus.ready ||
             engineState.status == LlmEngineStatus.idle ||
             engineState.status == LlmEngineStatus.loading);
@@ -64,9 +67,9 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
         title: Column(
           children: [
             Text(l10n.assistantTitle),
-            if (activeProfile != null)
+            if (effectiveProfile != null)
               Text(
-                l10n.assistantModelLabel(activeProfile.name),
+                l10n.assistantModelLabel(effectiveProfile.name),
                 style: theme.textTheme.labelSmall
                     ?.copyWith(color: theme.colorScheme.outline),
               ),
@@ -96,7 +99,22 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
         children: [
           Expanded(
             child: !hasModel
-                ? _NoModelHint(onConfigure: () => context.push('/llm'))
+                ? !hasUserModel && !builtinReady
+                    // 全新安装：内置模型未下载 → 下载引导卡片
+                    ? SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            const BuiltinModelCard(),
+                            const SizedBox(height: 12),
+                            TextButton(
+                              onPressed: () => context.push('/llm'),
+                              child: Text(l10n.goConfigure),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _NoModelHint(onConfigure: () => context.push('/llm'))
                 : state.messages.isEmpty && state.streamingContent == null
                     ? _Welcome(onSuggest: (s) {
                         _inputCtrl.text = s;

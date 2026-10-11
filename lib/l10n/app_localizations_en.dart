@@ -513,6 +513,40 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get builtinModelTitle => 'Built-in Model · Qwen3-1.7B';
+
+  @override
+  String get builtinModelReadySubtitle => 'Downloaded · works offline';
+
+  @override
+  String get builtinModelMissingSubtitle =>
+      'Default model for the AI assistant and feature search, about 1.8GB, works offline once downloaded';
+
+  @override
+  String get builtinDownloadTitle => 'Download the built-in model?';
+
+  @override
+  String get builtinDownloadBody =>
+      'Qwen3-1.7B (Q8_0 quantized) is about 1.8GB. Once downloaded, the AI assistant and feature search work offline. Wi-Fi recommended.';
+
+  @override
+  String get builtinDownloadConfirm => 'Download';
+
+  @override
+  String builtinDownloading(int percent) {
+    return 'Downloading $percent%';
+  }
+
+  @override
+  String get builtinDownloadPaused => 'Paused';
+
+  @override
+  String get builtinDownloadFailed => 'Download failed';
+
+  @override
+  String get builtinUseNow => 'Use built-in model';
+
+  @override
   String get llmIntro =>
       'Set up a local or remote LLM to enable health guidance, AI photo reading and other smart features.';
 

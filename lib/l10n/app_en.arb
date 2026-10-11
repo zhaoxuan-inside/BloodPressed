@@ -321,6 +321,23 @@
   "okGotIt": "Got it",
   "llmTitle": "AI Models",
   "llmLoadFailed": "Failed to load profiles: {error}",
+  "builtinModelTitle": "Built-in Model · Qwen3-1.7B",
+  "builtinModelReadySubtitle": "Downloaded · works offline",
+  "builtinModelMissingSubtitle": "Default model for the AI assistant and feature search, about 1.8GB, works offline once downloaded",
+  "builtinDownloadTitle": "Download the built-in model?",
+  "builtinDownloadBody": "Qwen3-1.7B (Q8_0 quantized) is about 1.8GB. Once downloaded, the AI assistant and feature search work offline. Wi-Fi recommended.",
+  "builtinDownloadConfirm": "Download",
+  "builtinDownloading": "Downloading {percent}%",
+  "@builtinDownloading": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "builtinDownloadPaused": "Paused",
+  "builtinDownloadFailed": "Download failed",
+  "builtinUseNow": "Use built-in model",
   "@llmLoadFailed": {
     "placeholders": {
       "error": {

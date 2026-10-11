@@ -17,8 +17,8 @@ const int _assistantBranchIndex = 2;
 
 /// 底部导航外壳。
 ///
-/// AI助手入口仅在已配置模型（本地或远端 LlmProfile 存在）时显示；
-/// 停留在该分支时配置被删空则自动跳回首页。
+/// AI助手入口在「已配置模型或内置默认模型就绪」时显示；
+/// 停留在该分支时模型可用性消失（档案删空且内置未就绪）则自动跳回首页。
 class ShellScaffold extends ConsumerWidget {
   const ShellScaffold({super.key, required this.navigationShell});
 
@@ -28,17 +28,20 @@ class ShellScaffold extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final profiles = ref.watch(llmProfilesProvider).valueOrNull ?? const [];
-    final hasModel = profiles.isNotEmpty;
+    final hasModel =
+        profiles.isNotEmpty || ref.watch(builtinModelReadyProvider);
 
-    // 配置删空且当前停在 AI助手分支：退回首页，避免停留在已隐藏的入口
+    // 模型可用性消失且当前停在 AI助手分支：退回首页，避免停留在已隐藏的入口
     ref.listen(llmProfilesProvider, (prev, next) {
       final empty = (next.valueOrNull ?? const []).isEmpty;
+      final builtinReady = ref.read(builtinModelReadyProvider);
       if (empty &&
+          !builtinReady &&
           navigationShell.currentIndex == _assistantBranchIndex &&
           context.mounted) {
         context.go('/home');
       }
-    });    // 显示序号 → branch 索引（无模型配置时 AI助手分支不渲染）
+    });    // 显示序号 → branch 索引（无模型可用时 AI助手分支不渲染）
     final visibleBranches = [
       0,
       1,

@@ -65,6 +65,12 @@ Future<void> pumpUntilReal(
 
 /// 真实 SQLite + 真实仓库的应用测试夹具。
 class RealAppHarness {
+  RealAppHarness({this.builtinModelPath = '', this.builtinModelReady = false});
+
+  /// 内置默认模型覆写（默认空路径=未就绪，等价全新安装）。
+  final String builtinModelPath;
+  final bool builtinModelReady;
+
   late AppDatabase db;
   late SharedPreferences prefs;
   late AppSettings settings;
@@ -117,6 +123,8 @@ class RealAppHarness {
             )),
         activeLlmProfileIdProvider
             .overrideWith((ref) => settings.activeLlmProfileId),
+        builtinModelPathProvider.overrideWith((ref) => builtinModelPath),
+        builtinModelReadyProvider.overrideWith((ref) => builtinModelReady),
         themeModeNameProvider.overrideWith((ref) => settings.themeMode),
         localePrefProvider.overrideWith((ref) => settings.localePref),
       ];

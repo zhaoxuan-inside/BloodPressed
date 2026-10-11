@@ -9,6 +9,7 @@ import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
+import 'package:blood_pressed/features/llm/presentation/widgets/builtin_model_card.dart';
 import 'model_market_page.dart';
 import 'remote_profile_edit_page.dart';
 
@@ -48,6 +49,8 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
               ),
               if (engineState.error != null)
                 ErrorBanner(engineState.error!),
+              // 内置默认模型常驻卡片（下载引导/进度/就绪态）
+              const BuiltinModelCard(),
               if (profiles.isEmpty)
                 EmptyState(
                   icon: Icons.smart_toy_outlined,

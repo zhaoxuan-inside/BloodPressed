@@ -980,6 +980,66 @@ abstract class AppLocalizations {
   /// **'Failed to load profiles: {error}'**
   String llmLoadFailed(String error);
 
+  /// No description provided for @builtinModelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in Model · Qwen3-1.7B'**
+  String get builtinModelTitle;
+
+  /// No description provided for @builtinModelReadySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded · works offline'**
+  String get builtinModelReadySubtitle;
+
+  /// No description provided for @builtinModelMissingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Default model for the AI assistant and feature search, about 1.8GB, works offline once downloaded'**
+  String get builtinModelMissingSubtitle;
+
+  /// No description provided for @builtinDownloadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download the built-in model?'**
+  String get builtinDownloadTitle;
+
+  /// No description provided for @builtinDownloadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Qwen3-1.7B (Q8_0 quantized) is about 1.8GB. Once downloaded, the AI assistant and feature search work offline. Wi-Fi recommended.'**
+  String get builtinDownloadBody;
+
+  /// No description provided for @builtinDownloadConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get builtinDownloadConfirm;
+
+  /// No description provided for @builtinDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading {percent}%'**
+  String builtinDownloading(int percent);
+
+  /// No description provided for @builtinDownloadPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get builtinDownloadPaused;
+
+  /// No description provided for @builtinDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed'**
+  String get builtinDownloadFailed;
+
+  /// No description provided for @builtinUseNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Use built-in model'**
+  String get builtinUseNow;
+
   /// No description provided for @llmIntro.
   ///
   /// In en, this message translates to:
