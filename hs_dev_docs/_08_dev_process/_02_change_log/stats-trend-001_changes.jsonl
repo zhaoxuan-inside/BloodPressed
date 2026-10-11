@@ -1,0 +1,1 @@
+{"checkpoint_id": "cp_20261011_055906_156867", "task_id": "stats-trend-001", "at": "2026-10-11T05:59:06Z", "step_id": "S1", "summary": "T1 分析域 bp_analyzer + 单测", "paths": [{"path": "lib/features/stats/domain/bp_analyzer.dart", "created": true}, {"path": "test/bp_analyzer_test.dart", "created": true}], "status_before": "IN_PROGRESS", "plan_step_before": "S1"}
