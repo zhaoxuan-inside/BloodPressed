@@ -112,7 +112,6 @@ void main() {
 
   group('助手页消费 pending 分析请求', () {
     testWidgets('跳转后自动发送一次并清空 pending', (tester) async {
-      final chatRepo = ChatRepository(db);
       const remoteProfile = LlmProfile(
         id: 'remote-1',
         kind: LlmKind.remote,
