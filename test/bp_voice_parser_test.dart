@@ -67,6 +67,55 @@ void main() {
       expect(r.pulse, 68);
     });
 
+    test('中文数字：二十/三十位段（脉搏、低压下限区间）', () {
+      final r = BpVoiceParser.parse('心率二十八');
+      expect(r.pulse, 28);
+      final r2 = BpVoiceParser.parse('低压三十五');
+      expect(r2.diastolic, 35);
+    });
+
+    // ── 逐位读法（STT 常见输出） ─────────────────────────────────────────────
+
+    test('逐位读法：一三五/八五/七二', () {
+      final r = BpVoiceParser.parse('血压一三五低压八五心率七二');
+      expect(r.systolic, 135);
+      expect(r.diastolic, 85);
+      expect(r.pulse, 72);
+    });
+
+    test('逐位读法混合关键词', () {
+      final r = BpVoiceParser.parse('高压一六零低压九五');
+      expect(r.systolic, 160);
+      expect(r.diastolic, 95);
+    });
+
+    // ── "血压" 关键词 ─────────────────────────────────────────────────────
+
+    test('血压关键词开头 + 阿拉伯数字', () {
+      final r = BpVoiceParser.parse('血压128低压85');
+      expect(r.systolic, 128);
+      expect(r.diastolic, 85);
+    });
+
+    test('血压关键词 + 中文数字', () {
+      final r = BpVoiceParser.parse('血压一百二十八低压八十五心率七十二');
+      expect(r.systolic, 128);
+      expect(r.diastolic, 85);
+      expect(r.pulse, 72);
+    });
+
+    test('血压关键词 + 斜杠格式', () {
+      final r = BpVoiceParser.parse('血压128/85');
+      expect(r.systolic, 128);
+      expect(r.diastolic, 85);
+    });
+
+    test('斜杠逐位混合', () {
+      final r = BpVoiceParser.parse('一三五/八五');
+      expect(r.systolic, 135);
+      expect(r.diastolic, 85);
+    });
+
     // ── 位置降级匹配 ───────────────────────────────────────────────────────
 
     test('裸三数字序列（位置推断）', () {

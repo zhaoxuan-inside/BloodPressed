@@ -46,7 +46,7 @@ class BpVoiceParser {
   // ── 关键词 → 字段映射 ────────────────────────────────────────────────────
 
   static const _sysKeywords = [
-    '收缩压', '高压', '上压', 'systolic', 'sys', 'sbp',
+    '收缩压', '高压', '上压', '血压', 'systolic', 'sys', 'sbp',
   ];
   static const _diaKeywords = [
     '舒张压', '低压', '下压', '舒张', 'diastolic', 'dia', 'dbp',
@@ -97,7 +97,7 @@ class BpVoiceParser {
   static String _convertChineseNumbers(String s) {
     // 匹配：[一二三四五六七八九]百[零一二三四五六七八九十]?[十一二三四五六七八九]?
     // 覆盖血压范围：40～299
-    return s.replaceAllMapped(
+    s = s.replaceAllMapped(
       RegExp(r'([一二三四五六七八九两])[百佰]([零一二三四五六七八九]?)[十拾]?([一二三四五六七八九]?)'),
       (m) {
         final hundreds = (_zhDigits[m[1]] ?? 0) * 100;
@@ -106,15 +106,25 @@ class BpVoiceParser {
         final value = hundreds + tens + ones;
         return value > 0 ? '$value' : '';
       },
-    ).replaceAllMapped(
-      // [七八九]十[一二三四五六七八九]? — 覆盖 70～99
-      RegExp(r'([四五六七八九])[十拾]([零一二三四五六七八九]?)'),
+    );
+
+    // [二-九]十[一-九]? — 覆盖 20～99（脉搏/低压下限可低至 20~30）
+    s = s.replaceAllMapped(
+      RegExp(r'([二三四五六七八九])[十拾]([零一二三四五六七八九]?)'),
       (m) {
         final tens = (_zhDigits[m[1]] ?? 0) * 10;
         final ones = m[2]!.isEmpty ? 0 : (_zhDigits[m[2]] ?? 0);
         return '${tens + ones}';
       },
     );
+
+    // 逐位读法：STT 常把数值读成单个数字的连读（"一三五"→135、"一六零"→160）。
+    // 在百/十组合转换之后执行，避免吞掉 "八十五" 这类组合读法。
+    s = s.replaceAllMapped(
+      RegExp(r'[零一二三四五六七八九]{2,3}'),
+      (m) => m[0]!.split('').map((c) => '${_zhDigits[c]}').join(),
+    );
+    return s;
   }
 
   // ── 关键词匹配策略 ────────────────────────────────────────────────────────
@@ -124,14 +134,18 @@ class BpVoiceParser {
     int? dia = _extractAfterKeyword(text, _diaKeywords);
     int? pulse = _extractAfterKeyword(text, _pulseKeywords);
 
-    // 尝试 "120/80" 斜杠格式
-    if (sys == null && dia == null) {
+    // 尝试 "120/80" 斜杠格式（dia 未命中即尝试，兼容 "血压 128/85"）
+    if (dia == null) {
       final slashMatch = RegExp(r'(\d{2,3})\s*/\s*(\d{2,3})').firstMatch(text);
       if (slashMatch != null) {
         final a = int.tryParse(slashMatch[1]!);
         final b = int.tryParse(slashMatch[2]!);
-        if (a != null && b != null && _isSysRange(a) && _isDiaRange(b)) {
-          sys = a;
+        if (a != null &&
+            b != null &&
+            _isSysRange(a) &&
+            _isDiaRange(b) &&
+            (sys == null || a == sys)) {
+          sys ??= a;
           dia = b;
         }
       }

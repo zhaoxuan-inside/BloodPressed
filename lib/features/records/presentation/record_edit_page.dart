@@ -156,6 +156,14 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
 
   /// 语音识别结果回填：当 status 变为 done 时触发一次。
   void _onVoiceResult(VoiceInputState? prev, VoiceInputState next) {
+    if (next.status == VoiceInputStatus.error && next.errorMessage != null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(next.errorMessage!)),
+      );
+      ref.read(voiceInputProvider.notifier).consumeResult();
+      return;
+    }
     if (next.status != VoiceInputStatus.done) return;
     final r = next.result;
     if (r == null || !r.hasAny) {

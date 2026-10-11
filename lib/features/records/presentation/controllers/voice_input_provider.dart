@@ -2,7 +2,13 @@
 ///
 /// 协调 VoiceInputService（STT）与 BpVoiceParser（语义解析），
 /// 向 UI 暴露单一不可变状态对象。
+///
+/// 可靠性约定：会话无论以何种方式结束（最终结果 / 错误 / 静默超时），
+/// 状态都必须在有限时间内离开 listening——最终结果驱动 done，
+/// 错误与无结果结束驱动 error/idle，看门狗兜底插件层不回调的情况。
 library;
+
+import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -59,8 +65,18 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
 
   final VoiceInputService _service;
 
+  /// 看门狗：插件层超时（listenFor/pauseFor）在部分设备上不生效，
+  /// 会话可能静默挂起，由本地计时器保证状态最终离开 listening。
+  static const _watchdogTimeout = Duration(seconds: 18);
+  Timer? _watchdog;
+
   Future<void> _init() async {
-    final available = await _service.initialize();
+    bool available;
+    try {
+      available = await _service.initialize();
+    } catch (_) {
+      available = false;
+    }
     if (!mounted) return;
     state = VoiceInputState(
       status: available
@@ -75,9 +91,12 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
     if (_service.isListening) return;
 
     state = const VoiceInputState(status: VoiceInputStatus.listening);
+    _startWatchdog();
 
     await _service.startListening(
       onResult: _onResult,
+      onError: _onError,
+      onStatus: _onStatus,
     );
   }
 
@@ -92,19 +111,47 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
       return;
     }
     // 最终结果：解析
-    final parsed = BpVoiceParser.parse(r.text);
+    _cancelWatchdog();
     state = VoiceInputState(
       status: VoiceInputStatus.done,
-      result: parsed,
+      result: BpVoiceParser.parse(r.text),
       partialText: r.text,
     );
+  }
+
+  void _onError(String code) {
+    if (!mounted) return;
+    _cancelWatchdog();
+    // cancelOnError 下错误伴随会话取消，无结果可等，必须显式复位
+    if (state.status != VoiceInputStatus.listening) return;
+    state = VoiceInputState(status: VoiceInputStatus.error, errorMessage: _messageFor(code));
+  }
+
+  void _onStatus(String status) {
+    if (!mounted) return;
+    // done / notListening：会话已结束。若最终结果已到（done 状态）则不干预；
+    // 仍卡在 listening 说明会话静默结束且无最终结果——用 partial 降级解析。
+    if (status != 'done' && status != 'notListening') return;
+    if (state.status != VoiceInputStatus.listening) return;
+    _cancelWatchdog();
+    final partial = state.partialText;
+    final parsed = partial.isEmpty
+        ? const VoiceParseResult()
+        : BpVoiceParser.parse(partial);
+    state = parsed.hasAny
+        ? VoiceInputState(
+            status: VoiceInputStatus.done, result: parsed, partialText: partial)
+        : VoiceInputState(
+            status: VoiceInputStatus.idle,
+            errorMessage: '未听到内容，请靠近设备重试',
+          );
   }
 
   /// 手动停止聆听（用户点击停止按钮）。
   Future<void> stopListening() async {
     await _service.stopListening();
     if (!mounted) return;
-    // 若无最终结果回调，则切回 idle
+    // 正常停止应随后送达最终结果；若仍 listening，兜底复位
     if (state.status == VoiceInputStatus.listening) {
       state = state.copyWith(status: VoiceInputStatus.idle);
     }
@@ -112,6 +159,7 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
 
   /// 取消聆听，重置到 idle。
   Future<void> cancel() async {
+    _cancelWatchdog();
     await _service.cancelListening();
     if (!mounted) return;
     state = const VoiceInputState(status: VoiceInputStatus.idle);
@@ -120,14 +168,51 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
   /// 消费 result（UI 读取后清空，防止重复填充）。
   void consumeResult() {
     if (!mounted) return;
-    state = VoiceInputState(
-      status: VoiceInputStatus.idle,
-      result: null,
-    );
+    state = VoiceInputState(status: VoiceInputStatus.idle);
+  }
+
+  void _startWatchdog() {
+    _cancelWatchdog();
+    _watchdog = Timer(_watchdogTimeout, () {
+      if (!mounted || state.status != VoiceInputStatus.listening) return;
+      _service.stopListening();
+      final partial = state.partialText;
+      final parsed = partial.isEmpty
+          ? const VoiceParseResult()
+          : BpVoiceParser.parse(partial);
+      state = parsed.hasAny
+          ? VoiceInputState(
+              status: VoiceInputStatus.done,
+              result: parsed,
+              partialText: partial)
+          : VoiceInputState(
+              status: VoiceInputStatus.error,
+              errorMessage: '没有听到声音，请点击麦克风重试',
+            );
+    });
+  }
+
+  void _cancelWatchdog() {
+    _watchdog?.cancel();
+    _watchdog = null;
+  }
+
+  String _messageFor(String code) {
+    switch (code) {
+      case VoiceInputError.permissionDenied:
+        return '需要麦克风权限，请在系统设置中开启后重试';
+      case VoiceInputError.notAvailable:
+        return '当前设备不支持语音识别';
+      case VoiceInputError.noMatch:
+        return '没有听到声音，请点击麦克风重试';
+      default:
+        return '语音识别出错，请重试';
+    }
   }
 
   @override
   void dispose() {
+    _cancelWatchdog();
     _service.dispose();
     super.dispose();
   }
@@ -135,8 +220,12 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 
+/// 平台实现注入点：测试中 override 为 Fake。
+final voiceInputServiceImplProvider =
+    Provider<VoiceInputService>((ref) => SpeechToTextInputService());
+
 /// 每个 RecordEditPage 实例持有独立的语音识别会话（autoDispose）。
 final voiceInputProvider =
     StateNotifierProvider.autoDispose<VoiceInputNotifier, VoiceInputState>(
-  (ref) => VoiceInputNotifier(VoiceInputService()),
+  (ref) => VoiceInputNotifier(ref.watch(voiceInputServiceImplProvider)),
 );
