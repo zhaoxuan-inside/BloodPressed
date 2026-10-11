@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:blood_pressed/core/providers.dart';
 import 'package:blood_pressed/features/llm/data/remote_chat_engine.dart';
 import 'package:blood_pressed/features/llm/domain/inference_engine.dart';
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
@@ -217,11 +218,14 @@ class _RemoteProfileEditPageState
         model: model,
         multimodal: _multimodal,
       );
-      // 新建的远端配置自动激活
-      final err = await ref.read(llmEngineProvider.notifier).activate(profile);
-      if (err == null && mounted) {
-        ref.read(activeLlmProfileIdProvider.notifier).state = profile.id;
-      }
+      // 新建远端配置自动激活：统一走双写 helper，激活态重启不丢
+      await activateAndPersist(
+        engine: ref.read(llmEngineProvider.notifier),
+        settings: ref.read(appSettingsProvider),
+        setActiveId: (id) =>
+            ref.read(activeLlmProfileIdProvider.notifier).state = id,
+        profile: profile,
+      );
     }
     if (mounted) Navigator.of(context).pop();
   }

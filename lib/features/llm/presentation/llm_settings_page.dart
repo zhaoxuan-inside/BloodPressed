@@ -108,19 +108,17 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
   }
 
   Future<void> _activate(LlmProfile p) async {
-    final err = await ref.read(llmEngineProvider.notifier).activate(p);
+    final l10n = AppLocalizations.of(context);
+    final err = await activateAndPersist(
+      engine: ref.read(llmEngineProvider.notifier),
+      settings: ref.read(appSettingsProvider),
+      setActiveId: (id) =>
+          ref.read(activeLlmProfileIdProvider.notifier).state = id,
+      profile: p,
+    );
     if (!mounted) return;
-    if (err == null) {
-      await ref.read(appSettingsProvider).setActiveLlmProfile(p.id);
-      if (!mounted) return;
-      ref.read(activeLlmProfileIdProvider.notifier).state = p.id;
-      final l10n = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.activatedProfile(p.name))));
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(err)));
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(err ?? l10n.activatedProfile(p.name))));
   }
 
   Future<void> _delete(LlmProfile p) async {
