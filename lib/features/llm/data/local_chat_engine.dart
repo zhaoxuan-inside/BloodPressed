@@ -92,6 +92,51 @@ class LocalChatEngine implements InferenceEngine {
     }
   }
 
+  /// 结构化 JSON 问答（GBNF grammar 约束，输出必为符合 [schema] 的
+  /// JSON 对象）。用于内置模型的置信度门槛问答——约束解码保证形状，
+  /// 调用方再对语义做门槛判断。
+  ///
+  /// llama.cpp 后端支持 grammar 约束；不支持的底座会在生成前抛
+  /// LlamaUnsupportedException（不会被静默忽略）。
+  Future<Map<String, Object?>> chatJson(
+    List<ChatMessage> messages, {
+    required Map<String, Object?> schema,
+    double temperature = 0.7,
+    int maxTokens = 512,
+  }) async {
+    final engine = _engine;
+    if (engine == null || !engine.isReady) {
+      throw const InferenceException('本地模型尚未加载');
+    }
+    final llamaMessages = messages
+        .map((m) => LlamaChatMessage.fromText(
+              role: LlamaChatRole.values
+                  .firstWhere((r) => r.name == m.role.name),
+              text: m.content,
+            ))
+        .toList();
+    final output =
+        LlamaStructuredOutput<Map<String, Object?>>.jsonSchema(
+      schema: schema,
+      decoder: (value) => value,
+    );
+    try {
+      return await engine
+          .create(
+            llamaMessages,
+            params: GenerationParams(
+              temp: temperature,
+              maxTokens: maxTokens,
+            ),
+            responseFormat: output.responseFormat,
+            enableThinking: false,
+          )
+          .parseStructuredJson(output);
+    } catch (e) {
+      throw InferenceException('本地推理出错', e);
+    }
+  }
+
   Future<void> unload() async {
     final engine = _engine;
     if (engine != null) {

@@ -269,6 +269,26 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
     yield* engine.chatStream(messages, temperature: temperature);
   }
 
+  /// 结构化 JSON 问答（仅本地引擎支持 grammar 约束；远端引擎无此通道）。
+  /// 用于内置默认模型的置信度门槛问答。
+  Future<Map<String, Object?>> chatJson(
+    List<ChatMessage> messages, {
+    required Map<String, Object?> schema,
+    double temperature = 0.7,
+    int maxTokens = 512,
+  }) async {
+    final engine = _engine;
+    if (engine is! LocalChatEngine || !engine.isReady) {
+      throw InferenceException(AppLocaleService.auto.llmNotReady);
+    }
+    return engine.chatJson(
+      messages,
+      schema: schema,
+      temperature: temperature,
+      maxTokens: maxTokens,
+    );
+  }
+
   Future<void> deactivate() async {
     await _localEngine?.unload();
     _engine = null;
