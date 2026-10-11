@@ -3,13 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:blood_pressed/features/assistant/presentation/assistant_page.dart';
+import 'package:blood_pressed/features/app_search/presentation/feature_search_page.dart';
 import 'package:blood_pressed/features/export/presentation/export_page.dart';
 import 'package:blood_pressed/features/knowledge/presentation/knowledge_list_page.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 import 'package:blood_pressed/features/llm/presentation/llm_settings_page.dart';
+import 'package:blood_pressed/features/llm/presentation/model_market_page.dart';
 import 'package:blood_pressed/features/records/presentation/home_page.dart';
+import 'package:blood_pressed/features/records/presentation/record_edit_page.dart';
 import 'package:blood_pressed/features/settings/presentation/settings_page.dart';
 import 'package:blood_pressed/features/stats/presentation/stats_page.dart';
+import 'package:blood_pressed/features/sync/presentation/sync_page.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// AI助手分支的 branch 索引（StatefulShellRoute 中的固定位置）。
@@ -153,6 +157,35 @@ GoRouter buildAppRouter() {
         name: 'export',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const ExportPage(),
+      ),
+      // —— 以下路由为功能搜索与统一跳转而提升（原 MaterialPageRoute）——
+      GoRoute(
+        path: '/sync',
+        name: 'sync',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const SyncPage(),
+      ),
+      GoRoute(
+        path: '/market',
+        name: 'market',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const ModelMarketPage(),
+      ),
+      GoRoute(
+        path: '/record/new',
+        name: 'recordNew',
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          fullscreenDialog: true,
+          child: const RecordEditPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/search',
+        name: 'search',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const FeatureSearchPage(),
       ),
     ],
   );

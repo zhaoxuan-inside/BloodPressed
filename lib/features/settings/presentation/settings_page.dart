@@ -7,7 +7,6 @@ import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
-import 'package:blood_pressed/features/sync/presentation/sync_page.dart';
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
 import 'package:blood_pressed/features/settings/data/reminder_service.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
@@ -121,9 +120,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   title: Text(l10n.cloudSync),
                   subtitle: Text(l10n.cloudSyncSubtitle),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SyncPage()),
-                  ),
+                  onTap: () => context.push('/sync'),
                 ),
               ],
             ),

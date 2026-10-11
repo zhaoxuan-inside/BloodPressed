@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:blood_pressed/core/providers.dart';
@@ -10,7 +11,6 @@ import 'package:blood_pressed/l10n/app_localizations.dart';
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 import 'package:blood_pressed/features/llm/presentation/widgets/builtin_model_card.dart';
-import 'model_market_page.dart';
 import 'remote_profile_edit_page.dart';
 
 /// AI 模型配置页：本地模型（魔搭下载）+ 远端 API 统一管理。
@@ -75,10 +75,7 @@ class _LlmSettingsPageState extends ConsumerState<LlmSettingsPage> {
                     FilledButton.tonalIcon(
                       icon: const Icon(Icons.cloud_download_outlined),
                       label: Text(l10n.llmInstallFromMarket),
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (_) => const ModelMarketPage()),
-                      ),
+                      onPressed: () => context.push('/market'),
                     ),
                     const SizedBox(height: 8),
                     OutlinedButton.icon(

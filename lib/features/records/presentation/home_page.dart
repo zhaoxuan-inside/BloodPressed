@@ -34,6 +34,13 @@ class HomePage extends ConsumerWidget {
                 style: const TextStyle(fontWeight: FontWeight.w700)),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: l10n.searchTitle,
+            icon: const Icon(Icons.search),
+            onPressed: () => context.push('/search'),
+          ),
+        ],
       ),
       body: recordsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -128,6 +135,11 @@ class HomePage extends ConsumerWidget {
   }
 
   void _openEdit(BuildContext context, {BpRecord? existing}) {
+    // 新建手动录入走命名路由（功能搜索可直达）；编辑既有记录需传参
+    if (existing == null) {
+      context.push('/record/new');
+      return;
+    }
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => RecordEditPage(existing: existing),
       fullscreenDialog: true,

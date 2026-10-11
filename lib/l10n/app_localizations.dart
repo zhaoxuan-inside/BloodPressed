@@ -164,6 +164,30 @@ abstract class AppLocalizations {
   /// **'Record Blood Pressure'**
   String get sectionEntry;
 
+  /// No description provided for @searchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchTitle;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search features and settings, e.g. \"reminder\", \"export\"'**
+  String get searchHint;
+
+  /// No description provided for @searchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching features'**
+  String get searchNoResults;
+
+  /// No description provided for @searchSmartMatching.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart matching…'**
+  String get searchSmartMatching;
+
   /// No description provided for @actionManual.
   ///
   /// In en, this message translates to:

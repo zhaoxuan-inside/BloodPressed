@@ -21,6 +21,10 @@
     }
   },
   "sectionEntry": "Record Blood Pressure",
+  "searchTitle": "Search",
+  "searchHint": "Search features and settings, e.g. \"reminder\", \"export\"",
+  "searchNoResults": "No matching features",
+  "searchSmartMatching": "Smart matching…",
   "actionManual": "Manual Entry",
   "actionCamera": "Camera Scan",
   "actionGallery": "Photo Scan",

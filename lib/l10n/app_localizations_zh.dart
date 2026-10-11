@@ -45,6 +45,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sectionEntry => '录入血压';
 
   @override
+  String get searchTitle => '搜索';
+
+  @override
+  String get searchHint => '搜索功能与设置，如「提醒」「导出」';
+
+  @override
+  String get searchNoResults => '没有匹配的功能';
+
+  @override
+  String get searchSmartMatching => '正在智能匹配…';
+
+  @override
   String get actionManual => '手动录入';
 
   @override

@@ -46,6 +46,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionEntry => 'Record Blood Pressure';
 
   @override
+  String get searchTitle => 'Search';
+
+  @override
+  String get searchHint =>
+      'Search features and settings, e.g. \"reminder\", \"export\"';
+
+  @override
+  String get searchNoResults => 'No matching features';
+
+  @override
+  String get searchSmartMatching => 'Smart matching…';
+
+  @override
   String get actionManual => 'Manual Entry';
 
   @override
