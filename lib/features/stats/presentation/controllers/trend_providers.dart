@@ -244,14 +244,28 @@ class ChartBase {
         ),
       );
 
-  static LineTouchData touch() => LineTouchData(
-        touchTooltipData: LineTouchTooltipData(
-          getTooltipItems: (spots) => spots
-              .map((s) => LineTooltipItem(
-                    '${s.x.toInt()}: ${s.y.toStringAsFixed(0)}',
-                    const TextStyle(fontSize: 11, color: Colors.white),
-                  ))
-              .toList(),
-        ),
-      );
+  /// 触摸提示：x 轴序号还原为日期（今天/昨天友好化，否则 M/d），
+  /// [pulse] 区分脉搏与血压双序列的标签。
+  static LineTouchData touch(TrendQuery query, {bool pulse = false}) {
+    final l10n = AppLocaleService.auto;
+    return LineTouchData(
+      touchTooltipData: LineTouchTooltipData(
+        getTooltipItems: (spots) => spots.map((s) {
+          final offset = (query.days - 1 - s.x.toInt()).clamp(0, query.days - 1);
+          final date = query.endDate.subtract(Duration(days: offset));
+          final prefix = Fmt.friendlyDay(date);
+          final value = s.y.toStringAsFixed(0);
+          final text = pulse
+              ? '$prefix ${l10n.seriesPulse}: $value'
+              : (s.barIndex == 0
+                  ? '$prefix ${l10n.refSystolic(s.y.toInt())}'
+                  : '$prefix ${l10n.refDiastolic(s.y.toInt())}');
+          return LineTooltipItem(
+            text,
+            const TextStyle(fontSize: 11, color: Colors.white),
+          );
+        }).toList(),
+      ),
+    );
+  }
 }

@@ -1,17 +1,17 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import 'package:blood_pressed/core/design/app_colors.dart';
-import 'package:blood_pressed/core/i18n/labels.dart';
-import 'package:blood_pressed/core/utils/bp_category.dart';
 import 'package:blood_pressed/core/design/bp_category_style.dart';
 import 'package:blood_pressed/core/i18n/app_locale_service.dart';
+import 'package:blood_pressed/core/i18n/labels.dart';
+import 'package:blood_pressed/core/utils/bp_category.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/core/widgets/stat_card.dart';
 import 'package:blood_pressed/features/records/data/records_repository.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
+import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
 import 'controllers/trend_providers.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
@@ -76,6 +76,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
     final query = _query;
     final trend = ref.watch(trendDataProvider(query));
     final stats = ref.watch(statsProvider(_statsRange));
+    final chartHeight = _chartHeight(context);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.statsTitle)),
@@ -149,9 +150,20 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: Card(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 20, 20, 8),
+                    padding: const EdgeInsets.fromLTRB(8, 12, 20, 8),
                     child: Column(
                       children: [
+                        Row(
+                          children: [
+                            const Spacer(),
+                            IconButton(
+                              tooltip: l10n.fullscreenTrendHint,
+                              icon: const Icon(Icons.fullscreen, size: 22),
+                              onPressed: () =>
+                                  context.push('/stats/fullscreen'),
+                            ),
+                          ],
+                        ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -171,12 +183,12 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         SizedBox(
-                          height: 260,
+                          height: chartHeight,
                           child: _series == _Series.bp
-                              ? _BpLineChart(points: points, query: query)
-                              : _PulseLineChart(points: points, query: query),
+                              ? TrendLineChart(points: points, query: query)
+                              : PulseLineChart(points: points, query: query),
                         ),
                       ],
                     ),
@@ -199,6 +211,15 @@ class _StatsPageState extends ConsumerState<StatsPage> {
         ],
       ),
     );
+  }
+
+  /// 小屏/横屏自适应图表高度：屏高的 1/3（竖屏下限 220、上限 300；
+  /// 横屏等比放大以利用宽度）。
+  double _chartHeight(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final landscape = size.width > size.height;
+    final h = landscape ? size.height * 0.62 : size.height * 0.34;
+    return h.clamp(220.0, landscape ? 420.0 : 300.0);
   }
 }
 
@@ -252,141 +273,4 @@ class _StatsCards extends StatelessWidget {
     }
     return BpCategoryStyle.colorOf(BpCategory.normal);
   }
-}
-
-class _BpLineChart extends StatelessWidget {
-  const _BpLineChart({required this.points, required this.query});
-
-  final List<DayPoint> points;
-  final TrendQuery query;
-
-  @override
-  Widget build(BuildContext context) {
-    final sysSpots =
-        points.map((p) => FlSpot(xOf(p.date, query), p.avgSystolic)).toList();
-    final diaSpots =
-        points.map((p) => FlSpot(xOf(p.date, query), p.avgDiastolic)).toList();
-    final allY =
-        points.expand((p) => [p.avgSystolic, p.avgDiastolic]).toList();
-
-    return LineChart(
-      LineChartData(
-        minX: ChartBase.minX(query.days),
-        maxX: ChartBase.maxX(query.days),
-        minY: ((allY.reduce(_min) - 15) / 10).floorToDouble() * 10,
-        maxY: ((allY.reduce(_max) + 15) / 10).ceilToDouble() * 10,
-        gridData: ChartBase.grid(),
-        titlesData: ChartBase.titles(query),
-        borderData: ChartBase.border(),
-        lineTouchData: ChartBase.touch(),
-        extraLinesData: ChartBase.referenceLines(),
-        lineBarsData: [
-          LineChartBarData(
-            spots: sysSpots,
-            isCurved: true,
-            curveSmoothness: 0.3,
-            preventCurveOverShooting: true,
-            barWidth: 2.4,
-            color: AppColors.chartSystolic,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) =>
-                  FlDotCirclePainter(
-                radius: 2.6,
-                color: barData.color ?? Colors.blue,
-                strokeColor: Colors.white,
-                strokeWidth: 1,
-              ),
-            ),
-            belowBarData: BarAreaData(
-              show: true,
-              color: AppColors.chartSystolic.withValues(alpha: 0.06),
-            ),
-          ),
-          LineChartBarData(
-            spots: diaSpots,
-            isCurved: true,
-            curveSmoothness: 0.3,
-            preventCurveOverShooting: true,
-            barWidth: 2.4,
-            color: AppColors.chartDiastolic,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) =>
-                  FlDotCirclePainter(
-                radius: 2.6,
-                color: barData.color ?? Colors.blue,
-                strokeColor: Colors.white,
-                strokeWidth: 1,
-              ),
-            ),
-            belowBarData: BarAreaData(
-              show: true,
-              color: AppColors.chartDiastolic.withValues(alpha: 0.06),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static double _min(double a, double b) => a < b ? a : b;
-  static double _max(double a, double b) => a > b ? a : b;
-}
-
-class _PulseLineChart extends StatelessWidget {
-  const _PulseLineChart({required this.points, required this.query});
-
-  final List<DayPoint> points;
-  final TrendQuery query;
-
-  @override
-  Widget build(BuildContext context) {
-    final spots = points
-        .where((p) => p.avgPulse != null)
-        .map((p) => FlSpot(xOf(p.date, query), p.avgPulse!))
-        .toList();
-    if (spots.isEmpty) {
-      return Center(
-        child: Text(AppLocalizations.of(context).pulseEmpty,
-            style: const TextStyle(color: Colors.grey)),
-      );
-    }
-    final ys = spots.map((s) => s.y).toList();
-
-    return LineChart(
-      LineChartData(
-        minX: ChartBase.minX(query.days),
-        maxX: ChartBase.maxX(query.days),
-        minY: ((ys.reduce(_min) - 10) / 10).floorToDouble() * 10,
-        maxY: ((ys.reduce(_max) + 10) / 10).ceilToDouble() * 10,
-        gridData: ChartBase.grid(),
-        titlesData: ChartBase.titles(query),
-        borderData: ChartBase.border(),
-        lineTouchData: ChartBase.touch(),
-        lineBarsData: [
-          LineChartBarData(
-            spots: spots,
-            isCurved: true,
-            curveSmoothness: 0.3,
-            barWidth: 2.4,
-            color: AppColors.chartPulse,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) =>
-                  FlDotCirclePainter(
-                radius: 2.6,
-                color: barData.color ?? Colors.blue,
-                strokeColor: Colors.white,
-                strokeWidth: 1,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static double _min(double a, double b) => a < b ? a : b;
-  static double _max(double a, double b) => a > b ? a : b;
 }

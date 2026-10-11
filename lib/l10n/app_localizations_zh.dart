@@ -258,6 +258,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statsTitle => '血压趋势';
 
   @override
+  String get fullscreenTrendHint => '全屏查看';
+
+  @override
   String get statsCustom => '自定义';
 
   @override

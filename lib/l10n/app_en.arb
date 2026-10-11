@@ -142,6 +142,7 @@
     }
   },
   "statsTitle": "Blood Pressure Trends",
+  "fullscreenTrendHint": "Fullscreen",
   "statsCustom": "Custom",
   "armBoth": "Both arms",
   "onlyLeftArm": "Left arm only",

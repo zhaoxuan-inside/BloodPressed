@@ -78,6 +78,7 @@
   "deleteRecordTitle": "删除记录",
   "deleteRecordContent": "删除 {datetime} 的记录（{sys}/{dia}）？删除后不可恢复。",
   "statsTitle": "血压趋势",
+  "fullscreenTrendHint": "全屏查看",
   "statsCustom": "自定义",
   "armBoth": "双臂",
   "onlyLeftArm": "仅左臂",

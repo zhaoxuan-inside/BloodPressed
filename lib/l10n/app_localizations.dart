@@ -566,6 +566,12 @@ abstract class AppLocalizations {
   /// **'Blood Pressure Trends'**
   String get statsTitle;
 
+  /// No description provided for @fullscreenTrendHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fullscreen'**
+  String get fullscreenTrendHint;
+
   /// No description provided for @statsCustom.
   ///
   /// In en, this message translates to:

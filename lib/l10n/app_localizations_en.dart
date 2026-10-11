@@ -271,6 +271,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsTitle => 'Blood Pressure Trends';
 
   @override
+  String get fullscreenTrendHint => 'Fullscreen';
+
+  @override
   String get statsCustom => 'Custom';
 
   @override

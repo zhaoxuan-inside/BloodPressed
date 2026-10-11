@@ -12,6 +12,8 @@ import 'package:blood_pressed/features/llm/presentation/model_center_page.dart';
 import 'package:blood_pressed/features/records/presentation/home_page.dart';
 import 'package:blood_pressed/features/records/presentation/record_edit_page.dart';
 import 'package:blood_pressed/features/settings/presentation/settings_page.dart';
+import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
+import 'package:blood_pressed/features/stats/presentation/fullscreen_trend_page.dart';
 import 'package:blood_pressed/features/stats/presentation/stats_page.dart';
 import 'package:blood_pressed/features/sync/presentation/sync_page.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
@@ -180,6 +182,16 @@ GoRouter buildAppRouter() {
           fullscreenDialog: true,
           child: const RecordEditPage(),
         ),
+      ),
+      GoRoute(
+        path: '/stats/fullscreen',
+        name: 'statsFullscreen',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          final query = state.extra;
+          return FullscreenTrendPage(
+              query: query is TrendQuery ? query : TrendQuery(days: 30));
+        },
       ),
       GoRoute(
         path: '/search',
