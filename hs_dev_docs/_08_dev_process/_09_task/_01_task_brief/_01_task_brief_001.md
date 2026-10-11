@@ -72,3 +72,15 @@
 - **更新时间**：`2026-10-11T06:23:14Z`
 ---
 
+### 任务简述：trend-leftover-001
+- **标题**：趋势遗留收口：全屏页 AI 分析入口 + 补齐 UI 测试 + 文档清遗留
+- **change_size**：`S`
+- **状态**：`COMPLETED`
+- **优先级**：P1
+- **负责人**：Agent
+- **核心目标**：全屏横屏页补 AI 分析入口（pop 恢复竖屏后跳助手）；分析文案提取共享去重；补全屏页/分析卡/分享卡/文案测试；stats-trend-001 遗留清零
+- **详情索引**：`_02_task_detail/_01_trend-leftover-001/_00_task_detail.md`
+- **上下文包**：`_03_task_context_pack/_01_trend-leftover-001/_00_context_pack.md`
+- **更新时间**：`2026-10-11T06:43:45Z`
+---
+

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:blood_pressed/features/stats/presentation/analysis_text.dart';
 import 'package:blood_pressed/features/stats/presentation/stats_share.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
 import 'controllers/trend_providers.dart';
@@ -45,12 +46,24 @@ class _FullscreenTrendPageState extends ConsumerState<FullscreenTrendPage> {
     super.dispose();
   }
 
+  /// AI 分析：先 pop 本页（dispose 恢复竖屏），再进入助手页对话流。
+  Future<void> _aiAnalyze(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final analysis =
+        await ref.read(analysisDataProvider(widget.query).future);
+    if (analysis.isEmpty || !context.mounted) return;
+    final ok = await guardAndSendAnalysis(context, ref,
+        prompt: l10n.aiAnalysisPrompt(
+            trendRangeLabel(widget.query, l10n), analysisSummaryZh(analysis)));
+    if (!ok || !context.mounted) return;
+    context.pop(); // 全屏页 dispose → 恢复竖屏
+    context.push('/assistant');
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final trend = ref.watch(trendDataProvider(widget.query));
-
-    return Scaffold(
+    final trend = ref.watch(trendDataProvider(widget.query));    return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
@@ -64,29 +77,36 @@ class _FullscreenTrendPageState extends ConsumerState<FullscreenTrendPage> {
                   trend.maybeWhen(
                     data: (points) => points.isEmpty
                         ? const SizedBox.shrink()
-                        : IconButton(
-                            tooltip: l10n.shareMore,
-                            icon: const Icon(Icons.ios_share, size: 20),
-                            onPressed: () {
-                              final avgSys = points
-                                      .map((p) => p.avgSystolic)
-                                      .reduce((a, b) => a + b) /
-                                  points.length;
-                              final avgDia = points
-                                      .map((p) => p.avgDiastolic)
-                                      .reduce((a, b) => a + b) /
-                                  points.length;
-                              final count = points
-                                  .fold<int>(0, (s, p) => s + p.count);
-                              shareTrendChart(context, ref,
-                                  points: points,
-                                  query: widget.query,
-                                  title: l10n.statsTitle,
-                                  avgSystolic: avgSys,
-                                  avgDiastolic: avgDia,
-                                  count: count);
-                            },
-                          ),
+                        : Row(mainAxisSize: MainAxisSize.min, children: [
+                            IconButton(
+                              tooltip: l10n.statsAiAnalyze,
+                              icon: const Icon(Icons.auto_awesome, size: 20),
+                              onPressed: () => _aiAnalyze(context),
+                            ),
+                            IconButton(
+                              tooltip: l10n.shareMore,
+                              icon: const Icon(Icons.ios_share, size: 20),
+                              onPressed: () {
+                                final avgSys = points
+                                        .map((p) => p.avgSystolic)
+                                        .reduce((a, b) => a + b) /
+                                    points.length;
+                                final avgDia = points
+                                        .map((p) => p.avgDiastolic)
+                                        .reduce((a, b) => a + b) /
+                                    points.length;
+                                final count = points
+                                    .fold<int>(0, (s, p) => s + p.count);
+                                shareTrendChart(context, ref,
+                                    points: points,
+                                    query: widget.query,
+                                    title: l10n.statsTitle,
+                                    avgSystolic: avgSys,
+                                    avgDiastolic: avgDia,
+                                    count: count);
+                              },
+                            ),
+                          ]),
                     orElse: () => const SizedBox.shrink(),
                   ),
                   SegmentedButton<_Series>(
