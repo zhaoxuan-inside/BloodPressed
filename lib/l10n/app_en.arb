@@ -53,6 +53,7 @@
   "sourceManual": "Manual",
   "sourceOcr": "Camera scan",
   "sourceAi": "AI scan",
+  "sourceVoice": "Voice",
   "categoryLow": "Low",
   "categoryNormal": "Normal",
   "categoryElevated": "Elevated",
@@ -74,6 +75,7 @@
   "saveNew": "Save Record",
   "bannerSourceOcr": "Camera scan result",
   "bannerSourceAi": "AI scan result",
+  "bannerSourceVoice": "Voice input result",
   "bannerLowNoValue": "{source} could not read any values. Please enter them manually and review before saving.",
   "@bannerLowNoValue": {
     "placeholders": {

@@ -314,6 +314,12 @@ abstract class AppLocalizations {
   /// **'AI scan'**
   String get sourceAi;
 
+  /// No description provided for @sourceVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get sourceVoice;
+
   /// No description provided for @categoryLow.
   ///
   /// In en, this message translates to:
@@ -439,6 +445,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AI scan result'**
   String get bannerSourceAi;
+
+  /// No description provided for @bannerSourceVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice input result'**
+  String get bannerSourceVoice;
 
   /// No description provided for @bannerLowNoValue.
   ///

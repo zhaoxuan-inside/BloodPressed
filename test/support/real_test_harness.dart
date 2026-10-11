@@ -2,9 +2,12 @@
 ///
 /// SharedPreferences 使用 flutter_test 的内存后端（`setMockInitialValues`），
 /// 这是测试进程里唯一可用的 prefs 实现，写入的仍是真实键值，不是业务假数据。
+/// speech_to_text 平台通道 mock 为「设备不支持」（宿主进程无原生 STT 实现，
+/// 不 mock 会在录入页初始化时抛 MissingPluginException）。
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,6 +75,11 @@ class RealAppHarness {
 
   Future<void> setUp() async {
     SharedPreferences.setMockInitialValues({});
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugin.csdcorp.com/speech_to_text'),
+      (call) async => call.method == 'initialize' ? false : null,
+    );
     prefs = await SharedPreferences.getInstance();
     settings = AppSettings(prefs);
     await settings.deviceId();

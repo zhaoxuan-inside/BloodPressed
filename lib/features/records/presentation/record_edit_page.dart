@@ -350,7 +350,7 @@ class _RecognitionSourceBanner extends StatelessWidget {
     final text = switch (source) {
       RecordSource.ocr => l10n.bannerSourceOcr,
       RecordSource.ai => l10n.bannerSourceAi,
-      RecordSource.voice => '语音录入',
+      RecordSource.voice => l10n.bannerSourceVoice,
       RecordSource.manual => '',
     };
 

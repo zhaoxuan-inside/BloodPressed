@@ -128,6 +128,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sourceAi => 'AI scan';
 
   @override
+  String get sourceVoice => 'Voice';
+
+  @override
   String get categoryLow => 'Low';
 
   @override
@@ -195,6 +198,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bannerSourceAi => 'AI scan result';
+
+  @override
+  String get bannerSourceVoice => 'Voice input result';
 
   @override
   String bannerLowNoValue(String source) {

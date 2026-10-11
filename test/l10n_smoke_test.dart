@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:blood_pressed/core/i18n/app_locale_service.dart';
+import 'package:blood_pressed/core/i18n/labels.dart';
 import 'package:blood_pressed/features/export/data/csv_exporter.dart';
+import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 import 'support/real_test_harness.dart';
 
@@ -93,5 +95,23 @@ void main() {
           .toSet(),
       containsAll(['zh', 'en']),
     );
+  });
+
+  test('枚举文案 seam：RecordSource 四种来源在 zh/en 均有词条', () {
+    // 回归网：domain 枚举新增值时强制同步 arb 词典与 labels switch
+    // （历史缺陷：RecordSource.voice 加入后 sourceLabel 非穷尽导致编译失败）
+    AppLocaleService.current = const Locale('zh');
+    final zh = lookupAppLocalizations(const Locale('zh'));
+    expect(sourceLabel(zh, RecordSource.manual), '手动');
+    expect(sourceLabel(zh, RecordSource.ocr), '拍照识别');
+    expect(sourceLabel(zh, RecordSource.ai), 'AI识别');
+    expect(sourceLabel(zh, RecordSource.voice), '语音录入');
+
+    AppLocaleService.current = const Locale('en');
+    final en = lookupAppLocalizations(const Locale('en'));
+    expect(sourceLabel(en, RecordSource.manual), 'Manual');
+    expect(sourceLabel(en, RecordSource.ocr), 'Camera scan');
+    expect(sourceLabel(en, RecordSource.ai), 'AI scan');
+    expect(sourceLabel(en, RecordSource.voice), 'Voice');
   });
 }

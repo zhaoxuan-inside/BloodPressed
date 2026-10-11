@@ -112,9 +112,23 @@ class SevenSegmentReader {
   /// 过曝高光判定：明度显著高于彩色背光的正常水平（val ~200~220）。
   static const int _glareVal = 226;
 
+  /// 正常区二值化阈值（照度归一化比值）。
+  static const double _normalRatio = 0.72;
+
   /// 反光区二值化阈值：反光把局部背景抬亮、笔画对比度冲淡，
-  /// 比值阈值放宽（正常区维持 0.72）。
-  static const double _glareRatio = 0.90;
+  /// 比值阈值放宽（正常区维持 [_normalRatio]）。需覆盖粗笔画对比值
+  /// 分母（盒均值）的自污染（横杠可占窗口 40%，笔画比值被推高到
+  /// ~0.90），故放宽上限高于反光下的真实笔画对比度（~0.85）。
+  static const double _glareRatio = 0.93;
+
+  /// 反光感知的背景亮度区间：背景盒均值场从 [_glareBgLo] 升到
+  /// [_glareBgHi] 的过程中，二值化阈值从 [_normalRatio] 线性放宽到
+  /// [_glareRatio]。正常彩色背光灰度 ~130（+噪声/插值 ~140），反光区
+  /// 背景被抬亮到 ~195+；起点 148 卡在两者之间并低于反光斑边缘台阶
+  /// 的平滑过渡带（~150）——台阶外侧的笔画比值 ~0.70，只差一点余量
+  /// 即可通过正常阈值。判定输入是盒均值场的邻域最大值（见
+  /// [_binarize]）：暗笔画拉不高它，台阶也穿不透它。
+  static const double _glareBgLo = 148, _glareBgHi = 190;
 
   /// 七段段检测（在 32×56 采样网格上，行列填充峰值法）。
   ///
@@ -161,8 +175,7 @@ class SevenSegmentReader {
 
   /// 单定向提取，返回 (读数, 得分)。
   (LcdReadout, int)? _readOrientation(SegImage img, List<Offset> quad) {
-    final lcd = _rectifyToGray(img, quad);
-    final w = lcd.$1, h = lcd.$2, gray = lcd.$3;
+    final (w, h, gray, _) = _rectifyToGray(img, quad);
     // 预模糊（_binarize 内）负责抑制摩尔纹防止笔画碎裂；
     // 不再做闭运算，否则会把相邻数字桥接成一个连通域。
     final bin = _binarize(gray, w, h);
@@ -456,18 +469,58 @@ class SevenSegmentReader {
 
   // ---------------- 3) 二值化 ----------------
 
-  /// 照度归一化（盒模糊背景比值 < 0.72 为前景）+ 3×3 开运算。
+  /// 照度归一化（盒模糊背景比值低于阈值即前景；阈值随邻域最亮背景
+  /// 灰度在 [_normalRatio]~[_glareRatio] 间线性放宽）+ 3×3 开运算。
   ///
-  /// 先对小半径盒模糊抑制屏幕翻拍摩尔纹（高频），笔画宽度远大于纹路周期。
+  /// 放宽判据的输入是**盒均值场的邻域最大值**（bg 场 maxFilter），两者
+  /// 缺一不可：直接用像素高光（≥[_glareVal]）覆盖不到压在深色笔画上的
+  /// 像素；直接用原始灰度最大值会被反光斑边缘台阶穿透（blob 边缘背景
+  /// 从抬亮突跳回正常，台阶外侧的正常背景隔着窗口看到亮内缘而被误放
+  /// 宽，凝结成幽灵弧线）。盒均值场把台阶平滑成渐变，且暗笔画拉不高
+  /// 最大值。先对小半径盒模糊抑制屏幕翻拍摩尔纹（高频），笔画宽度远
+  /// 大于纹路周期。
   Uint8List _binarize(Uint8List gray0, int w, int h) {
     final gray = _boxGray(gray0, w, h, 2);
     final ksize = math.max(15, math.min(w, h) ~/ 12) | 1;
     final bg = _boxMean(gray, w, h, ksize ~/ 2);
+    final bright = _maxVal(bg, w, h, ksize ~/ 3);
     final bin = Uint8List(w * h);
+    final span = _glareBgHi - _glareBgLo;
     for (var i = 0; i < bin.length; i++) {
-      if ((gray[i] + 1) / (bg[i] + 1) < 0.72) bin[i] = 1;
+      final ramp = ((bright[i] - _glareBgLo) / span).clamp(0.0, 1.0);
+      final thr = _normalRatio + (_glareRatio - _normalRatio) * ramp;
+      if ((gray[i] + 1) / (bg[i] + 1) < thr) bin[i] = 1;
     }
     return _open3(bin, w, h);
+  }
+
+  /// 邻域最大值（可分离，作用于背景均值场）：估计「该处背景能亮到
+  /// 多少」。窗口取到笔画之外的背景即可，半径 ksize/3 覆盖笔画半宽
+  /// + 边距；返回浮点场以直接接收 [_boxMean] 输出。
+  Float64List _maxVal(Float64List m, int w, int h, int r) {
+    final t = Float64List(w * h);
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        var v = 0.0;
+        for (var dx = -r; dx <= r; dx++) {
+          final p = m[y * w + (x + dx).clamp(0, w - 1)];
+          if (p > v) v = p;
+        }
+        t[y * w + x] = v;
+      }
+    }
+    final out = Float64List(w * h);
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        var v = 0.0;
+        for (var dy = -r; dy <= r; dy++) {
+          final p = t[(y + dy).clamp(0, h - 1) * w + x];
+          if (p > v) v = p;
+        }
+        out[y * w + x] = v;
+      }
+    }
+    return out;
   }
 
   /// 盒模糊（边界复制，积分图实现）。

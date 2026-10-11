@@ -79,17 +79,19 @@ class VoiceInputService {
     if (_speech.isListening) await _speech.stop();
 
     await _speech.listen(
-      localeId: localeId,
       onResult: (r) => onResult(
         VoiceInputResult(
           text: r.recognizedWords,
           isFinal: r.finalResult,
         ),
       ),
-      listenFor: const Duration(seconds: 15),
-      pauseFor: const Duration(seconds: 3),
-      partialResults: true,
-      cancelOnError: true,
+      listenOptions: stt.SpeechListenOptions(
+        localeId: localeId,
+        listenFor: const Duration(seconds: 15),
+        pauseFor: const Duration(seconds: 3),
+        partialResults: true,
+        cancelOnError: true,
+      ),
     );
   }
 

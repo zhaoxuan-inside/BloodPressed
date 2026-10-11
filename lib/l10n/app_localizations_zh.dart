@@ -122,6 +122,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sourceAi => 'AI识别';
 
   @override
+  String get sourceVoice => '语音录入';
+
+  @override
   String get categoryLow => '偏低';
 
   @override
@@ -183,6 +186,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get bannerSourceAi => 'AI 识别结果';
+
+  @override
+  String get bannerSourceVoice => '语音录入结果';
 
   @override
   String bannerLowNoValue(String source) {

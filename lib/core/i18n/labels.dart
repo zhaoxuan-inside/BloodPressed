@@ -22,6 +22,7 @@ String sourceLabel(AppLocalizations l10n, RecordSource source) =>
       RecordSource.manual => l10n.sourceManual,
       RecordSource.ocr => l10n.sourceOcr,
       RecordSource.ai => l10n.sourceAi,
+      RecordSource.voice => l10n.sourceVoice,
     };
 
 String categoryLabel(AppLocalizations l10n, BpCategory category) =>

@@ -1,0 +1,95 @@
+# 项目术语与命名统一词典 (Project Term Dictionary)
+# 作用：确保 Agent 在命名、实体设计、接口字段、缩写上保持 100% 一致。
+# 与 lib/features/* 的目录划分一一对应；新增概念先入典再写码。
+
+terms:
+  - term: "血压记录"
+    en_name: "bp_record"
+    abbr: "bp_rec"
+    scope: "domain_model"
+    desc: "一次血压测量（收缩压/舒张压/脉搏/臂/体位/来源），UUID 主键 + deviceId，软删除"
+    forbidden_alias: ["measurement", "pressure_log", "reading"]
+
+  - term: "测量来源"
+    en_name: "record_source"
+    abbr: "source"
+    scope: "domain_model"
+    desc: "记录产生方式：manual / ocr / ai / voice（labels.dart 的 sourceLabel 是唯一文案出口）"
+    forbidden_alias: ["record_type", "entry_kind"]
+
+  - term: "血压分级"
+    en_name: "bp_category"
+    abbr: "category"
+    scope: "domain_model"
+    desc: "家庭自测五级：low / normal / elevated / grade1 / grade2（bp_category.dart 唯一判定）"
+    forbidden_alias: ["bp_level", "grade_stage"]
+
+  - term: "七段码读数"
+    en_name: "seven_segment"
+    abbr: "seven_seg"
+    scope: "method"
+    desc: "纯 Dart 的 LCD 七段码识别路径（定位→矫正→二值化→分段→分类），plan-012 反光自适应阈值"
+    forbidden_alias: ["lcd_ocr", "digit_reader"]
+
+  - term: "拍照识别流程"
+    en_name: "ocr_flow"
+    abbr: "ocr"
+    scope: "method"
+    desc: "系统相机/相册 → 七段码专用路径 → PP-OCR 兜底 → 解析入库（RecordSource.ocr）"
+    forbidden_alias: ["camera_scan", "photo_parser"]
+
+  - term: "语音录入"
+    en_name: "voice_input"
+    abbr: "voice"
+    scope: "method"
+    desc: "系统原生 STT（speech_to_text）→ bp_voice_parser 规则解析 → 表单预填（RecordSource.voice）"
+    forbidden_alias: ["speech_entry", "stt_input"]
+
+  - term: "推理引擎"
+    en_name: "inference_engine"
+    abbr: "engine"
+    scope: "domain_model"
+    desc: "LLM 推理抽象：本地 llamadart GGUF / 远端 OpenAI 兼容 SSE 双实现"
+    forbidden_alias: ["llm_backend", "model_runner"]
+
+  - term: "模型配置"
+    en_name: "llm_profile"
+    abbr: "profile"
+    scope: "domain_model"
+    desc: "一份可启用的模型配置（本地文件路径或远端 baseUrl/key/model + 多模态开关）"
+    forbidden_alias: ["model_config", "llm_setting"]
+
+  - term: "模型市场"
+    en_name: "model_market"
+    abbr: "market"
+    scope: "method"
+    desc: "魔搭 ModelScope 的 GGUF 列表浏览与下载（modelscope_client + model_downloader）"
+    forbidden_alias: ["model_store", "marketplace"]
+
+  - term: "分享卡"
+    en_name: "share_card"
+    abbr: "card"
+    scope: "method"
+    desc: "RepaintBoundary 截图的分享图片：单次记录卡 / 统计摘要卡；导出 PNG 圆角外透明（chg-014）"
+    forbidden_alias: ["share_image", "poster"]
+
+  - term: "离线变更日志"
+    en_name: "outbox"
+    abbr: "outbox"
+    scope: "domain_model"
+    desc: "本地写操作的待同步队列（OutboxDao），云同步预留的接口 seam（SyncService）"
+    forbidden_alias: ["sync_queue", "change_log"]
+
+  - term: "测量提醒"
+    en_name: "reminder_schedule"
+    abbr: "reminder"
+    scope: "domain_model"
+    desc: "每日定时 + 提醒窗口内周期提醒两种模式（reminder_service + flutter_local_notifications）"
+    forbidden_alias: ["alarm", "notification_plan"]
+
+  - term: "界面语言"
+    en_name: "app_locale"
+    abbr: "l10n"
+    scope: "domain_model"
+    desc: "gen-l10n 双语（zh/en）；AppLocaleService.current 是无 context 场景的语言快照"
+    forbidden_alias: ["language_pack", "i18n_lang"]

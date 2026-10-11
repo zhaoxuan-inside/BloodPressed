@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/features/knowledge/domain/knowledge_article.dart';
 import 'package:blood_pressed/features/knowledge/presentation/controllers/knowledge_providers.dart';
