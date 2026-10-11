@@ -84,3 +84,15 @@
 - **更新时间**：`2026-10-11T06:43:45Z`
 ---
 
+### 任务简述：release-001
+- **标题**：发布 1.2.0：版本升级 + release APK 打包（蒲公英手动上传）
+- **change_size**：`S`
+- **状态**：`COMPLETED`
+- **优先级**：P1
+- **负责人**：Agent
+- **核心目标**：pubspec 升级 1.2.0+2；门禁全绿后打 release APK；产出蒲公英上传用更新日志与发布流程文档（Key 不落仓）
+- **详情索引**：`_02_task_detail/_01_release-001/_00_task_detail.md`
+- **上下文包**：`_03_task_context_pack/_01_release-001/_00_context_pack.md`
+- **更新时间**：`2026-10-11T06:55:39Z`
+---
+
