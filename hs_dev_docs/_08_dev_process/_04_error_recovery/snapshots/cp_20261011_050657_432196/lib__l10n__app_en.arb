@@ -1,0 +1,665 @@
+{
+  "@@locale": "en",
+  "appTitle": "BloodPressed",
+  "@appTitle": {
+    "description": "In-app app title (task switcher)."
+  },
+  "langTitle": "Language",
+  "langSubtitle": "UI language · Knowledge articles and AI guidance remain in Chinese",
+  "langSystem": "System",
+  "langChinese": "中文",
+  "langEnglish": "English",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "delete": "Delete",
+  "loadDataFailed": "Failed to load data: {error}",
+  "@loadDataFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sectionEntry": "Record Blood Pressure",
+  "searchTitle": "Search",
+  "searchHint": "Search features and settings, e.g. \"reminder\", \"export\"",
+  "searchNoResults": "No matching features",
+  "searchSmartMatching": "Smart matching…",
+  "actionManual": "Manual Entry",
+  "actionCamera": "Camera Scan",
+  "actionGallery": "Photo Scan",
+  "sectionHistory": "History",
+  "emptyHomeTitle": "No blood pressure records yet",
+  "emptyHomeSubtitle": "Start with “Manual Entry” above, or scan a monitor reading with your camera",
+  "historyHint": "Swipe left to delete · Tap to edit",
+  "sheetManualSubtitle": "Enter systolic, diastolic and pulse directly",
+  "sheetGalleryTitle": "Choose from Photos",
+  "sheetCameraSubtitle": "Take a photo of the monitor screen to read values automatically",
+  "sheetGallerySubtitle": "Read values from an existing monitor photo",
+  "welcomeTitle": "👋 Welcome to BloodPressed",
+  "welcomeSubtitle": "Record your first blood pressure and start your health journey",
+  "latestMeasurement": "Latest measurement",
+  "todayMeasuredTimes": "Measured {count} times today",
+  "@todayMeasuredTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pulseUnit": "bpm",
+  "armLeft": "Left",
+  "armRight": "Right",
+  "postureNotRecorded": "Not recorded",
+  "postureLying": "Lying down",
+  "postureSitting": "Sitting",
+  "postureStanding": "Standing",
+  "sourceManual": "Manual",
+  "sourceOcr": "Camera scan",
+  "sourceAi": "AI scan",
+  "sourceVoice": "Voice",
+  "categoryLow": "Low",
+  "categoryNormal": "Normal",
+  "categoryElevated": "Elevated",
+  "categoryGrade1": "Grade 1",
+  "categoryGrade2": "Grade 2+",
+  "adviceLow": "Blood pressure is low. No action needed if you feel well; see a doctor if you feel dizzy or weak.",
+  "adviceNormal": "Blood pressure is in the ideal range. Keep up the healthy lifestyle.",
+  "adviceElevated": "Blood pressure is high but not yet hypertension. Reduce salt, exercise, and re-measure regularly.",
+  "adviceGrade1": "Blood pressure has reached stage 1 hypertension (home measurement). Re-measure and consult a doctor.",
+  "adviceGrade2": "Blood pressure is markedly high. Seek medical care promptly; never adjust medication on your own.",
+  "editRecordTitle": "Edit Record",
+  "newRecordTitle": "Record Blood Pressure",
+  "sysLabel": "Systolic (high)",
+  "diaLabel": "Diastolic (low)",
+  "pulseLabel": "Pulse (optional)",
+  "postureField": "Posture (optional)",
+  "noteField": "Note (optional, e.g. after exercise, before medication)",
+  "saveEdit": "Save Changes",
+  "saveNew": "Save Record",
+  "bannerSourceOcr": "Camera scan result",
+  "bannerSourceAi": "AI scan result",
+  "bannerSourceVoice": "Voice input result",
+  "bannerLowNoValue": "{source} could not read any values. Please enter them manually and review before saving.",
+  "@bannerLowNoValue": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "bannerLowConfidence": "{source} returned low confidence ({percent}%). Values in red boxes are for reference only — please review and correct before saving.",
+  "@bannerLowConfidence": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "bannerAutoFilled": "{source}{confidence} was filled in automatically. Please review and save.",
+  "@bannerAutoFilled": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "confidence": {
+        "type": "String"
+      }
+    }
+  },
+  "confidenceSuffix": " ({percent}% confidence)",
+  "@confidenceSuffix": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "errNeedSysDia": "Please enter systolic and diastolic values",
+  "errSysRange": "Systolic must be between 40 and 300",
+  "errDiaRange": "Diastolic must be between 30 and 200",
+  "errSysGreater": "Systolic must be greater than diastolic",
+  "errPulseRange": "Pulse must be between 20 and 300",
+  "deleteRecordTitle": "Delete Record",
+  "deleteRecordContent": "Delete the record from {datetime} ({sys}/{dia})? This cannot be undone.",
+  "@deleteRecordContent": {
+    "placeholders": {
+      "datetime": {
+        "type": "String"
+      },
+      "sys": {
+        "type": "int"
+      },
+      "dia": {
+        "type": "int"
+      }
+    }
+  },
+  "statsTitle": "Blood Pressure Trends",
+  "statsCustom": "Custom",
+  "armBoth": "Both arms",
+  "onlyLeftArm": "Left arm only",
+  "onlyRightArm": "Right arm only",
+  "seriesBp": "BP",
+  "seriesPulse": "Pulse",
+  "statsLoadFailed": "Failed to load stats: {error}",
+  "@statsLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trendLoadFailed": "Failed to load trend: {error}",
+  "@trendLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "statsEmptyTitle": "No data in this range",
+  "statsEmptySubtitle": "Adjust the time range or add a few records first",
+  "pulseEmpty": "No pulse data in this range",
+  "chartReferenceHint": "Dashed lines are home-measurement reference levels (systolic 135 / diastolic 85; above means elevated). Multiple readings on the same day are averaged.",
+  "refSystolic": "Systolic {value}",
+  "@refSystolic": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "refDiastolic": "Diastolic {value}",
+  "@refDiastolic": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "range7": "Last 7 days",
+  "range30": "Last 30 days",
+  "range90": "Last 90 days",
+  "rangeAll": "All",
+  "exportTitle": "Export & Share",
+  "sectionCardShare": "Card Sharing",
+  "cardTypeRecord": "Single Record Card",
+  "cardTypeStats": "Stats Summary Card",
+  "shareWechat": "WeChat Chat",
+  "shareMoments": "Moments",
+  "shareMore": "More Ways to Share",
+  "sectionDataExport": "Data Export",
+  "exportCsvButton": "Export all records as CSV (opens in Excel)",
+  "csvContentsHint": "CSV includes: time, systolic, diastolic, pulse, arm, posture, note, source.",
+  "emptyExportTitle": "No records yet",
+  "emptyExportSubtitle": "Add a blood pressure record before sharing a card",
+  "shareText": "My blood pressure record (from BloodPressed)",
+  "csvShareText": "BloodPressed blood pressure record export",
+  "shareFailed": "Sharing failed: {error}",
+  "@shareFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportEmpty": "No records to export",
+  "exportFailed": "Export failed: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cardNotReady": "Share card has not finished rendering",
+  "cardExportFailed": "Failed to export card",
+  "shareCardRecordHeader": "BloodPressed · BP Record",
+  "cardMeasuredAt": "{datetime} · Measured with {arm}",
+  "@cardMeasuredAt": {
+    "placeholders": {
+      "datetime": {
+        "type": "String"
+      },
+      "arm": {
+        "type": "String"
+      }
+    }
+  },
+  "cardFooterRecord": "Keep measuring to protect your heart",
+  "shareCardStatsHeader": "BloodPressed · BP Summary",
+  "statsOverviewTitle": "BP Overview — last {days}",
+  "@statsOverviewTitle": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "avgBpLabel": "Average BP",
+  "bpRangeLabel": "BP Range",
+  "avgPulseLabel": "Average Pulse",
+  "countLabel": "Measurements",
+  "onTargetRateLabel": "On-target rate (<135/85)",
+  "bpRangeValue": "Sys {smin}~{smax} · Dia {dmin}~{dmax}",
+  "@bpRangeValue": {
+    "placeholders": {
+      "smin": {
+        "type": "int"
+      },
+      "smax": {
+        "type": "int"
+      },
+      "dmin": {
+        "type": "int"
+      },
+      "dmax": {
+        "type": "int"
+      }
+    }
+  },
+  "timesValue": "{count} times",
+  "@timesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardFooterStats": "Measure regularly, stay in control",
+  "days7": "7 days",
+  "days30": "30 days",
+  "days90": "90 days",
+  "daysPeriod": "a period",
+  "csvTime": "Time",
+  "csvSystolic": "Systolic(mmHg)",
+  "csvDiastolic": "Diastolic(mmHg)",
+  "csvPulse": "Pulse(bpm)",
+  "csvArm": "Arm",
+  "csvPosture": "Posture",
+  "csvNote": "Note",
+  "csvSource": "Source",
+  "cameraPermissionTitle": "Camera Permission Denied",
+  "cameraPermissionMessage": "Please allow camera access in system settings and try again.",
+  "ocrRecognizing": "Recognizing…",
+  "ocrNoLcd": "LCD: no backlit display found",
+  "ocrLcdReadout": "LCD readings: {numbers}",
+  "@ocrLcdReadout": {
+    "placeholders": {
+      "numbers": {
+        "type": "String"
+      }
+    }
+  },
+  "ocrLcdNoNumbers": "no readable digits",
+  "ocrLineCount": "; OCR lines: {count}",
+  "@ocrLineCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrServiceError": "Recognition service error. Please try again; if it keeps failing, enter the values manually.",
+  "ocrFailed": "Recognition failed: {error}",
+  "@ocrFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "ocrFailedTitle": "Recognition Failed",
+  "ocrDiagSaved": "(Diagnostics saved to ocr_debug/{folder})",
+  "@ocrDiagSaved": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "okGotIt": "Got it",
+  "llmTitle": "AI Models",
+  "llmLoadFailed": "Failed to load profiles: {error}",
+  "builtinModelTitle": "Built-in Model · Qwen3-1.7B",
+  "builtinModelReadySubtitle": "Downloaded · works offline",
+  "builtinModelMissingSubtitle": "Default model for the AI assistant and feature search, about 1.8GB, works offline once downloaded",
+  "builtinDownloadTitle": "Download the built-in model?",
+  "builtinDownloadBody": "Qwen3-1.7B (Q8_0 quantized) is about 1.8GB. Once downloaded, the AI assistant and feature search work offline. Wi-Fi recommended.",
+  "builtinDownloadConfirm": "Download",
+  "builtinDownloading": "Downloading {percent}%",
+  "@builtinDownloading": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "builtinDownloadPaused": "Paused",
+  "builtinDownloadFailed": "Download failed",
+  "builtinUseNow": "Use built-in model",
+  "@llmLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "llmIntro": "Set up a local or remote LLM to enable health guidance, AI photo reading and other smart features.",
+  "llmEmptyTitle": "No models configured yet",
+  "llmEmptySubtitle": "Download a local model from ModelScope (works offline),\nor configure a remote API (more capable).",
+  "llmInstallFromMarket": "Install a model from ModelScope",
+  "llmAddRemote": "Add Remote Model API",
+  "llmAddFromFile": "Add from downloaded files",
+  "activatedProfile": "Activated “{name}”",
+  "@activatedProfile": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteProfileTitle": "Delete Model Profile",
+  "deleteProfileContent": "Delete “{name}”?{keepFileNote}",
+  "@deleteProfileContent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "keepFileNote": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteProfileKeepFile": "\nThe model file will not be deleted and can be re-added later.",
+  "noModelFiles": "No downloaded .gguf model files found",
+  "pickModelFileTitle": "Choose Model File",
+  "profileLocalSubtitle": "Local model · {file}",
+  "@profileLocalSubtitle": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "profileRemoteSubtitle": "Remote API · {model}{multimodal}",
+  "@profileRemoteSubtitle": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "multimodal": {
+        "type": "String"
+      }
+    }
+  },
+  "profileMultimodalSuffix": " · supports images",
+  "engineLoading": "Loading",
+  "engineActive": "Active",
+  "menuActivate": "Activate",
+  "menuEdit": "Edit",
+  "menuDelete": "Delete",
+  "remoteEditTitle": "Edit Remote Model",
+  "remoteAddTitle": "Add Remote Model",
+  "presetSectionTitle": "Choose a service preset (optional)",
+  "presetNameModelscope": "ModelScope API-Inference",
+  "presetNameArk": "Volcano Ark",
+  "presetNameDashScope": "Alibaba DashScope",
+  "presetNameDeepSeek": "DeepSeek",
+  "presetNameOpenAI": "OpenAI",
+  "presetNameOllama": "Ollama (local/LAN)",
+  "presetDescModelscope": "Free inference API from ModelScope. Get a token on the ModelScope website.",
+  "presetDescArk": "ByteDance Volcano Engine. Get the API key in the Ark console under “API Key Management”.",
+  "presetDescDashScope": "Alibaba Cloud Bailian, OpenAI-compatible mode.",
+  "presetDescDeepSeek": "Official DeepSeek API.",
+  "presetDescOpenAI": "Official OpenAI API (mainland China network access is on you).",
+  "presetDescOllama": "Run Ollama on your computer with the port open; keep the phone on the same LAN.",
+  "fieldName": "Name",
+  "nameHint": "e.g. ModelScope Qwen / DeepSeek",
+  "fieldBaseUrl": "API base URL (no trailing slash)",
+  "fieldApiKey": "API Key (optional for some services)",
+  "fieldModel": "Model name (model)",
+  "modelHint": "e.g. Qwen/Qwen3-32B or deepseek-chat",
+  "fetchModelsTooltip": "Fetch model list",
+  "multimodalTitle": "Support image input (multimodal)",
+  "multimodalSubtitle": "When on, this model can read blood pressure monitor photos (OCR fallback).",
+  "saveBtn": "Save",
+  "addActivateBtn": "Add & Activate",
+  "needBaseUrl": "Enter the API base URL first",
+  "needAllFields": "Fill in the name, base URL and model name",
+  "fetchFailed": "Fetch failed: {error}",
+  "@fetchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "searchModels": "Search models ({count} total)",
+  "@searchModels": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noMatchModels": "No matching models",
+  "marketTitle": "ModelScope Market",
+  "marketIntro": "Download GGUF models from ModelScope to run offline on your phone. Q4-quantized 0.6B–2B models balance quality and memory.",
+  "sectionDownloads": "Downloads",
+  "sectionCurated": "Curated Models (official Qwen)",
+  "sectionOtherRepos": "Other Repositories",
+  "customRepoHint": "Enter a model ID, e.g. Qwen/Qwen3-1.7B-GGUF",
+  "viewBtn": "View",
+  "customRepo": "Custom repository",
+  "customRepoDesc": "Fetch the GGUF file list of this repository from ModelScope",
+  "noGgufFiles": "No GGUF weights available in this repository",
+  "marketConnError": "Cannot reach ModelScope. Check your network and try again.",
+  "listFilesFailed": "Failed to fetch file list: {error}",
+  "@listFilesFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "retry": "Retry",
+  "downloadTooltip": "Download",
+  "failedTooltip": "Failed",
+  "curatedDescQwen3_0_6B_GGUF": "Lightweight pick · works on low-end phones · 0.4–0.6GB",
+  "curatedDescQwen3_1_7B_GGUF": "Balanced quality and speed · mid-range phones or better",
+  "curatedDescQwen3_4B_GGUF": "Better answers · needs 6GB+ memory",
+  "curatedDescQwen2_5_0_5B_Instruct_GGUF": "Previous-gen small model · memory-friendly",
+  "curatedDescQwen2_5_1_5B_Instruct_GGUF": "Previous-gen balanced pick",
+  "curatedDescQwen2_5_3B_Instruct_GGUF": "Previous-gen quality tier",
+  "curatedSizeQwen3_0_6B_GGUF": "about 0.4–0.7 GB",
+  "curatedSizeQwen3_1_7B_GGUF": "about 1.0–1.9 GB",
+  "curatedSizeQwen3_4B_GGUF": "about 2.3–4.4 GB",
+  "curatedSizeQwen2_5_0_5B_Instruct_GGUF": "about 0.4–0.7 GB",
+  "curatedSizeQwen2_5_1_5B_Instruct_GGUF": "about 0.9–1.8 GB",
+  "curatedSizeQwen2_5_3B_Instruct_GGUF": "about 1.8–3.2 GB",
+  "assistantTitle": "Health Guidance",
+  "assistantModelLabel": "Model: {name}",
+  "@assistantModelLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clearConversationTooltip": "Clear chat",
+  "clearConversationTitle": "Clear Chat",
+  "clearConversationContent": "Delete the entire conversation?",
+  "clearConversationConfirm": "Clear",
+  "assistantInputHint": "e.g. My blood pressure has been high lately — any diet tips?",
+  "assistantInputNoModel": "Configure a model first",
+  "assistantDisclaimer": "AI suggestions are for reference only and do not replace professional medical advice",
+  "gatedRefusal": "I'm not confident enough to answer this reliably. Try rephrasing, or configure a stronger model under Me → AI Models.",
+  "noModelYet": "No AI model configured",
+  "noModelHint": "Set up a local model (offline) or a remote API to get personalized blood pressure guidance.",
+  "goConfigure": "Configure Model",
+  "assistantWelcomeTitle": "👋 Hi, I'm your blood pressure assistant",
+  "assistantWelcomeBody": "I base suggestions on your last 30 days of records.\nTry asking:",
+  "suggestAnalyze": "Analyze my recent blood pressure readings",
+  "suggestDiet": "My BP is high — what should I watch in my diet?",
+  "suggestMeasure": "How do I measure blood pressure correctly?",
+  "suggestExercise": "Does exercise help lower BP? What kind?",
+  "knowledgeTitle": "Health Knowledge",
+  "categoryAll": "All",
+  "noArticlesInCategory": "No articles in this category",
+  "minutesRead": "about {minutes} min read",
+  "@minutesRead": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "loadFailed": "Failed to load: {error}",
+  "@loadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fontSmaller": "Smaller text",
+  "fontLarger": "Larger text",
+  "favorite": "Favorite",
+  "aiModelSection": "AI Model",
+  "aiModelConfig": "AI Model Configuration",
+  "aiModelNotConfigured": "Not configured · Tap to add a local or remote model",
+  "aiModelCurrent": "Current: {name} ({kind})",
+  "@aiModelCurrent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "kindLocal": "local",
+  "kindRemote": "remote",
+  "llmLoadError": "Model failed to load: {error}",
+  "@llmLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sectionPreference": "Measurement Preferences",
+  "defaultArm": "Default Measurement Arm",
+  "reminderTitle": "Measurement Reminder",
+  "reminderOff": "Off",
+  "reminderDaily": "Daily",
+  "reminderInterval": "Interval",
+  "reminderDailyTime": "Reminder Time",
+  "reminderDailySubtitle": "Remind at a fixed time every day",
+  "reminderWindowTitle": "Reminder Window",
+  "reminderWindowSubtitle": "Remind within the window at fixed intervals",
+  "reminderIntervalTitle": "Reminder Interval",
+  "reminderIntervalSubtitle": "Repeat at this interval within the window",
+  "intervalMinutes": "{minutes} min",
+  "@intervalMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "windowEndAfterStart": "End time must be after start time",
+  "notificationDenied": "Notification permission not granted; reminders may not show",
+  "sectionData": "Data",
+  "exportShare": "Export & Share",
+  "exportShareSubtitle": "CSV export · Card sharing · WeChat",
+  "cloudSync": "Cloud Sync",
+  "cloudSyncSubtitle": "Off · Multi-device sync (planned)",
+  "sectionGeneral": "General",
+  "appearance": "Appearance",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "wechatConfig": "WeChat Sharing Setup",
+  "wechatNotConfigured": "AppID not set (system share is used until configured)",
+  "wechatAppIdMasked": "AppID: {masked}",
+  "@wechatAppIdMasked": {
+    "placeholders": {
+      "masked": {
+        "type": "String"
+      }
+    }
+  },
+  "wechatDialogTitle": "WeChat Sharing Setup",
+  "wechatAppIdField": "WeChat Open Platform AppID",
+  "wechatAppIdHint": "Leave empty to use system sharing",
+  "wechatUniversalLinkField": "iOS Universal Link (optional)",
+  "sectionAbout": "About",
+  "appVersionSubtitle": "v1.0.0 · Cross-platform blood pressure companion",
+  "disclaimer": "Disclaimer",
+  "disclaimerBody": "All content in this app (blood pressure classification hints, AI health guidance, knowledge articles) is for health information reference and self-management only, and is not medical diagnosis or treatment advice.\n\nAI-generated content may contain errors or omissions. Do not adjust medication or make medical decisions based on it. Consult a professional medical institution for any health concern.\n\nAll data is stored locally on your device (nothing is uploaded before cloud sync is enabled). Please back it up via the export feature.",
+  "syncTitle": "Cloud Sync",
+  "syncOn": "On",
+  "syncOff": "Off",
+  "syncEnabledBody": "Data will sync to the cloud automatically.",
+  "syncDisabledBody": "Cloud sync is a premium feature and is not available yet. All data stays on this device; back it up as CSV anytime via “Export & Share”.",
+  "syncReadiness": "Sync Readiness",
+  "readyLocal": "Local data protection (soft delete + updated_at timestamps)",
+  "readyDeviceId": "Cross-device identity (UUID primary keys + device ID)",
+  "readyOutbox": "Offline change log (outbox, {count} pending)",
+  "@readyOutbox": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "readyPlatform": "Cloud platform integration (candidates: Supabase / self-hosted API)",
+  "readyE2E": "End-to-end encrypted transport",
+  "sectionAccount": "Account (planned)",
+  "notLoggedIn": "Not signed in",
+  "loginAfterPlatform": "Sign in here once the cloud platform is available",
+  "syncNote": "Note: once a cloud platform is chosen, only a SyncService implementation is needed to enable multi-device sync — local data models and UI stay unchanged.",
+  "notifDailyTitle": "Time to measure your blood pressure 🩺",
+  "notifDailyBody": "Keep logging — your blood pressure trend matters.",
+  "channelDailyName": "Daily measurement reminder",
+  "channelDailyDesc": "Daily blood pressure measurement reminders",
+  "channelIntervalName": "Interval measurement reminder",
+  "channelIntervalDesc": "Interval blood pressure reminders within the window",
+  "settingsTitle": "Me",
+  "avgSystolicCard": "Avg Systolic",
+  "avgDiastolicCard": "Avg Diastolic",
+  "avgPulseCard": "Avg Pulse",
+  "minMaxHint": "High {high} · Low {low}",
+  "@minMaxHint": {
+    "placeholders": {
+      "high": {
+        "type": "String"
+      },
+      "low": {
+        "type": "String"
+      }
+    }
+  },
+  "replyInterrupted": "Reply interrupted: {error}",
+  "@replyInterrupted": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "llmNotConfigured": "No LLM configured",
+  "llmNotReady": "Model not ready",
+  "navHome": "Home",
+  "navStats": "Trends",
+  "navAssistant": "AI",
+  "navKnowledge": "Knowledge",
+  "navMe": "Me"
+}

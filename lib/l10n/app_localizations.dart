@@ -170,6 +170,24 @@ abstract class AppLocalizations {
   /// **'Search'**
   String get searchTitle;
 
+  /// No description provided for @marketSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search models, e.g. qwen3 1.7b gguf'**
+  String get marketSearchHint;
+
+  /// No description provided for @marketSearchResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Results'**
+  String get marketSearchResults;
+
+  /// No description provided for @marketNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No models found'**
+  String get marketNoResults;
+
   /// No description provided for @searchHint.
   ///
   /// In en, this message translates to:
@@ -1079,13 +1097,13 @@ abstract class AppLocalizations {
   /// No description provided for @llmEmptySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Download a local model from ModelScope (works offline),\nor configure a remote API (more capable).'**
+  /// **'Download a local model from the Model Center (works offline),\nor configure a remote API (more capable).'**
   String get llmEmptySubtitle;
 
   /// No description provided for @llmInstallFromMarket.
   ///
   /// In en, this message translates to:
-  /// **'Install a model from ModelScope'**
+  /// **'Install a model from Model Center'**
   String get llmInstallFromMarket;
 
   /// No description provided for @llmAddRemote.
@@ -1373,13 +1391,13 @@ abstract class AppLocalizations {
   /// No description provided for @marketTitle.
   ///
   /// In en, this message translates to:
-  /// **'ModelScope Market'**
+  /// **'Model Center'**
   String get marketTitle;
 
   /// No description provided for @marketIntro.
   ///
   /// In en, this message translates to:
-  /// **'Download GGUF models from ModelScope to run offline on your phone. Q4-quantized 0.6B–2B models balance quality and memory.'**
+  /// **'Search and download GGUF models to run offline on your phone. Multiple model communities are queried in parallel — whichever has it wins. Q4-quantized 0.6B–2B models balance quality and memory.'**
   String get marketIntro;
 
   /// No description provided for @sectionDownloads.
@@ -1421,7 +1439,7 @@ abstract class AppLocalizations {
   /// No description provided for @customRepoDesc.
   ///
   /// In en, this message translates to:
-  /// **'Fetch the GGUF file list of this repository from ModelScope'**
+  /// **'Find this repository\'s GGUF files across the connected model communities'**
   String get customRepoDesc;
 
   /// No description provided for @noGgufFiles.
@@ -1433,7 +1451,7 @@ abstract class AppLocalizations {
   /// No description provided for @marketConnError.
   ///
   /// In en, this message translates to:
-  /// **'Cannot reach ModelScope. Check your network and try again.'**
+  /// **'Cannot reach the model communities. Check your network and try again.'**
   String get marketConnError;
 
   /// No description provided for @listFilesFailed.

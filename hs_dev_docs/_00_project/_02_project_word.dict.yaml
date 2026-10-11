@@ -59,12 +59,12 @@ terms:
     desc: "一份可启用的模型配置（本地文件路径或远端 baseUrl/key/model + 多模态开关）"
     forbidden_alias: ["model_config", "llm_setting"]
 
-  - term: "模型市场"
-    en_name: "model_market"
+  - term: "模型中心"
+    en_name: "model_center"
     abbr: "market"
     scope: "method"
-    desc: "魔搭 ModelScope 的 GGUF 列表浏览与下载（modelscope_client + model_downloader）"
-    forbidden_alias: ["model_store", "marketplace"]
+    desc: "双社区（魔搭 ModelScope + HuggingFace）聚合的搜索/下载/安装/推理入口；UI 不暴露社区品牌，能搜到哪个社区就用哪个（model_center_service + model_downloader）"
+    forbidden_alias: ["model_market", "model_store", "marketplace"]
 
   - term: "分享卡"
     en_name: "share_card"

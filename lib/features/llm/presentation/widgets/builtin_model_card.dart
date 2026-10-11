@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
+import 'package:blood_pressed/features/llm/data/model_community.dart';
 import 'package:blood_pressed/features/llm/data/model_downloader.dart';
-import 'package:blood_pressed/features/llm/data/modelscope_client.dart';
 import 'package:blood_pressed/features/llm/domain/builtin_model.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
@@ -24,13 +24,16 @@ class BuiltinModelCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ready = ref.watch(builtinModelReadyProvider);
-    final task = ref.watch(modelDownloaderProvider).task(builtinDownloadKey());
+    // 内置模型固定走魔搭社区源（已实测验证），任务 key 带社区前缀
+    final builtinKey =
+        '${ref.watch(modelscopeClientProvider).id}:${builtinDownloadKey()}';
+    final task = ref.watch(modelDownloaderProvider).task(builtinKey);
     final activeNow =
         ref.watch(llmEngineProvider).activeProfileId == kBuiltinProfileId;
     final hasUserModel = ref.watch(activeLlmProfileProvider) != null;
 
     ref.listen(modelDownloaderProvider, (_, _) {
-      final t = ref.read(modelDownloaderProvider).task(builtinDownloadKey());
+      final t = ref.read(modelDownloaderProvider).task(builtinKey);
       if (t?.status == DownloadStatus.completed &&
           !ref.read(builtinModelReadyProvider)) {
         ref.read(builtinModelReadyProvider.notifier).state = true;
@@ -89,7 +92,7 @@ class BuiltinModelCard extends ConsumerWidget {
     final files = await ref.read(modelscopeClientProvider).listGgufFiles(
           kBuiltinRepoId,
         );
-    ModelScopeFile? file;
+    ModelFileInfo? file;
     for (final f in files) {
       if (f.path == kBuiltinFileName ||
           f.path.endsWith('/$kBuiltinFileName')) {
@@ -102,7 +105,9 @@ class BuiltinModelCard extends ConsumerWidget {
           SnackBar(content: Text(l10n.builtinDownloadFailed)));
       return;
     }
-    await ref.read(modelDownloaderProvider).start(kBuiltinRepoId, file);
+    await ref
+        .read(modelDownloaderProvider)
+        .start('modelscope', kBuiltinRepoId, file);
   }
 }
 

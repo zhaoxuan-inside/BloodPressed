@@ -24,7 +24,7 @@
 | 路由 | go_router | 底部 5 Tab：首页/趋势/AI助手/知识/我的 |
 | 存储 | sqflite + shared_preferences | UUID 主键 + deviceId + 软删除 + updated_at |
 | OCR | 自研七段码（纯 Dart）+ PP-OCRv5 ONNX 兜底 | onnxruntime；ML Kit 双依赖待清理（TD-001） |
-| LLM | llamadart（本地 GGUF）+ dio SSE（远端） | 模型从魔搭下载 |
+| LLM | llamadart（本地 GGUF）+ dio SSE（远端） | 模型中心：魔搭+HF 双社区聚合搜索/下载/安装 |
 | i18n | flutter gen-l10n（zh/en） | `AppLocaleService.current` 为无 context 快照 |
 | 通知 | flutter_local_notifications + timezone | 每日定时与窗口周期两种模式 |
 | 分享 | share_plus + fluwx | 分享卡 PNG 圆角外透明（chg-014 约束） |
@@ -36,7 +36,7 @@ lib/
 ├── core/           # db(AppDatabase+OutboxDao) / design(色板·尺寸·分级配色)
 │                   # i18n(AppLocaleService+labels) / router / theme / utils / widgets
 ├── features/       # records(录入·历史·语音) · camera_ocr(七段码+ppocr) ·
-│                   # llm(引擎·市场·配置) · assistant(对话) · stats(趋势) ·
+│                   # llm(引擎·模型中心·配置) · assistant(对话) · stats(趋势) ·
 │                   # export(CSV+分享卡) · knowledge · settings(提醒) · sync(预留 seam)
 └── l10n/           # gen-l10n 产物（勿手改）
 ```

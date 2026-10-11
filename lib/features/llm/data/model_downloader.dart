@@ -5,13 +5,15 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'modelscope_client.dart';
+import 'package:blood_pressed/features/llm/data/model_community.dart';
+import 'package:blood_pressed/features/llm/data/modelscope_client.dart';
 
 enum DownloadStatus { queued, running, paused, completed, failed }
 
 /// 一个下载任务的可观察状态。
 class DownloadTask {
   DownloadTask({
+    required this.communityId,
     required this.key,
     required this.repoId,
     required this.filePath,
@@ -21,7 +23,9 @@ class DownloadTask {
     this.error,
   });
 
-  final String key; // repoId + filePath
+  /// 所属社区（模型中心双源；key 前缀避免跨社区撞 key）。
+  final String communityId;
+  final String key; // communityId:repoId + filePath
   final String repoId;
   final String filePath;
   final int totalBytes;
@@ -40,10 +44,20 @@ class DownloadTask {
 }
 
 /// 模型下载管理器：支持暂停/继续（HTTP Range 断点续传）、并发限制为 1。
+///
+/// 多社区：[communities] 注入社区表；下载行为（URL/传输）按任务所属社区
+/// 分发。[onCompleted] 供上层挂「下载完成 → 自动建档（安装）」钩子。
 class ModelDownloadService extends ChangeNotifier {
-  ModelDownloadService(this._client);
+  ModelDownloadService(this._defaultClient);
 
-  final ModelScopeClient _client;
+  final ModelScopeClient _defaultClient;
+  Map<String, ModelCommunity> communities = {};
+  void Function(String communityId, String repoId, String filePath)?
+      onCompleted;
+
+  ModelCommunity communityOf(String communityId) =>
+      communities[communityId] ?? _defaultClient;
+
   final Map<String, DownloadTask> _tasks = {};
   final Map<String, CancelToken> _cancelTokens = {};
   String? _activeKey;
@@ -78,8 +92,12 @@ class ModelDownloadService extends ChangeNotifier {
   }
 
   /// 开始（或继续）下载。
-  Future<void> start(String repoId, ModelScopeFile file) async {
-    final key = '$repoId/${file.path}';
+  Future<void> start(
+    String communityId,
+    String repoId,
+    ModelFileInfo file,
+  ) async {
+    final key = '$communityId:$repoId/${file.path}';
     final existing = _tasks[key];
     if (existing != null &&
         (existing.status == DownloadStatus.running)) {
@@ -95,6 +113,7 @@ class ModelDownloadService extends ChangeNotifier {
         // 已完整，直接转正
         partFile.renameSync(target);
         _upsertTask(DownloadTask(
+          communityId: communityId,
           key: key,
           repoId: repoId,
           filePath: file.path,
@@ -108,6 +127,7 @@ class ModelDownloadService extends ChangeNotifier {
     } else if (File(target).existsSync() &&
         File(target).lengthSync() == file.size) {
       _upsertTask(DownloadTask(
+        communityId: communityId,
         key: key,
         repoId: repoId,
         filePath: file.path,
@@ -120,6 +140,7 @@ class ModelDownloadService extends ChangeNotifier {
     }
 
     final task = DownloadTask(
+      communityId: communityId,
       key: key,
       repoId: repoId,
       filePath: file.path,
@@ -137,8 +158,8 @@ class ModelDownloadService extends ChangeNotifier {
     try {
       final sink = partFile.openSync(mode: FileMode.append);
       try {
-        await _client.downloadWithProgress(
-          url: _client.downloadUrl(repoId, file.path),
+        await communityOf(communityId).downloadWithProgress(
+          url: communityOf(communityId).downloadUrl(repoId, file.path),
           startFrom: startFrom,
           // 闭合 Range（bytes=start-end）：魔搭直连端点对开放 Range
           // （bytes=N-）会返回全量 Content-Length 却只发送剩余部分并断开，
@@ -162,6 +183,7 @@ class ModelDownloadService extends ChangeNotifier {
       _activeKey = null;
       _startNextQueued();
       notifyListeners();
+      onCompleted?.call(communityId, repoId, file.path);
     } catch (e) {
       if (cancelToken.isCancelled) {
         task
@@ -209,8 +231,8 @@ class ModelDownloadService extends ChangeNotifier {
   void _startNextQueued0(DownloadTask t) {
     // 延迟一拍，避免在 notifyListeners 过程中递归
     Future.microtask(() {
-      final file = ModelScopeFile(path: t.filePath, size: t.totalBytes);
-      start(t.repoId, file);
+      final file = ModelFileInfo(path: t.filePath, size: t.totalBytes);
+      start(t.communityId, t.repoId, file);
     });
   }
 
@@ -219,7 +241,8 @@ class ModelDownloadService extends ChangeNotifier {
     for (final t in _cancelTokens.values) {
       t.cancel('dispose');
     }
-    _client.dispose();
+    _defaultClient.dispose();
     super.dispose();
   }
 }
+

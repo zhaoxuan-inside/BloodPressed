@@ -95,7 +95,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     route: '/market',
     icon: Icons.cloud_download_outlined,
     title: (l10n) => l10n.marketTitle,
-    keywords: ['模型市场', '魔搭', '下载模型', 'gguf', 'qwen', 'market'],
+    keywords: ['模型中心', '模型市场', '搜索模型', '下载模型', 'gguf', 'qwen', 'market', 'center'],
     pinyin: ['moxingshichang', 'xiazai', 'moda'],
     rootNavigator: true
   ),

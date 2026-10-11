@@ -8,7 +8,7 @@ import 'package:blood_pressed/features/export/presentation/export_page.dart';
 import 'package:blood_pressed/features/knowledge/presentation/knowledge_list_page.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 import 'package:blood_pressed/features/llm/presentation/llm_settings_page.dart';
-import 'package:blood_pressed/features/llm/presentation/model_market_page.dart';
+import 'package:blood_pressed/features/llm/presentation/model_center_page.dart';
 import 'package:blood_pressed/features/records/presentation/home_page.dart';
 import 'package:blood_pressed/features/records/presentation/record_edit_page.dart';
 import 'package:blood_pressed/features/settings/presentation/settings_page.dart';
@@ -169,7 +169,7 @@ GoRouter buildAppRouter() {
         path: '/market',
         name: 'market',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const ModelMarketPage(),
+        builder: (context, state) => const ModelCenterPage(),
       ),
       GoRoute(
         path: '/record/new',

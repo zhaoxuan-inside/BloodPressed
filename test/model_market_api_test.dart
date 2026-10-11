@@ -97,7 +97,7 @@ void main() {
       await expectLater(
         client.listGgufFiles('This/DoesNotExist-xyz-GGUF'),
         throwsA(isA<InferenceException>()
-            .having((e) => e.message, 'message', contains('魔搭返回错误'))),
+            .having((e) => e.message, 'message', contains('获取模型文件失败'))),
       );
     }, timeout: const Timeout(Duration(minutes: 2)));
   });
@@ -171,9 +171,9 @@ void main() {
       final meta = (await client.listFiles(_repo))
           .firstWhere((f) => f.path == filePath);
 
-      await service.start(_repo, meta);
+      await service.start('modelscope', _repo, meta);
 
-      final task = service.task('$_repo/$filePath')!;
+      final task = service.task('modelscope:$_repo/$filePath')!;
       expect(task.status, DownloadStatus.completed,
           reason: '失败原因：${task.error}');
       final target = await ModelDownloadService.targetPath(_repo, filePath);
@@ -191,9 +191,9 @@ void main() {
       final target = await ModelDownloadService.targetPath(_repo, filePath);
       File('$target.part').writeAsBytesSync(full.sublist(0, 20));
 
-      await service.start(_repo, meta);
+      await service.start('modelscope', _repo, meta);
 
-      final task = service.task('$_repo/$filePath')!;
+      final task = service.task('modelscope:$_repo/$filePath')!;
       expect(task.status, DownloadStatus.completed,
           reason: '失败原因：${task.error}');
       expect(task.receivedBytes, meta.size);
@@ -206,10 +206,10 @@ void main() {
       final meta = (await client.listFiles(_repo))
           .firstWhere((f) => f.path == filePath);
 
-      await service.start(_repo, meta);
-      await service.start(_repo, meta);
+      await service.start('modelscope', _repo, meta);
+      await service.start('modelscope', _repo, meta);
 
-      final task = service.task('$_repo/$filePath')!;
+      final task = service.task('modelscope:$_repo/$filePath')!;
       expect(task.status, DownloadStatus.completed);
     }, timeout: const Timeout(Duration(minutes: 2)));
   });

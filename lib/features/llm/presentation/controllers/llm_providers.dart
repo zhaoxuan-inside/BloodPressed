@@ -4,7 +4,9 @@ import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
+import 'package:blood_pressed/features/llm/data/huggingface_client.dart';
 import 'package:blood_pressed/features/llm/data/llm_profile_store.dart';
+import 'package:blood_pressed/features/llm/data/model_center_service.dart';
 import 'package:blood_pressed/features/llm/data/model_downloader.dart';
 import 'package:blood_pressed/features/llm/data/modelscope_client.dart';
 import 'package:blood_pressed/features/llm/domain/builtin_model.dart';
@@ -102,6 +104,18 @@ class LlmProfilesController
       }).config,
     ));
     await refresh();
+  }
+
+  /// 为已下载的模型文件幂等建档（模型中心「安装」语义）：
+  /// 同一 modelPath 只建一份档案；返回是否新建。
+  Future<bool> ensureLocalProfileForFile(
+    String modelPath,
+    String name,
+  ) async {
+    final existing = await _store.list();
+    if (existing.any((p) => p.modelPath == modelPath)) return false;
+    await addLocalModel(name: name, modelPath: modelPath);
+    return true;
   }
 
   Future<void> delete(String id) async {
@@ -307,10 +321,41 @@ final llmEngineProvider =
   throw UnimplementedError('需在 main() 中覆盖');
 });
 
-// ---------------- 模型下载 / 魔搭 ----------------
+// ---------------- 模型下载 / 模型中心（双社区） ----------------
 
 final modelscopeClientProvider =
     Provider<ModelScopeClient>((ref) => ModelScopeClient());
 
+final huggingFaceClientProvider =
+    Provider<HuggingFaceClient>((ref) => HuggingFaceClient());
+
+/// 模型中心：并行搜索/查找多个模型社区，能搜到哪个就用哪个。
+final modelCenterServiceProvider = Provider<ModelCenterService>(
+    (ref) => ModelCenterService({
+          ref.watch(modelscopeClientProvider).id:
+              ref.watch(modelscopeClientProvider),
+          ref.watch(huggingFaceClientProvider).id:
+              ref.watch(huggingFaceClientProvider),
+        }));
+
 final modelDownloaderProvider = ChangeNotifierProvider<ModelDownloadService>(
-    (ref) => ModelDownloadService(ref.watch(modelscopeClientProvider)));
+    (ref) {
+  final scopeClient = ref.watch(modelscopeClientProvider);
+  final hfClient = ref.watch(huggingFaceClientProvider);
+  final service = ModelDownloadService(scopeClient)
+    ..communities = {
+      scopeClient.id: scopeClient,
+      hfClient.id: hfClient,
+    };
+  // 下载完成 → 自动建档（「安装」）。幂等：同一路径只建一份。
+  service.onCompleted = (communityId, repoId, filePath) async {
+    final target = await ModelDownloadService.targetPath(repoId, filePath);
+    final name = filePath.contains('/')
+        ? filePath.split('/').last
+        : filePath;
+    await ref
+        .read(llmProfilesProvider.notifier)
+        .ensureLocalProfileForFile(target, name);
+  };
+  return service;
+});

@@ -14,7 +14,7 @@ import 'package:blood_pressed/features/app_search/domain/feature_registry.dart';
 import 'package:blood_pressed/features/app_search/domain/feature_search_service.dart';
 import 'package:blood_pressed/features/app_search/presentation/feature_search_page.dart';
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
-import 'package:blood_pressed/features/llm/presentation/model_market_page.dart';
+import 'package:blood_pressed/features/llm/presentation/model_center_page.dart';
 import 'package:blood_pressed/features/records/presentation/record_edit_page.dart';
 import 'package:blood_pressed/features/settings/presentation/settings_page.dart';
 import 'package:blood_pressed/features/sync/presentation/sync_page.dart';
@@ -184,7 +184,7 @@ void main() {
 
       unawaited(router.push('/market'));
       await tester.pump(const Duration(milliseconds: 300));
-      expect(find.byType(ModelMarketPage), findsOneWidget);
+      expect(find.byType(ModelCenterPage), findsOneWidget);
       router.pop();
       await tester.pump(const Duration(milliseconds: 300));
 

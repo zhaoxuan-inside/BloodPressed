@@ -1,7 +1,7 @@
 /// 全功能 UI 集成测试：真实 SQLite 仓库 + 真实 assets，无业务层假数据。
 ///
 /// sqflite_ffi 的 isolate 回包必须在真实事件循环中交付，因此本文件
-/// 使用 [RealNetworkWidgetsBinding] + [pumpUntilReal]（同魔搭页测试）。
+/// 使用 [RealNetworkWidgetsBinding] + [pumpUntilReal]（同模型中心页测试）。
 library;
 
 import 'package:fl_chart/fl_chart.dart';
@@ -248,7 +248,7 @@ void main() {
     await tester.tap(find.text('添加并启用'));
     await pumpUntilReal(
       tester,
-      () => tester.any(find.text('从魔搭社区安装模型')),
+      () => tester.any(find.text('从模型中心安装模型')),
     );
 
     final list = await tester.runAsync(() => app.profiles.list());
@@ -271,7 +271,7 @@ void main() {
     expect(find.text('帮我分析一下最近的血压情况'), findsOneWidget);
   });
 
-  testWidgets('我的页：设置落盘、云同步占位、魔搭市场入口、免责声明',
+  testWidgets('我的页：设置落盘、云同步占位、模型中心入口、免责声明',
       (tester) async {
     await app.pumpApp(tester);
 
@@ -324,8 +324,8 @@ void main() {
     }
     await tester.tap(find.text('AI 模型配置'));
     await pumpUntilReal(tester, () => tester.any(find.text('尚未配置任何模型')));
-    await tester.tap(find.text('从魔搭社区安装模型'));
-    await pumpUntilReal(tester, () => tester.any(find.text('魔搭模型市场')));
+    await tester.tap(find.text('从模型中心安装模型'));
+    await pumpUntilReal(tester, () => tester.any(find.text('模型中心')));
     expect(find.text('Qwen3 0.6B'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('其他仓库'),

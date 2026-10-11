@@ -48,6 +48,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get searchTitle => '搜索';
 
   @override
+  String get marketSearchHint => '搜索模型，如 qwen3 1.7b gguf';
+
+  @override
+  String get marketSearchResults => '搜索结果';
+
+  @override
+  String get marketNoResults => '未找到相关模型';
+
+  @override
   String get searchHint => '搜索功能与设置，如「提醒」「导出」';
 
   @override
@@ -547,10 +556,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get llmEmptyTitle => '尚未配置任何模型';
 
   @override
-  String get llmEmptySubtitle => '从魔搭社区下载一个本地模型（离线可用），\n或配置一个远端 API（能力更强）。';
+  String get llmEmptySubtitle => '从模型中心下载一个本地模型（离线可用），\n或配置一个远端 API（能力更强）。';
 
   @override
-  String get llmInstallFromMarket => '从魔搭社区安装模型';
+  String get llmInstallFromMarket => '从模型中心安装模型';
 
   @override
   String get llmAddRemote => '添加远端模型 API';
@@ -706,11 +715,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noMatchModels => '无匹配模型';
 
   @override
-  String get marketTitle => '魔搭模型市场';
+  String get marketTitle => '模型中心';
 
   @override
   String get marketIntro =>
-      '从魔搭社区（ModelScope）下载 GGUF 模型到手机，离线运行。建议选择 0.6B~2B 的 Q4 量化版本，兼顾效果与内存。';
+      '搜索并下载 GGUF 模型到手机，离线运行。同时查询多个模型社区，哪个有就用哪个。建议选择 0.6B~2B 的 Q4 量化版本。';
 
   @override
   String get sectionDownloads => '下载任务';
@@ -731,13 +740,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get customRepo => '自定义仓库';
 
   @override
-  String get customRepoDesc => '从魔搭拉取该仓库的 GGUF 文件列表';
+  String get customRepoDesc => '在已接入的模型社区中查找该仓库的 GGUF 文件';
 
   @override
   String get noGgufFiles => '该仓库没有可用的 GGUF 权重文件';
 
   @override
-  String get marketConnError => '无法连接魔搭服务器，请检查网络后重试';
+  String get marketConnError => '无法连接模型中心，请检查网络后重试';
 
   @override
   String listFilesFailed(String error) {

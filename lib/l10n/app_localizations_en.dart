@@ -49,6 +49,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchTitle => 'Search';
 
   @override
+  String get marketSearchHint => 'Search models, e.g. qwen3 1.7b gguf';
+
+  @override
+  String get marketSearchResults => 'Search Results';
+
+  @override
+  String get marketNoResults => 'No models found';
+
+  @override
   String get searchHint =>
       'Search features and settings, e.g. \"reminder\", \"export\"';
 
@@ -568,10 +577,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get llmEmptySubtitle =>
-      'Download a local model from ModelScope (works offline),\nor configure a remote API (more capable).';
+      'Download a local model from the Model Center (works offline),\nor configure a remote API (more capable).';
 
   @override
-  String get llmInstallFromMarket => 'Install a model from ModelScope';
+  String get llmInstallFromMarket => 'Install a model from Model Center';
 
   @override
   String get llmAddRemote => 'Add Remote Model API';
@@ -734,11 +743,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noMatchModels => 'No matching models';
 
   @override
-  String get marketTitle => 'ModelScope Market';
+  String get marketTitle => 'Model Center';
 
   @override
   String get marketIntro =>
-      'Download GGUF models from ModelScope to run offline on your phone. Q4-quantized 0.6B–2B models balance quality and memory.';
+      'Search and download GGUF models to run offline on your phone. Multiple model communities are queried in parallel — whichever has it wins. Q4-quantized 0.6B–2B models balance quality and memory.';
 
   @override
   String get sectionDownloads => 'Downloads';
@@ -760,14 +769,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customRepoDesc =>
-      'Fetch the GGUF file list of this repository from ModelScope';
+      'Find this repository\'s GGUF files across the connected model communities';
 
   @override
   String get noGgufFiles => 'No GGUF weights available in this repository';
 
   @override
   String get marketConnError =>
-      'Cannot reach ModelScope. Check your network and try again.';
+      'Cannot reach the model communities. Check your network and try again.';
 
   @override
   String listFilesFailed(String error) {
