@@ -36,7 +36,7 @@ lib/
 ├── core/           # db(AppDatabase+OutboxDao) / design(色板·尺寸·分级配色)
 │                   # i18n(AppLocaleService+labels) / router / theme / utils / widgets
 ├── features/       # records(录入·历史·语音) · camera_ocr(七段码+ppocr) ·
-│                   # llm(引擎·模型中心·配置) · assistant(对话) · stats(趋势) ·
+│                   # llm(引擎·模型中心·配置) · assistant(对话) · stats(趋势·分析·全屏图表) ·
 │                   # export(CSV+分享卡) · knowledge · settings(提醒) · sync(预留 seam)
 └── l10n/           # gen-l10n 产物（勿手改）
 ```
@@ -56,7 +56,7 @@ lib/
 
 ## 5. 测试策略（15 文件 / 145 用例基线）
 
-- 单元：bp_voice_parser / bp_category / formatters / reminder_schedule / ocr_parser / ppocr 逻辑 / seven_segment（含反光两种场景）
+- 单元：bp_voice_parser / bp_category / formatters / reminder_schedule / ocr_parser / ppocr 逻辑 / seven_segment（含反光两种场景）/ bp_analyzer（时段·星期·峰值）
 - 契约：records_repository（真实 SQLite）· model_market_api（真实网络）
 - UI 集成：app_integration（欢迎→录入→分级→编辑→落盘全链路）· l10n smoke
 - 规则：修 bug 先加失败测试；新枚举值必须带 labels 断言（防非穷尽 switch 回归）

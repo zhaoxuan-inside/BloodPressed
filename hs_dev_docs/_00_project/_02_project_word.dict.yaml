@@ -87,6 +87,13 @@ terms:
     desc: "每日定时 + 提醒窗口内周期提醒两种模式（reminder_service + flutter_local_notifications）"
     forbidden_alias: ["alarm", "notification_plan"]
 
+  - term: "趋势规律分析"
+    en_name: "bp_analysis"
+    abbr: "analysis"
+    scope: "method"
+    desc: "本地分析器（bp_analyzer）：时段四桶（夜间/清晨/下午/晚间）+ 星期周期 + 峰值；输出结构化数据，结论由 UI 经 l10n 渲染；分析结果可分享、可发给模型深评"
+    forbidden_alias: ["insight", "report"]
+
   - term: "界面语言"
     en_name: "app_locale"
     abbr: "l10n"
