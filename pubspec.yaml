@@ -44,9 +44,6 @@ dependencies:
   # 语音输入（血压录入页：系统原生 STT，零网络依赖）
   speech_to_text: ">=6.7.0 <8.0.0"
 
-  # OCR（ML Kit 文字识别，含中文）
-  google_mlkit_text_recognition: ">=0.14.0 <0.21.0"
-
   # 本地大模型推理（llama.cpp GGUF）
   llamadart: ^0.10.0
 

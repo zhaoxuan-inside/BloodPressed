@@ -20,7 +20,7 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.blood_pressed"
-        // 本地 GGUF 推理与 ML Kit 需要较新的运行时，minSdk 24 (Android 7.0)
+        // 本地 GGUF 推理与 PP-OCR 端侧推理需要较新的运行时，minSdk 24 (Android 7.0)
         minSdk = maxOf(24, flutter.minSdkVersion)
         targetSdk = flutter.targetSdkVersion
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
@@ -36,7 +36,8 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-            // ML Kit 中文识别库缺失其他脚本识别器类，R8 需抑制警告
+            // R8 规则入口：当前无额外规则（onnxruntime / llamadart 均无需 keep），
+            // 保留声明便于后续插件按需追加规则
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -47,9 +48,6 @@ android {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    // google_mlkit_text_recognition 插件对中文识别库仅 compileOnly，
-    // 运行时需要 app 显式引入，否则 script=chinese 抛 NoClassDefFoundError
-    implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
 }
 
 kotlin {
