@@ -16,6 +16,7 @@ class AppFeatureEntry {
     required this.icon,
     required this.title,
     required this.keywords,
+    this.pinyin = const [],
     this.rootNavigator = false,
   });
 
@@ -28,6 +29,9 @@ class AppFeatureEntry {
 
   /// 检索关键词（中英混排，匹配时大小写不敏感）。
   final List<String> keywords;
+
+  /// 手工注音（无声调拼音，用于 T1/T2 拼音检索；15 条目规模不引入拼音库）。
+  final List<String> pinyin;
 
   /// true = 根导航独立页（push）；false = 底部 Tab 分支（go 切换，
   /// push 会叠加第二层 StatefulShellRoute 导致 key 冲突崩溃）。
@@ -42,6 +46,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.home_outlined,
     title: (l10n) => l10n.navHome,
     keywords: ['首页', '主页', '记录', '血压记录', 'home'],
+    pinyin: ['shouye', 'zhuye'],
   ),
   AppFeatureEntry(
     id: 'record_new',
@@ -49,6 +54,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.edit_note,
     title: (l10n) => l10n.sectionEntry,
     keywords: ['录入', '手动录入', '记血压', '测量', '添加记录', 'entry', 'manual'],
+    pinyin: ['luru', 'jixueya', 'banya'],
     rootNavigator: true
   ),
   AppFeatureEntry(
@@ -57,6 +63,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.show_chart_outlined,
     title: (l10n) => l10n.navStats,
     keywords: ['趋势', '统计', '图表', '曲线', '血压趋势', 'trend', 'stats'],
+    pinyin: ['qushi', 'tongji', 'tubiao'],
   ),
   AppFeatureEntry(
     id: 'assistant',
@@ -64,6 +71,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.smart_toy_outlined,
     title: (l10n) => l10n.navAssistant,
     keywords: ['ai', '助手', '问答', '健康指导', '聊天', 'assistant'],
+    pinyin: ['zhushou', 'jiankangzhidao', 'liaotian'],
   ),
   AppFeatureEntry(
     id: 'knowledge',
@@ -71,6 +79,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.menu_book_outlined,
     title: (l10n) => l10n.navKnowledge,
     keywords: ['知识', '文章', '科普', '阅读', 'knowledge'],
+    pinyin: ['zhishi', 'wenzhang', 'kexue'],
   ),
   AppFeatureEntry(
     id: 'llm',
@@ -78,6 +87,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.psychology_outlined,
     title: (l10n) => l10n.aiModelConfig,
     keywords: ['模型', '大模型', 'llm', '本地模型', '远端', 'api', '配置'],
+    pinyin: ['moxing', 'peizhi', 'damoxing'],
     rootNavigator: true
   ),
   AppFeatureEntry(
@@ -86,6 +96,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.cloud_download_outlined,
     title: (l10n) => l10n.marketTitle,
     keywords: ['模型市场', '魔搭', '下载模型', 'gguf', 'qwen', 'market'],
+    pinyin: ['moxingshichang', 'xiazai', 'moda'],
     rootNavigator: true
   ),
   AppFeatureEntry(
@@ -94,6 +105,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.person_outline,
     title: (l10n) => l10n.settingsTitle,
     keywords: ['设置', '我的', '偏好', '个人', 'settings', 'me'],
+    pinyin: ['shezhi', 'wode', 'geren'],
   ),
   AppFeatureEntry(
     id: 'reminder',
@@ -101,6 +113,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.alarm_outlined,
     title: (l10n) => l10n.reminderTitle,
     keywords: ['提醒', '测量提醒', '定时', '闹钟', '周期提醒', 'reminder'],
+    pinyin: ['tixing', 'dingshi', 'naozhong', 'zhouqi'],
   ),
   AppFeatureEntry(
     id: 'export',
@@ -108,6 +121,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.ios_share_outlined,
     title: (l10n) => l10n.exportShare,
     keywords: ['导出', '分享', 'csv', 'excel', '微信', '卡片', 'export'],
+    pinyin: ['daochu', 'fenxiang', 'daoru'],
     rootNavigator: true
   ),
   AppFeatureEntry(
@@ -116,6 +130,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.cloud_outlined,
     title: (l10n) => l10n.cloudSync,
     keywords: ['同步', '云同步', '备份', '多设备', 'sync', 'cloud'],
+    pinyin: ['tongbu', 'beifen', 'yunkongbu'],
     rootNavigator: true
   ),
   AppFeatureEntry(
@@ -124,6 +139,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.palette_outlined,
     title: (l10n) => l10n.appearance,
     keywords: ['外观', '主题', '暗色', '亮色', '深色', 'theme', 'appearance'],
+    pinyin: ['waiguan', 'zhuti', 'anse'],
   ),
   AppFeatureEntry(
     id: 'language',
@@ -131,6 +147,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.language,
     title: (l10n) => l10n.langTitle,
     keywords: ['语言', '中文', '英文', 'english', 'language'],
+    pinyin: ['yuyan', 'zhongwen', 'yingwen'],
   ),
   AppFeatureEntry(
     id: 'wechat',
@@ -138,6 +155,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.chat_bubble_outline,
     title: (l10n) => l10n.wechatConfig,
     keywords: ['微信', 'appid', '分享配置', 'wechat'],
+    pinyin: ['weixin', 'fenxiangpeizhi'],
   ),
   AppFeatureEntry(
     id: 'disclaimer',
@@ -145,5 +163,6 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     icon: Icons.info_outline,
     title: (l10n) => l10n.disclaimer,
     keywords: ['免责', '免责声明', '声明', 'disclaimer'],
+    pinyin: ['mianze', 'mianzeshengming', 'shengming'],
   ),
 ];

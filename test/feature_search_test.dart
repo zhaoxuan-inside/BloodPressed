@@ -54,6 +54,41 @@ void main() {
       expect(service.match('完全无关的查询词'), isEmpty);
     });
 
+    test('T3 编辑距离：错别字「测量题醒」命中测量提醒', () {
+      final ids = service.match('测量题醒').map((e) => e.id).toList();
+      expect(ids.first, 'reminder');
+    });
+
+    test('T4 bigram 重合度：乱序「提醒测量」命中测量提醒', () {
+      final ids = service.match('提醒测量').map((e) => e.id).toList();
+      expect(ids.first, 'reminder');
+    });
+
+    test('拼音检索：tixing / shezhi / jixueya', () {
+      expect(service.match('tixing').map((e) => e.id).first, 'reminder');
+      expect(service.match('shezhi').map((e) => e.id).first, 'settings');
+      expect(service.match('jixueya').map((e) => e.id).first, 'record_new');
+    });
+
+    test('单字查询走前缀/包含（不触发模糊与重合度）', () {
+      final ids = service.match('测').map((e) => e.id).toList();
+      expect(ids, contains('record_new'));
+      expect(ids, contains('reminder'));
+    });
+
+    test('T1 精确优先于 T2：关键词精确命中排最前', () {
+      // 「模型」是 llm 条目的关键词（T1 精确），也是 market 标题
+      // 「模型市场」的包含命中（T2）——llm 应排在前
+      final ids = service.match('模型').map((e) => e.id).toList();
+      expect(ids.first, 'llm');
+      expect(ids, contains('market'));
+    });
+
+    test('全角/空白归一化：「测　量 提醒」命中测量提醒', () {
+      final ids = service.match('测　量 提醒').map((e) => e.id).toList();
+      expect(ids.first, 'reminder');
+    });
+
     test('注册表条目的路由均已注册（静态检查）', () {
       const registered = {
         '/home', '/record/new', '/stats', '/assistant', '/knowledge',

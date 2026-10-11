@@ -43,7 +43,8 @@ class _FeatureSearchPageState extends ConsumerState<FeatureSearchPage> {
         _results = _service.match(value);
         _smartMatching = false;
       });
-      if ((_results ?? const []).isEmpty && value.trim().isNotEmpty) {
+      if ((_results ?? const []).isEmpty &&
+          value.trim().length >= 2) {
         _smartFallback(value);
       }
     });
