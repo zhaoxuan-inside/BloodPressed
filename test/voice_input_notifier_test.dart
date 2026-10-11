@@ -135,7 +135,7 @@ void main() {
       });
     });
 
-    test('会话静默结束且无内容 → idle + 错误消息（不再卡聆听）', () {
+    test('会话静默结束且无内容 → error（no_speech）+ 消息（不再卡聆听）', () {
       fakeAsync((async) {
         final svc = FakeVoiceInputService();
         final notifier = VoiceInputNotifier(svc);
@@ -145,13 +145,14 @@ void main() {
         async.flushMicrotasks();
         svc.statusSink!('done');
 
-        expect(notifier.state.status, VoiceInputStatus.idle);
+        expect(notifier.state.status, VoiceInputStatus.error);
+        expect(notifier.state.errorCode, VoiceInputError.noSpeech);
         expect(notifier.state.errorMessage, isNotNull);
         notifier.dispose();
       });
     });
 
-    test('错误回调 → error 状态 + 消息，consumeResult 复位', () {
+    test('错误回调 → error 状态 + 消息 + 错误码，consumeResult 复位', () {
       fakeAsync((async) {
         final svc = FakeVoiceInputService();
         final notifier = VoiceInputNotifier(svc);
@@ -162,10 +163,29 @@ void main() {
         svc.errorSink!(VoiceInputError.permissionDenied);
 
         expect(notifier.state.status, VoiceInputStatus.error);
+        expect(notifier.state.errorCode, VoiceInputError.permissionDenied);
         expect(notifier.state.errorMessage, contains('麦克风'));
 
         notifier.consumeResult();
         expect(notifier.state.status, VoiceInputStatus.idle);
+        notifier.dispose();
+      });
+    });
+
+    test('错误回调保留已收到的 partial 文本（供错误报告排查）', () {
+      fakeAsync((async) {
+        final svc = FakeVoiceInputService();
+        final notifier = VoiceInputNotifier(svc);
+        async.flushMicrotasks();
+
+        notifier.startListening();
+        async.flushMicrotasks();
+        svc.resultSink!(_partial('血压一百三'));
+        svc.errorSink!(VoiceInputError.unknown);
+
+        expect(notifier.state.status, VoiceInputStatus.error);
+        expect(notifier.state.partialText, '血压一百三');
+        expect(notifier.state.errorCode, VoiceInputError.unknown);
         notifier.dispose();
       });
     });
@@ -200,6 +220,7 @@ void main() {
         async.elapse(const Duration(seconds: 19));
 
         expect(notifier.state.status, VoiceInputStatus.error);
+        expect(notifier.state.errorCode, VoiceInputError.watchdogTimeout);
         expect(notifier.state.errorMessage, isNotNull);
         expect(svc.stopCalls, 1);
         notifier.dispose();

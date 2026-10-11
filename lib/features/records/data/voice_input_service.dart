@@ -58,6 +58,12 @@ abstract final class VoiceInputError {
   /// 识别失败 / 未能匹配到语音（含超时无语音）。
   static const noMatch = 'no_match';
 
+  /// 会话已结束但未捕获到任何语音（与平台 no_match 区分，便于排查）。
+  static const noSpeech = 'no_speech';
+
+  /// 本地看门狗超时兜底（插件层静默挂起，无任何回调）。
+  static const watchdogTimeout = 'watchdog_timeout';
+
   /// 其他未知错误。
   static const unknown = 'unknown';
 }

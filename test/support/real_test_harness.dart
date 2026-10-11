@@ -86,6 +86,22 @@ class RealAppHarness {
       const MethodChannel('plugin.csdcorp.com/speech_to_text'),
       (call) async => call.method == 'initialize' ? false : null,
     );
+    // 设置页 About 卡通过 package_info_plus 读取真实版本号；
+    // 测试宿主无平台实现，mock 为与 pubspec 一致的固定版本。
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('dev.fluttercommunity.plus/package_info'),
+      (call) async => call.method == 'getAll'
+          ? <String, Object?>{
+              'appName': 'BloodPressed',
+              'packageName': 'com.example.blood_pressed',
+              'version': '1.2.0',
+              'buildNumber': '2',
+              'buildSignature': '',
+              'installerStore': null,
+            }
+          : null,
+    );
     prefs = await SharedPreferences.getInstance();
     settings = AppSettings(prefs);
     await settings.deviceId();

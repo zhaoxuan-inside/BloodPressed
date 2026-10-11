@@ -153,6 +153,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sourceVoice => 'Voice';
 
   @override
+  String get voiceInputAction => 'Voice input blood pressure';
+
+  @override
+  String get voiceListening => 'Listening…';
+
+  @override
+  String get voiceNotAvailable =>
+      'Speech recognition unavailable on this device';
+
+  @override
+  String get voiceErrorTitle => 'Voice Input Failed';
+
+  @override
+  String get voiceErrorCopyHint =>
+      'Tap \"Copy error details\" to copy the diagnostic context (error code, recognized text, device and app info) for troubleshooting.';
+
+  @override
+  String get voiceErrorCopy => 'Copy error details';
+
+  @override
+  String get voiceErrorCopied => 'Error details copied';
+
+  @override
   String get categoryLow => 'Low';
 
   @override
@@ -451,6 +474,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cardExportFailed => 'Failed to export card';
+
+  @override
+  String get cardCaptureFailed =>
+      'Failed to render share card, please try again';
 
   @override
   String get shareCardRecordHeader => 'BloodPressed · BP Record';
@@ -1114,8 +1141,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionAbout => 'About';
 
   @override
-  String get appVersionSubtitle =>
-      'v1.0.0 · Cross-platform blood pressure companion';
+  String get appVersionSubtitle => 'Cross-platform blood pressure companion';
 
   @override
   String get disclaimer => 'Disclaimer';

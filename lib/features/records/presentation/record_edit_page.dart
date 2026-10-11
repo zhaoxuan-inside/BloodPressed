@@ -1,6 +1,9 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:blood_pressed/core/providers.dart';
 import 'package:blood_pressed/core/design/bp_category_style.dart';
@@ -158,10 +161,19 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
   void _onVoiceResult(VoiceInputState? prev, VoiceInputState next) {
     if (next.status == VoiceInputStatus.error && next.errorMessage != null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(next.errorMessage!)),
-      );
+      // 先捕获字段再复位状态，随后弹出错误弹窗（含可复制的排查上下文）
+      final message = next.errorMessage!;
+      final errorCode = next.errorCode;
+      final partialText = next.partialText;
       ref.read(voiceInputProvider.notifier).consumeResult();
+      showDialog<void>(
+        context: context,
+        builder: (_) => _VoiceErrorDialog(
+          message: message,
+          errorCode: errorCode,
+          partialText: partialText,
+        ),
+      );
       return;
     }
     if (next.status != VoiceInputStatus.done) return;
@@ -248,17 +260,6 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
               suffix: l10n.pulseUnit,
               highlight: widget.initialLowConfidence,
             ),
-            // ── 语音输入按钮（设备不支持时隐藏）───────────────────────────────
-            if (voiceState.status != VoiceInputStatus.notAvailable) ...[
-              const SizedBox(height: 8),
-              _VoiceMicRow(
-                voiceState: voiceState,
-                onTap: voiceState.isListening
-                    ? () => ref.read(voiceInputProvider.notifier).stopListening()
-                    : () => ref.read(voiceInputProvider.notifier).startListening(),
-              ),
-            ],
-
             const SizedBox(height: 12),
             SegmentedButton<MeasureArm>(
               segments: [
@@ -327,6 +328,13 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
               ),
             ],
             const SizedBox(height: 24),
+            _VoiceInputButton(
+              voiceState: voiceState,
+              onTap: voiceState.isListening
+                  ? () => ref.read(voiceInputProvider.notifier).stopListening()
+                  : () => ref.read(voiceInputProvider.notifier).startListening(),
+            ),
+            const SizedBox(height: 12),
             FilledButton.icon(
               icon: const Icon(Icons.check),
               label: Text(_isEditing ? l10n.saveEdit : l10n.saveNew),
@@ -466,9 +474,12 @@ class _NumberField extends StatelessWidget {
   }
 }
 
-/// 语音输入触发行：麦克风按钮 + 实时识别文本气泡。
-class _VoiceMicRow extends StatelessWidget {
-  const _VoiceMicRow({
+/// 语音输入按钮：与保存按钮同级的整宽按钮。
+///
+/// 必须始终显式展示——设备不支持时保持可见并禁用（文案明示原因），
+/// 不允许静默隐藏入口；聆听中变为红色提示态并实时显示识别文本。
+class _VoiceInputButton extends StatelessWidget {
+  const _VoiceInputButton({
     required this.voiceState,
     required this.onTap,
   });
@@ -479,55 +490,115 @@ class _VoiceMicRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isListening = voiceState.isListening;
-    final partial = voiceState.partialText;
+    final notAvailable = voiceState.status == VoiceInputStatus.notAvailable;
 
-    return Row(
-      children: [
-        // 麦克风按钮
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isListening
-                ? theme.colorScheme.error.withValues(alpha: 0.12)
-                : Colors.transparent,
+    final String label;
+    if (notAvailable) {
+      label = l10n.voiceNotAvailable;
+    } else if (isListening) {
+      label = voiceState.partialText.isEmpty
+          ? l10n.voiceListening
+          : voiceState.partialText;
+    } else {
+      label = l10n.voiceInputAction;
+    }
+
+    return FilledButton.tonalIcon(
+      onPressed: notAvailable ? null : onTap,
+      icon: Icon(isListening ? Icons.stop_rounded : Icons.mic_none_outlined),
+      label: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      style: isListening
+          ? FilledButton.styleFrom(
+              backgroundColor: theme.colorScheme.errorContainer,
+              foregroundColor: theme.colorScheme.onErrorContainer,
+            )
+          : null,
+    );
+  }
+}
+
+/// 语音输入错误弹窗：展示用户可读的失败原因，
+/// 并提供「复制错误信息」按钮，将结构化排查上下文写入剪贴板。
+class _VoiceErrorDialog extends StatelessWidget {
+  const _VoiceErrorDialog({
+    required this.message,
+    required this.errorCode,
+    required this.partialText,
+  });
+
+  /// 用户可读的错误描述（来自 provider）。
+  final String message;
+
+  /// 平台层原始错误码（可能为 null，报告中显示 unknown）。
+  final String? errorCode;
+
+  /// 出错时已捕获的中间识别文本（可能为空）。
+  final String partialText;
+
+  /// 组装可复制的排查报告。标签使用稳定英文键，便于检索与比对；
+  /// 版本号取不到时退化为 unknown（测试环境 PackageInfo 不可用）。
+  Future<String> _buildReport(BuildContext context) async {
+    final locale = Localizations.localeOf(context);
+    final version = await PackageInfo.fromPlatform()
+        .then((p) => '${p.version}+${p.buildNumber}')
+        .catchError((_) => 'unknown');
+    return [
+      '[BloodPressed voice-input error report]',
+      'time: ${DateTime.now().toIso8601String()}',
+      'errorCode: ${errorCode ?? 'unknown'}',
+      'message: $message',
+      'recognizedText: ${partialText.isEmpty ? '(empty)' : partialText}',
+      'appVersion: $version',
+      'platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
+      'locale: $locale',
+    ].join('\n');
+  }
+
+  Future<void> _copyReport(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final report = await _buildReport(context);
+    await Clipboard.setData(ClipboardData(text: report));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.voiceErrorCopied)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      icon: Icon(Icons.mic_off_outlined, color: theme.colorScheme.error),
+      title: Text(l10n.voiceErrorTitle),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(message),
+          const SizedBox(height: 12),
+          Text(
+            l10n.voiceErrorCopyHint,
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.outline),
           ),
-          child: IconButton(
-            iconSize: 28,
-            icon: Icon(
-              isListening ? Icons.mic : Icons.mic_none_outlined,
-              color: isListening
-                  ? theme.colorScheme.error
-                  : theme.colorScheme.primary,
-            ),
-            tooltip: isListening ? '点击停止聆听' : '语音输入血压数值',
-            onPressed: onTap,
-          ),
+        ],
+      ),
+      actions: [
+        TextButton.icon(
+          onPressed: () => _copyReport(context),
+          icon: const Icon(Icons.copy_rounded, size: 18),
+          label: Text(l10n.voiceErrorCopy),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: isListening
-                ? Text(
-                    partial.isEmpty ? '正在聆听…' : partial,
-                    key: const ValueKey('listening'),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outline,
-                      fontStyle: FontStyle.italic,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  )
-                : Text(
-                    '点击麦克风，说出血压数值',
-                    key: const ValueKey('idle'),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outline,
-                    ),
-                  ),
-          ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.okGotIt),
         ),
       ],
     );

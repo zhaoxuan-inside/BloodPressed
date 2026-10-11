@@ -68,7 +68,12 @@ Future<void> _shareCard(
   final l10n = AppLocalizations.of(context);
   try {
     final bytes = await captureCard(context, card);
-    if (bytes == null || !context.mounted) return;
+    if (!context.mounted) return;
+    if (bytes == null) {
+      messenger.showSnackBar(
+          SnackBar(content: Text(AppLocaleService.auto.cardCaptureFailed)));
+      return;
+    }
     final dir = await getTemporaryDirectory();
     final file = File(
         '${dir.path}${Platform.pathSeparator}bp_card_${DateTime.now().millisecondsSinceEpoch}.png');

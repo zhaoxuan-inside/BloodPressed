@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:blood_pressed/core/providers.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
@@ -22,6 +23,9 @@ class SettingsPage extends ConsumerStatefulWidget {
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   String _mask(String id) =>
       id.length <= 8 ? id : '${id.substring(0, 4)}****${id.substring(id.length - 4)}';
+
+  /// 真实应用版本（pubspec versionName），About 卡展示；测试环境取不到时退化为纯标语。
+  Future<PackageInfo>? _packageInfo;
 
   @override
   Widget build(BuildContext context) {
@@ -231,7 +235,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ListTile(
                   leading: const Icon(Icons.monitor_heart_outlined),
                   title: Text(l10n.appTitle),
-                  subtitle: Text(l10n.appVersionSubtitle),
+                  // 版本号取自构建配置（pubspec versionName），不再硬编码在词条里
+                  subtitle: FutureBuilder<PackageInfo>(
+                    future: _packageInfo ??= PackageInfo.fromPlatform(),
+                    builder: (context, snap) {
+                      final version = snap.data?.version;
+                      return Text(version == null || version.isEmpty
+                          ? l10n.appVersionSubtitle
+                          : 'v$version · ${l10n.appVersionSubtitle}');
+                    },
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.info_outline),

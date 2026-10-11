@@ -61,6 +61,7 @@ dependencies:
 
   # 图片处理（多模态识别前压缩）
   image: ^4.3.0
+  package_info_plus: ^9.0.1
 
 dev_dependencies:
   flutter_test:

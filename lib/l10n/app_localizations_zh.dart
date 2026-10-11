@@ -146,6 +146,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sourceVoice => '语音录入';
 
   @override
+  String get voiceInputAction => '语音输入血压数值';
+
+  @override
+  String get voiceListening => '正在聆听…';
+
+  @override
+  String get voiceNotAvailable => '当前设备不支持语音识别';
+
+  @override
+  String get voiceErrorTitle => '语音输入失败';
+
+  @override
+  String get voiceErrorCopyHint =>
+      '点击「复制错误信息」可复制详细上下文（错误码、识别内容、设备与应用信息），便于反馈和排查问题。';
+
+  @override
+  String get voiceErrorCopy => '复制错误信息';
+
+  @override
+  String get voiceErrorCopied => '错误信息已复制';
+
+  @override
   String get categoryLow => '偏低';
 
   @override
@@ -434,6 +456,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get cardExportFailed => '卡片导出失败';
+
+  @override
+  String get cardCaptureFailed => '分享卡片生成失败，请重试';
 
   @override
   String get shareCardRecordHeader => '血压了么 · 血压记录';
@@ -1069,7 +1094,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sectionAbout => '关于';
 
   @override
-  String get appVersionSubtitle => 'v1.0.0 · 跨平台血压健康助手';
+  String get appVersionSubtitle => '跨平台血压健康助手';
 
   @override
   String get disclaimer => '免责声明';

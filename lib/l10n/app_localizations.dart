@@ -362,6 +362,48 @@ abstract class AppLocalizations {
   /// **'Voice'**
   String get sourceVoice;
 
+  /// No description provided for @voiceInputAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice input blood pressure'**
+  String get voiceInputAction;
+
+  /// No description provided for @voiceListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening…'**
+  String get voiceListening;
+
+  /// No description provided for @voiceNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech recognition unavailable on this device'**
+  String get voiceNotAvailable;
+
+  /// No description provided for @voiceErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice Input Failed'**
+  String get voiceErrorTitle;
+
+  /// No description provided for @voiceErrorCopyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap \"Copy error details\" to copy the diagnostic context (error code, recognized text, device and app info) for troubleshooting.'**
+  String get voiceErrorCopyHint;
+
+  /// No description provided for @voiceErrorCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy error details'**
+  String get voiceErrorCopy;
+
+  /// No description provided for @voiceErrorCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Error details copied'**
+  String get voiceErrorCopied;
+
   /// No description provided for @categoryLow.
   ///
   /// In en, this message translates to:
@@ -875,6 +917,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to export card'**
   String get cardExportFailed;
+
+  /// No description provided for @cardCaptureFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to render share card, please try again'**
+  String get cardCaptureFailed;
 
   /// No description provided for @shareCardRecordHeader.
   ///
@@ -2043,7 +2091,7 @@ abstract class AppLocalizations {
   /// No description provided for @appVersionSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'v1.0.0 · Cross-platform blood pressure companion'**
+  /// **'Cross-platform blood pressure companion'**
   String get appVersionSubtitle;
 
   /// No description provided for @disclaimer.

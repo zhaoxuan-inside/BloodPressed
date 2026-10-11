@@ -23,6 +23,7 @@ class VoiceInputState {
     this.partialText = '',
     this.result,
     this.errorMessage,
+    this.errorCode,
   });
 
   final VoiceInputStatus status;
@@ -36,6 +37,9 @@ class VoiceInputState {
   /// 错误描述（status == error 时非 null）。
   final String? errorMessage;
 
+  /// 平台层原始错误码（status == error 时非 null，用于错误报告与排查）。
+  final String? errorCode;
+
   bool get isListening => status == VoiceInputStatus.listening;
   bool get isAvailable =>
       status == VoiceInputStatus.idle ||
@@ -47,12 +51,14 @@ class VoiceInputState {
     String? partialText,
     VoiceParseResult? result,
     String? errorMessage,
+    String? errorCode,
   }) =>
       VoiceInputState(
         status: status ?? this.status,
         partialText: partialText ?? this.partialText,
         result: result ?? this.result,
         errorMessage: errorMessage ?? this.errorMessage,
+        errorCode: errorCode ?? this.errorCode,
       );
 }
 
@@ -122,9 +128,14 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
   void _onError(String code) {
     if (!mounted) return;
     _cancelWatchdog();
-    // cancelOnError 下错误伴随会话取消，无结果可等，必须显式复位
+    // cancelOnError 下错误伴随会话取消，无结果可等，必须显式复位。
+    // 保留 partialText 供错误报告排查。
     if (state.status != VoiceInputStatus.listening) return;
-    state = VoiceInputState(status: VoiceInputStatus.error, errorMessage: _messageFor(code));
+    state = state.copyWith(
+      status: VoiceInputStatus.error,
+      errorMessage: _messageFor(code),
+      errorCode: code,
+    );
   }
 
   void _onStatus(String status) {
@@ -141,9 +152,10 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
     state = parsed.hasAny
         ? VoiceInputState(
             status: VoiceInputStatus.done, result: parsed, partialText: partial)
-        : VoiceInputState(
-            status: VoiceInputStatus.idle,
-            errorMessage: '未听到内容，请靠近设备重试',
+        : state.copyWith(
+            status: VoiceInputStatus.error,
+            errorMessage: _messageFor(VoiceInputError.noSpeech),
+            errorCode: VoiceInputError.noSpeech,
           );
   }
 
@@ -185,9 +197,10 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
               status: VoiceInputStatus.done,
               result: parsed,
               partialText: partial)
-          : VoiceInputState(
+          : state.copyWith(
               status: VoiceInputStatus.error,
-              errorMessage: '没有听到声音，请点击麦克风重试',
+              errorMessage: _messageFor(VoiceInputError.watchdogTimeout),
+              errorCode: VoiceInputError.watchdogTimeout,
             );
     });
   }
@@ -204,6 +217,10 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
       case VoiceInputError.notAvailable:
         return '当前设备不支持语音识别';
       case VoiceInputError.noMatch:
+        return '没有听到声音，请点击麦克风重试';
+      case VoiceInputError.noSpeech:
+        return '未听到内容，请靠近设备重试';
+      case VoiceInputError.watchdogTimeout:
         return '没有听到声音，请点击麦克风重试';
       default:
         return '语音识别出错，请重试';
