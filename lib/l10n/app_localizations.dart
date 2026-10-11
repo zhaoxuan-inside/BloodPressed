@@ -1562,6 +1562,12 @@ abstract class AppLocalizations {
   /// **'AI suggestions are for reference only and do not replace professional medical advice'**
   String get assistantDisclaimer;
 
+  /// No description provided for @gatedRefusal.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m not confident enough to answer this reliably. Try rephrasing, or configure a stronger model under Me → AI Models.'**
+  String get gatedRefusal;
+
   /// No description provided for @noModelYet.
   ///
   /// In en, this message translates to:

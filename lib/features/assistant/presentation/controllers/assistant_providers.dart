@@ -8,6 +8,7 @@ import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 import 'package:blood_pressed/features/assistant/data/chat_repository.dart';
 import 'package:blood_pressed/features/assistant/data/health_context_builder.dart';
+import 'package:blood_pressed/features/assistant/domain/gated_answer.dart';
 
 class ChatUiState {
   const ChatUiState({
@@ -41,16 +42,33 @@ class ChatUiState {
       );
 }
 
+/// 控制器对 Provider 容器的最小依赖：只读。
+typedef AssistantRefReader = T Function<T>(ProviderListenable<T> listenable);
+
 class AssistantController extends StateNotifier<ChatUiState> {
-  AssistantController(this._chatRepo, this._contextBuilder, this._engineRef)
-      : super(const ChatUiState()) {
+  /// [_gatedChatOverride] 仅测试注入：门槛路径的 JSON 问答出口。
+  AssistantController(
+    this._chatRepo,
+    this._contextBuilder,
+    this._read, {
+    Future<Map<String, Object?>> Function(
+            List<ChatMessage> messages, int maxTokens)?
+        gatedChatOverride,
+  })  : _gatedChatOverride = gatedChatOverride, // ignore: prefer_initializing_formals
+        super(const ChatUiState()) {
     _load();
   }
 
   final ChatRepository _chatRepo;
   final HealthContextBuilder _contextBuilder;
-  final Ref _engineRef;
+  final AssistantRefReader _read;
+  final Future<Map<String, Object?>> Function(
+          List<ChatMessage> messages, int maxTokens)?
+      _gatedChatOverride;
   StreamSubscription<String>? _sub;
+
+  /// 门槛问答的会话序号：stopStreaming 自增作废在途请求。
+  int _gatedSeq = 0;
 
   Future<void> _load() async {
     final history = await _chatRepo.history();
@@ -61,7 +79,7 @@ class AssistantController extends StateNotifier<ChatUiState> {
     final trimmed = text.trim();
     if (trimmed.isEmpty || state.sending) return;
 
-    final engineController = _engineRef.read(llmEngineProvider.notifier);
+    final engineController = _read(llmEngineProvider.notifier);
     final err = await engineController.ensureReady();
     if (err != null) {
       state = state.copyWith(error: err);
@@ -88,6 +106,15 @@ class AssistantController extends StateNotifier<ChatUiState> {
       messages: [...state.messages, userMsg],
       clearStreaming: true,
     );
+
+    // 内置默认模型 → 90 分置信度门槛路径（非流式 JSON 问答）；
+    // 用户自配模型 → 现有流式路径（零门槛）。
+    if (_read(isBuiltinActiveProvider)) {
+      // 空流式占位：UI 显示"思考中"气泡
+      state = state.copyWith(streamingContent: '');
+      await _sendGated(systemPrompt: systemPrompt);
+      return;
+    }
 
     final buffer = StringBuffer();
     try {
@@ -128,6 +155,7 @@ class AssistantController extends StateNotifier<ChatUiState> {
 
   void stopStreaming() {
     _sub?.cancel();
+    _gatedSeq++; // 作废在途的门槛问答（结果不再入库）
     final partial = state.streamingContent;
     if (partial != null && partial.isNotEmpty) {
       _chatRepo
@@ -137,6 +165,44 @@ class AssistantController extends StateNotifier<ChatUiState> {
       });
     } else {
       state = state.copyWith(sending: false, clearStreaming: true);
+    }
+  }
+
+  /// 门槛路径：grammar 约束 JSON 问答 + 90 分置信度硬门槛。
+  ///
+  /// 历史 [kGatedHistoryLimit] 条 + 健康上下文 + maxTokens 512 适配
+  /// 内置档案 contextSize=2048。置信度不足或解析失败一律以拒答文案
+  /// 入库——宁可说不知道，不给不可靠的健康建议。
+  Future<void> _sendGated({required String systemPrompt}) async {
+    final seq = ++_gatedSeq;
+    final history = state.messages;
+    final trimmedHistory = history.length > kGatedHistoryLimit
+        ? history.sublist(history.length - kGatedHistoryLimit)
+        : history;
+    final messages = <ChatMessage>[
+      ChatMessage(
+        id: 'system',
+        role: ChatRole.system,
+        content: '$systemPrompt\n\n$gatedAnswerInstruction',
+        createdAt: DateTime.now(),
+      ),
+      ...trimmedHistory,
+    ];
+    try {
+      final json = _gatedChatOverride != null
+          ? await _gatedChatOverride(messages, 512)
+          : await _read(llmEngineProvider.notifier)
+              .chatJson(messages, schema: gatedAnswerSchema, maxTokens: 512);
+      if (seq != _gatedSeq) return; // 已被 stopStreaming 作废
+      final parsed = parseGatedAnswer(json);
+      final text = parsed != null && parsed.isReliable
+          ? parsed.answer
+          : AppLocaleService.auto.gatedRefusal;
+      final reply = await _chatRepo.append(ChatRole.assistant, text);
+      state = ChatUiState(messages: [...state.messages, reply]);
+    } catch (e) {
+      if (seq != _gatedSeq) return;
+      state = state.copyWith(sending: false, error: '$e', clearStreaming: true);
     }
   }
 

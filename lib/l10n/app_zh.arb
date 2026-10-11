@@ -244,6 +244,7 @@
   "assistantInputHint": "例如：我最近血压偏高，饮食上要注意什么？",
   "assistantInputNoModel": "请先配置模型",
   "assistantDisclaimer": "AI 建议仅供参考，不能替代专业医疗意见",
+  "gatedRefusal": "这个问题我暂时没有足够的把握，不想给你不靠谱的答案。可以换个问法试试，或在「我的 → AI 模型」配置更强的模型。",
   "noModelYet": "尚未配置 AI 模型",
   "noModelHint": "配置本地模型（离线可用）或远端 API 后，\n即可获得个性化血压健康指导。",
   "goConfigure": "去配置模型",

@@ -807,6 +807,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get assistantDisclaimer => 'AI 建议仅供参考，不能替代专业医疗意见';
 
   @override
+  String get gatedRefusal =>
+      '这个问题我暂时没有足够的把握，不想给你不靠谱的答案。可以换个问法试试，或在「我的 → AI 模型」配置更强的模型。';
+
+  @override
   String get noModelYet => '尚未配置 AI 模型';
 
   @override

@@ -10,6 +10,19 @@ library;
 /// 置信度门槛（百分制）。
 const int kGatedAnswerThreshold = 90;
 
+/// 门槛路径发送的历史消息条数上限（不含 system）。
+///
+/// 内置档案 contextSize=2048，健康上下文约 600 token，答案预留
+/// maxTokens=512：历史裁剪到最近 8 条避免上下文溢出。
+const int kGatedHistoryLimit = 8;
+
+/// 附加到系统提示末尾的门槛输出指令。
+const String gatedAnswerInstruction =
+    '输出要求：只输出一个 JSON 对象 {"answer": "面向用户的回答", "confidence": 整数}。'
+    'confidence 是你对答案正确性的把握（0~100）：仅当答案基于可靠的健康常识、'
+    '且与用户数据一致时才给 90 及以上；涉及具体诊断、用药，或你不确定时，'
+    '必须给 90 以下并如实说明。';
+
 /// 引擎 grammar 约束用的输出 schema（chatJson 的 schema 参数）。
 ///
 /// 注意：llamadart 的 JSON-schema→GBNF 子集不支持数值 minimum/maximum，

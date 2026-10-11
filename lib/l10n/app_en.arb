@@ -494,6 +494,7 @@
   "assistantInputHint": "e.g. My blood pressure has been high lately — any diet tips?",
   "assistantInputNoModel": "Configure a model first",
   "assistantDisclaimer": "AI suggestions are for reference only and do not replace professional medical advice",
+  "gatedRefusal": "I'm not confident enough to answer this reliably. Try rephrasing, or configure a stronger model under Me → AI Models.",
   "noModelYet": "No AI model configured",
   "noModelHint": "Set up a local model (offline) or a remote API to get personalized blood pressure guidance.",
   "goConfigure": "Configure Model",

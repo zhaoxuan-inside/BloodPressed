@@ -842,6 +842,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'AI suggestions are for reference only and do not replace professional medical advice';
 
   @override
+  String get gatedRefusal =>
+      'I\'m not confident enough to answer this reliably. Try rephrasing, or configure a stronger model under Me → AI Models.';
+
+  @override
   String get noModelYet => 'No AI model configured';
 
   @override

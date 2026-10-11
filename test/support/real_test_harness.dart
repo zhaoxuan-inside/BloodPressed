@@ -119,7 +119,7 @@ class RealAppHarness {
         assistantProvider.overrideWith((ref) => AssistantController(
               ref.watch(chatRepositoryProvider),
               HealthContextBuilder(ref.watch(recordsRepositoryProvider)),
-              ref,
+              ref.read,
             )),
         activeLlmProfileIdProvider
             .overrideWith((ref) => settings.activeLlmProfileId),
