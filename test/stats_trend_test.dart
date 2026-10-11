@@ -21,7 +21,6 @@ import 'package:blood_pressed/features/llm/presentation/controllers/llm_provider
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
 import 'package:blood_pressed/features/records/data/records_repository.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
-import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
 import 'package:blood_pressed/features/stats/domain/bp_analyzer.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
