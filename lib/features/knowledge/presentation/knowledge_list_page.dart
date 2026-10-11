@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/features/knowledge/domain/knowledge_article.dart';
 import 'package:blood_pressed/features/knowledge/presentation/controllers/knowledge_providers.dart';
@@ -23,12 +22,15 @@ class _KnowledgeListPageState extends ConsumerState<KnowledgeListPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final articles = ref.watch(knowledgeListProvider);
+    // 生效语言取自 Localizations（含跟随系统解析）：页面随其重建，
+    // 并以它为键选中对应语言的文章数据
+    final isEn = Localizations.localeOf(context).languageCode == 'en';
+    final articles = ref.watch(knowledgeListProvider(isEn));
     final filtered = _category == null
         ? articles
         : articles.where((a) => a.category == _category).toList();
 
-    final categories = KnowledgeArticle.categoriesForLocale(AppLocaleService.isEn);
+    final categories = KnowledgeArticle.categoriesForLocale(isEn);
     if (_category != null && !categories.contains(_category)) {
       _category = null;
     }

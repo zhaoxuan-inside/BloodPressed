@@ -96,3 +96,15 @@
 - **更新时间**：`2026-10-11T06:55:39Z`
 ---
 
+### 任务简述：knowledge-locale-001
+- **标题**：知识库内容语言解析缺陷：跟随系统/切换后停留旧语言
+- **change_size**：`S`
+- **状态**：`COMPLETED`
+- **优先级**：P1
+- **负责人**：agent
+- **核心目标**：知识库列表与正文跟随生效语言（含跟随系统解析），修复 provider 只监听语言偏好导致的旧语言停留与正文缓存串语言
+- **详情索引**：`_02_task_detail/_01_knowledge-locale-001/_00_task_detail.md`
+- **上下文包**：`_03_task_context_pack/_01_knowledge-locale-001/_00_context_pack.md`
+- **更新时间**：`2026-10-11T07:30:49Z`
+---
+
