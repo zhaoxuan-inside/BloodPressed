@@ -1,2 +1,1 @@
 {"version": "1.0", "category": "task_active", "root": "_09_task"}
-{"id": "builtin-001", "title": "内置默认模型 Qwen3-1.7B + 功能搜索跳转 + 90 分置信度门槛问答", "path": "_02_task_detail/_01_builtin-001/_00_task_detail.md", "status": "READY", "digest": "03d882cd"}
