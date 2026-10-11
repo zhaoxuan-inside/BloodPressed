@@ -142,6 +142,45 @@
     }
   },
   "statsTitle": "Blood Pressure Trends",
+  "bucketNight": "Night",
+  "bucketMorning": "Morning",
+  "bucketAfternoon": "Afternoon",
+  "bucketEvening": "Evening",
+  "analysisTitle": "BP Patterns",
+  "analysisOnTargetShort": "{count}/{total} on target",
+  "@analysisOnTargetShort": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "analysisPeakLine": "Peak {sys}/{dia} · {time}",
+  "@analysisPeakLine": {
+    "placeholders": {
+      "sys": {"type": "int"},
+      "dia": {"type": "int"},
+      "time": {"type": "String"}
+    }
+  },
+  "analysisConclusionElevated": "Average BP elevated in the {bucket} window ({avgSys}/{avgDia})",
+  "@analysisConclusionElevated": {
+    "placeholders": {
+      "bucket": {"type": "String"},
+      "avgSys": {"type": "String"},
+      "avgDia": {"type": "String"}
+    }
+  },
+  "analysisConclusionIdeal": "Average BP is within the ideal range across all windows",
+  "statsAiAnalyze": "AI Analysis",
+  "aiAnalysisPrompt": "Please analyze my blood pressure data for {range}: {summary}. Point out time-of-day patterns, weekday differences and trends worth attention, and give suggestions.",
+  "@aiAnalysisPrompt": {
+    "placeholders": {
+      "range": {"type": "String"},
+      "summary": {"type": "String"}
+    }
+  },
+  "shareCardTrendHeader": "BloodPressed · BP Trend",
+  "shareCardAnalysisHeader": "BloodPressed · BP Patterns",
   "fullscreenTrendHint": "Fullscreen",
   "statsCustom": "Custom",
   "armBoth": "Both arms",

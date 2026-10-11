@@ -22,6 +22,19 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
   final ScrollController _scrollCtrl = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    // 消费外部注入的分析请求（趋势页「AI 分析」）：只发一次，随即清空
+    Future.microtask(() {
+      final pending = ref.read(pendingAssistantPromptProvider);
+      if (pending != null && pending.trim().isNotEmpty) {
+        ref.read(pendingAssistantPromptProvider.notifier).state = null;
+        ref.read(assistantProvider.notifier).send(pending);
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _inputCtrl.dispose();
     _scrollCtrl.dispose();

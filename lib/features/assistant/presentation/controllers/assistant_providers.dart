@@ -223,3 +223,8 @@ final assistantProvider =
     StateNotifierProvider<AssistantController, ChatUiState>((ref) {
   throw UnimplementedError('需在 main() 中覆盖');
 });
+
+/// 待自动发送的分析请求：其它页面（如趋势页「AI 分析」）写入后跳转
+/// 助手页，助手页 initState 消费并清空。模型不可用时由 send() 的
+/// ensureReady 错误兜底。
+final pendingAssistantPromptProvider = StateProvider<String?>((ref) => null);

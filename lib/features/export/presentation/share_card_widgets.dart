@@ -12,6 +12,9 @@ import 'package:blood_pressed/core/utils/bp_category.dart';
 import 'package:blood_pressed/features/records/data/records_repository.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/core/utils/formatters.dart';
+import 'package:blood_pressed/features/stats/domain/bp_analyzer.dart';
+import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
+import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// 卡片截图工具。
@@ -250,6 +253,258 @@ class StatsShareCard extends StatelessWidget {
     if (days <= 30) return l10n.days30;
     if (days <= 90) return l10n.days90;
     return l10n.daysPeriod;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 趋势 / 分析分享卡（趋势页分享入口，stats-trend-001）
+// ---------------------------------------------------------------------------
+
+/// 血压趋势分享卡：折线图嵌入品牌外壳。
+class TrendShareCard extends StatelessWidget {
+  const TrendShareCard({
+    super.key,
+    required this.title,
+    required this.points,
+    required this.query,
+    required this.avgSystolic,
+    required this.avgDiastolic,
+    required this.count,
+  });
+
+  final String title;
+  final List<DayPoint> points;
+  final TrendQuery query;
+  final double avgSystolic;
+  final double avgDiastolic;
+  final int count;
+
+  static const List<Color> _gradient = [
+    Color(0xFF07253F),
+    Color(0xFF124A6E),
+    Color(0xFF118877),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return _CardShell(
+      gradient: _gradient,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _BrandBadge(icon: Icons.show_chart),
+          const SizedBox(height: 18),
+          Text(l10n.shareCardTrendHeader, style: _brandLabelStyle),
+          const SizedBox(height: 8),
+          Text(title,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  height: 1.2,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3)),
+          const SizedBox(height: 14),
+          // 折线：定宽卡内固定尺寸，关闭触摸
+          SizedBox(
+            width: double.infinity,
+            height: 170,
+            child: IgnorePointer(
+              child: TrendLineChart(points: points, query: query),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _MetricTile(
+                  label: l10n.avgBpLabel,
+                  value:
+                      '${avgSystolic.toStringAsFixed(0)} / ${avgDiastolic.toStringAsFixed(0)}',
+                  unit: 'mmHg',
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _MetricTile(label: l10n.countLabel, value: '$count'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const _HairlineDivider(),
+          const SizedBox(height: 12),
+          const _CardFooter(text: '规律监测，心中有数 📈'),
+        ],
+      ),
+    );
+  }
+}
+
+/// 规律分析分享卡：时段条形 + 星期 + 峰值。
+class AnalysisShareCard extends StatelessWidget {
+  const AnalysisShareCard({
+    super.key,
+    required this.title,
+    required this.conclusion,
+    required this.analysis,
+  });
+
+  final String title;
+  final String conclusion;
+  final BpAnalysis analysis;
+
+  static const List<Color> _gradient = [
+    Color(0xFF1B1035),
+    Color(0xFF432C7A),
+    Color(0xFF7E57C2),
+  ];
+
+  static String _bucketLabel(AppLocalizations l10n, TimeBucket b) =>
+      switch (b) {
+        TimeBucket.night => l10n.bucketNight,
+        TimeBucket.morning => l10n.bucketMorning,
+        TimeBucket.afternoon => l10n.bucketAfternoon,
+        TimeBucket.evening => l10n.bucketEvening,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final weekChars = AppLocaleService.isEn
+        ? const ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+        : const ['一', '二', '三', '四', '五', '六', '日'];
+    final peak = analysis.peakRecord;
+    final maxSys = analysis.buckets.isEmpty
+        ? 1.0
+        : analysis.buckets
+            .map((b) => b.avgSystolic)
+            .reduce((a, b) => a > b ? a : b);
+
+    return _CardShell(
+      gradient: _gradient,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _BrandBadge(icon: Icons.insights),
+          const SizedBox(height: 18),
+          Text(l10n.shareCardAnalysisHeader, style: _brandLabelStyle),
+          const SizedBox(height: 8),
+          Text(title,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  height: 1.2,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3)),
+          const SizedBox(height: 12),
+          // 结论
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+            ),
+            child: Text(conclusion,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13.5,
+                    height: 1.5,
+                    fontWeight: FontWeight.w600)),
+          ),
+          const SizedBox(height: 12),
+          // 时段条形
+          for (final b in analysis.buckets) ...[
+            Row(
+              children: [
+                SizedBox(
+                    width: 34,
+                    child: Text(_bucketLabel(l10n, b.bucket),
+                        style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 12))),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: (b.avgSystolic / (maxSys <= 0 ? 1 : maxSys))
+                          .clamp(0.0, 1.0),
+                      minHeight: 8,
+                      backgroundColor: Colors.white.withValues(alpha: 0.10),
+                      valueColor: AlwaysStoppedAnimation(
+                        b.avgElevated
+                            ? const Color(0xFFFF8A80)
+                            : Colors.white.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 58,
+                  child: Text(
+                    '${b.avgSystolic.toStringAsFixed(0)}/${b.avgDiastolic.toStringAsFixed(0)}',
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+          const SizedBox(height: 4),
+          // 星期行
+          if (analysis.weekdays.isNotEmpty) ...[
+            Row(
+              children: [
+                for (final w in analysis.weekdays)
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          w.avgSystolic.toStringAsFixed(0),
+                          style: TextStyle(
+                            color: w.avgSystolic >= 135
+                                ? const Color(0xFFFF8A80)
+                                : Colors.white.withValues(alpha: 0.85),
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          weekChars[w.weekday - 1],
+                          style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.55),
+                              fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          if (peak != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              l10n.analysisPeakLine(peak.systolic, peak.diastolic,
+                  Fmt.full(peak.measuredAt)),
+              style: _metaStyle,
+            ),
+          ],
+          const SizedBox(height: 14),
+          const _HairlineDivider(),
+          const SizedBox(height: 12),
+          const _CardFooter(text: '规律监测，心中有数 📈'),
+        ],
+      ),
+    );
   }
 }
 

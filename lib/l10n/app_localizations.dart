@@ -566,6 +566,88 @@ abstract class AppLocalizations {
   /// **'Blood Pressure Trends'**
   String get statsTitle;
 
+  /// No description provided for @bucketNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get bucketNight;
+
+  /// No description provided for @bucketMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get bucketMorning;
+
+  /// No description provided for @bucketAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon'**
+  String get bucketAfternoon;
+
+  /// No description provided for @bucketEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening'**
+  String get bucketEvening;
+
+  /// No description provided for @analysisTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'BP Patterns'**
+  String get analysisTitle;
+
+  /// No description provided for @analysisOnTargetShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/{total} on target'**
+  String analysisOnTargetShort(int count, int total);
+
+  /// No description provided for @analysisPeakLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak {sys}/{dia} · {time}'**
+  String analysisPeakLine(int sys, int dia, String time);
+
+  /// No description provided for @analysisConclusionElevated.
+  ///
+  /// In en, this message translates to:
+  /// **'Average BP elevated in the {bucket} window ({avgSys}/{avgDia})'**
+  String analysisConclusionElevated(
+    String bucket,
+    String avgSys,
+    String avgDia,
+  );
+
+  /// No description provided for @analysisConclusionIdeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Average BP is within the ideal range across all windows'**
+  String get analysisConclusionIdeal;
+
+  /// No description provided for @statsAiAnalyze.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Analysis'**
+  String get statsAiAnalyze;
+
+  /// No description provided for @aiAnalysisPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Please analyze my blood pressure data for {range}: {summary}. Point out time-of-day patterns, weekday differences and trends worth attention, and give suggestions.'**
+  String aiAnalysisPrompt(String range, String summary);
+
+  /// No description provided for @shareCardTrendHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'BloodPressed · BP Trend'**
+  String get shareCardTrendHeader;
+
+  /// No description provided for @shareCardAnalysisHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'BloodPressed · BP Patterns'**
+  String get shareCardAnalysisHeader;
+
   /// No description provided for @fullscreenTrendHint.
   ///
   /// In en, this message translates to:

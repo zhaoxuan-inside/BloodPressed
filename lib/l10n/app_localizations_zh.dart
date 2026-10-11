@@ -258,6 +258,57 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statsTitle => '血压趋势';
 
   @override
+  String get bucketNight => '夜间';
+
+  @override
+  String get bucketMorning => '清晨';
+
+  @override
+  String get bucketAfternoon => '下午';
+
+  @override
+  String get bucketEvening => '晚间';
+
+  @override
+  String get analysisTitle => '血压规律';
+
+  @override
+  String analysisOnTargetShort(int count, int total) {
+    return '达标 $count/$total';
+  }
+
+  @override
+  String analysisPeakLine(int sys, int dia, String time) {
+    return '最高单次 $sys/$dia · $time';
+  }
+
+  @override
+  String analysisConclusionElevated(
+    String bucket,
+    String avgSys,
+    String avgDia,
+  ) {
+    return '「$bucket」时段平均血压偏高（$avgSys/$avgDia）';
+  }
+
+  @override
+  String get analysisConclusionIdeal => '各时段平均血压均在理想范围';
+
+  @override
+  String get statsAiAnalyze => 'AI 分析';
+
+  @override
+  String aiAnalysisPrompt(String range, String summary) {
+    return '请分析我$range的血压数据：$summary。请指出时段规律、星期差异与需要注意的趋势，并给出建议。';
+  }
+
+  @override
+  String get shareCardTrendHeader => '血压了么 · 血压趋势';
+
+  @override
+  String get shareCardAnalysisHeader => '血压了么 · 规律分析';
+
+  @override
   String get fullscreenTrendHint => '全屏查看';
 
   @override

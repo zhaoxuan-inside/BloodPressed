@@ -11,6 +11,9 @@ import 'package:blood_pressed/core/widgets/stat_card.dart';
 import 'package:blood_pressed/features/records/data/records_repository.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
+import 'package:blood_pressed/features/stats/domain/bp_analyzer.dart';
+import 'package:blood_pressed/features/stats/presentation/stats_share.dart';
+import 'package:blood_pressed/features/stats/presentation/widgets/analysis_card.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
 import 'controllers/trend_providers.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
@@ -76,6 +79,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
     final query = _query;
     final trend = ref.watch(trendDataProvider(query));
     final stats = ref.watch(statsProvider(_statsRange));
+    final analysis = ref.watch(analysisDataProvider(query));
     final chartHeight = _chartHeight(context);
 
     return Scaffold(
@@ -157,10 +161,34 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                           children: [
                             const Spacer(),
                             IconButton(
+                              tooltip: l10n.shareMore,
+                              icon: const Icon(Icons.ios_share, size: 20),
+                              onPressed: () {
+                                final avgSys = points
+                                        .map((p) => p.avgSystolic)
+                                        .reduce((a, b) => a + b) /
+                                    points.length;
+                                final avgDia = points
+                                        .map((p) => p.avgDiastolic)
+                                        .reduce((a, b) => a + b) /
+                                    points.length;
+                                final count =
+                                    points.fold<int>(0, (s, p) => s + p.count);
+                                shareTrendChart(context, ref,
+                                    points: points,
+                                    query: query,
+                                    title: _rangeLabel,
+                                    avgSystolic: avgSys,
+                                    avgDiastolic: avgDia,
+                                    count: count);
+                              },
+                            ),
+                            IconButton(
                               tooltip: l10n.fullscreenTrendHint,
                               icon: const Icon(Icons.fullscreen, size: 22),
                               onPressed: () =>
-                                  context.push('/stats/fullscreen'),
+                                  context.push('/stats/fullscreen',
+                                      extra: query),
                             ),
                           ],
                         ),
@@ -208,9 +236,81 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                     ?.copyWith(color: theme.colorScheme.outline, height: 1.5),
               ),
             ),
+          // 规律分析（时段/星期/峰值 + AI 分析 + 分享）
+          analysis.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
+            data: (a) => a.isEmpty
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: AnalysisCard(
+                      analysis: a,
+                      conclusion: _conclusion(a, l10n),
+                      onAiAnalyze: () => _aiAnalyze(a),
+                      onShare: () => shareAnalysis(
+                        context,
+                        ref,
+                        analysis: a,
+                        conclusion: _conclusion(a, l10n),
+                        title: _rangeLabel,
+                      ),
+                    ),
+                  ),
+          ),
         ],
       ),
     );
+  }
+
+  String get _rangeLabel =>
+      _isCustom ? _customLabel : statsRangeLabel(AppLocaleService.auto, _days!);
+
+  /// 结论规则：时段均值达偏高口径（≥135/85）指出该时段；否则全部理想。
+  String _conclusion(BpAnalysis a, AppLocalizations l10n) {
+    for (final b in a.buckets) {
+      if (b.avgElevated) {
+        return l10n.analysisConclusionElevated(_bucketLabel(l10n, b.bucket),
+            b.avgSystolic.toStringAsFixed(0), b.avgDiastolic.toStringAsFixed(0));
+      }
+    }
+    return l10n.analysisConclusionIdeal;
+  }
+
+  static String _bucketLabel(AppLocalizations l10n, TimeBucket b) =>
+      switch (b) {
+        TimeBucket.night => l10n.bucketNight,
+        TimeBucket.morning => l10n.bucketMorning,
+        TimeBucket.afternoon => l10n.bucketAfternoon,
+        TimeBucket.evening => l10n.bucketEvening,
+      };
+
+  /// AI 分析请求：写入 pending prompt 后跳转助手页自动发送。
+  /// 摘要为紧凑中文数字串（模型侧中文上下文），不随 UI 语言变化。
+  Future<void> _aiAnalyze(BpAnalysis a) async {
+    final l10n = AppLocalizations.of(context);
+    final zhBucket = const {
+      TimeBucket.night: '夜间',
+      TimeBucket.morning: '清晨',
+      TimeBucket.afternoon: '下午',
+      TimeBucket.evening: '晚间',
+    };
+    final parts = <String>['共${a.totalCount}次测量'];
+    for (final b in a.buckets) {
+      parts.add(
+          '${zhBucket[b.bucket]}均${b.avgSystolic.round()}/${b.avgDiastolic.round()}（达标${b.onTargetCount}/${b.count}）');
+    }
+    if (a.peakRecord != null) {
+      parts.add(
+          '最高单次${a.peakRecord!.systolic}/${a.peakRecord!.diastolic}');
+    }
+    final onTarget = a.totalCount - a.abnormalCount;
+    parts.add('达标率${(onTarget * 100 / a.totalCount).round()}%');
+    final summary = '${parts.join('；')}。';
+
+    final ok = await guardAndSendAnalysis(context, ref,
+        prompt: l10n.aiAnalysisPrompt(_rangeLabel, summary));
+    if (ok && mounted) context.push('/assistant');
   }
 
   /// 小屏/横屏自适应图表高度：屏高的 1/3（竖屏下限 220、上限 300；

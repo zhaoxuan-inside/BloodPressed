@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:blood_pressed/features/stats/presentation/stats_share.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
 import 'controllers/trend_providers.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
@@ -53,13 +54,41 @@ class _FullscreenTrendPageState extends ConsumerState<FullscreenTrendPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // 顶部控制条：返回 + 系列切换
+            // 顶部控制条：返回 + 分享 + 系列切换
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 0, 12, 0),
               child: Row(
                 children: [
                   BackButton(onPressed: () => context.pop()),
                   const Spacer(),
+                  trend.maybeWhen(
+                    data: (points) => points.isEmpty
+                        ? const SizedBox.shrink()
+                        : IconButton(
+                            tooltip: l10n.shareMore,
+                            icon: const Icon(Icons.ios_share, size: 20),
+                            onPressed: () {
+                              final avgSys = points
+                                      .map((p) => p.avgSystolic)
+                                      .reduce((a, b) => a + b) /
+                                  points.length;
+                              final avgDia = points
+                                      .map((p) => p.avgDiastolic)
+                                      .reduce((a, b) => a + b) /
+                                  points.length;
+                              final count = points
+                                  .fold<int>(0, (s, p) => s + p.count);
+                              shareTrendChart(context, ref,
+                                  points: points,
+                                  query: widget.query,
+                                  title: l10n.statsTitle,
+                                  avgSystolic: avgSys,
+                                  avgDiastolic: avgDia,
+                                  count: count);
+                            },
+                          ),
+                    orElse: () => const SizedBox.shrink(),
+                  ),
                   SegmentedButton<_Series>(
                     segments: [
                       ButtonSegment(

@@ -7,6 +7,7 @@ import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:blood_pressed/core/utils/formatters.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
+import 'package:blood_pressed/features/stats/domain/bp_analyzer.dart';
 
 /// 趋势查询参数。
 ///
@@ -127,6 +128,18 @@ double xOf(DateTime date, TrendQuery q) {
   final diff = end.difference(d0).inDays;
   return (q.days - 1 - diff).toDouble().clamp(0.0, (q.days - 1).toDouble());
 }
+
+/// 规律分析：与趋势图同查询（范围 + 臂过滤），对原始记录做
+/// 时段/星期/峰值分析。跟随 recordsControllerProvider 变化自动重算。
+final analysisDataProvider =
+    FutureProvider.family<BpAnalysis, TrendQuery>((ref, q) async {
+  final repo = ref.watch(recordsRepositoryProvider);
+  final now = DateTime.now();
+  final from = q.isCustom ? q.from! : now.subtract(Duration(days: q.days));
+  final to = q.isCustom ? q.to! : now;
+  final records = await repo.list(from: from, to: to, arm: q.arm);
+  return BpAnalyzer.analyze(records);
+});
 
 /// 图表基座配置（坐标轴/网格/参考线），页面内共享。
 class ChartBase {

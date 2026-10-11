@@ -271,6 +271,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsTitle => 'Blood Pressure Trends';
 
   @override
+  String get bucketNight => 'Night';
+
+  @override
+  String get bucketMorning => 'Morning';
+
+  @override
+  String get bucketAfternoon => 'Afternoon';
+
+  @override
+  String get bucketEvening => 'Evening';
+
+  @override
+  String get analysisTitle => 'BP Patterns';
+
+  @override
+  String analysisOnTargetShort(int count, int total) {
+    return '$count/$total on target';
+  }
+
+  @override
+  String analysisPeakLine(int sys, int dia, String time) {
+    return 'Peak $sys/$dia · $time';
+  }
+
+  @override
+  String analysisConclusionElevated(
+    String bucket,
+    String avgSys,
+    String avgDia,
+  ) {
+    return 'Average BP elevated in the $bucket window ($avgSys/$avgDia)';
+  }
+
+  @override
+  String get analysisConclusionIdeal =>
+      'Average BP is within the ideal range across all windows';
+
+  @override
+  String get statsAiAnalyze => 'AI Analysis';
+
+  @override
+  String aiAnalysisPrompt(String range, String summary) {
+    return 'Please analyze my blood pressure data for $range: $summary. Point out time-of-day patterns, weekday differences and trends worth attention, and give suggestions.';
+  }
+
+  @override
+  String get shareCardTrendHeader => 'BloodPressed · BP Trend';
+
+  @override
+  String get shareCardAnalysisHeader => 'BloodPressed · BP Patterns';
+
+  @override
   String get fullscreenTrendHint => 'Fullscreen';
 
   @override
