@@ -64,6 +64,16 @@
   "voiceInputAction": "Voice input blood pressure",
   "voiceListening": "Listening…",
   "voiceNotAvailable": "Speech recognition unavailable on this device",
+  "voiceNeedPermission": "Microphone permission required — tap to grant",
+  "voiceModelMissing": "Download offline voice model (~50 MB)",
+  "voiceModelDownloading": "Downloading offline voice model {percent}%",
+  "@voiceModelDownloading": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "voiceErrorTitle": "Voice Input Failed",
   "voiceErrorCopyHint": "Tap \"Copy error details\" to copy the diagnostic context (error code, recognized text, device and app info) for troubleshooting.",
   "voiceErrorCopy": "Copy error details",

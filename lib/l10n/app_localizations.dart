@@ -380,6 +380,24 @@ abstract class AppLocalizations {
   /// **'Speech recognition unavailable on this device'**
   String get voiceNotAvailable;
 
+  /// No description provided for @voiceNeedPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone permission required — tap to grant'**
+  String get voiceNeedPermission;
+
+  /// No description provided for @voiceModelMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Download offline voice model (~50 MB)'**
+  String get voiceModelMissing;
+
+  /// No description provided for @voiceModelDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading offline voice model {percent}%'**
+  String voiceModelDownloading(int percent);
+
   /// No description provided for @voiceErrorTitle.
   ///
   /// In en, this message translates to:

@@ -62,6 +62,9 @@ dependencies:
   # 图片处理（多模态识别前压缩）
   image: ^4.3.0
   package_info_plus: ^9.0.1
+  sherpa_onnx: ^1.13.8
+  record: ^7.1.2
+  archive: ^4.5.0
 
 dev_dependencies:
   flutter_test:
@@ -90,3 +93,4 @@ hooks:
     sqlite3:
       url_pattern:
         "https://ghproxy.net/https://github.com/simolus3/sqlite3.dart/releases/download/$RELEASE_TAG/$FILENAME"
+

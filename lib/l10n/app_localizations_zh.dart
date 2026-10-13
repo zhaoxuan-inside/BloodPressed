@@ -155,6 +155,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get voiceNotAvailable => '当前设备不支持语音识别';
 
   @override
+  String get voiceNeedPermission => '需要麦克风权限，点击去授权';
+
+  @override
+  String get voiceModelMissing => '下载离线语音识别模型（约 50MB）';
+
+  @override
+  String voiceModelDownloading(int percent) {
+    return '离线语音模型下载中 $percent%';
+  }
+
+  @override
   String get voiceErrorTitle => '语音输入失败';
 
   @override

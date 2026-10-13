@@ -163,6 +163,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Speech recognition unavailable on this device';
 
   @override
+  String get voiceNeedPermission =>
+      'Microphone permission required — tap to grant';
+
+  @override
+  String get voiceModelMissing => 'Download offline voice model (~50 MB)';
+
+  @override
+  String voiceModelDownloading(int percent) {
+    return 'Downloading offline voice model $percent%';
+  }
+
+  @override
   String get voiceErrorTitle => 'Voice Input Failed';
 
   @override

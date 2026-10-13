@@ -11,9 +11,16 @@ library;
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 
+import 'package:blood_pressed/features/records/data/offline_voice_service.dart';
 import 'package:blood_pressed/features/records/data/voice_input_service.dart';
+import 'package:blood_pressed/features/records/data/voice_model_manager.dart';
 import 'package:blood_pressed/features/records/domain/bp_voice_parser.dart';
+
+/// 强制走离线引擎（调试/模拟器验证用，release 默认 false）。
+/// 构建时注入：--dart-define=VOICE_FORCE_OFFLINE=true
+const bool kVoiceForceOffline = bool.fromEnvironment('VOICE_FORCE_OFFLINE');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -24,6 +31,7 @@ class VoiceInputState {
     this.result,
     this.errorMessage,
     this.errorCode,
+    this.downloadPercent = 0,
   });
 
   final VoiceInputStatus status;
@@ -40,6 +48,9 @@ class VoiceInputState {
   /// 平台层原始错误码（status == error 时非 null，用于错误报告与排查）。
   final String? errorCode;
 
+  /// 离线模型下载进度（0~100，仅 downloading 态有意义）。
+  final int downloadPercent;
+
   bool get isListening => status == VoiceInputStatus.listening;
   bool get isAvailable =>
       status == VoiceInputStatus.idle ||
@@ -52,6 +63,7 @@ class VoiceInputState {
     VoiceParseResult? result,
     String? errorMessage,
     String? errorCode,
+    int? downloadPercent,
   }) =>
       VoiceInputState(
         status: status ?? this.status,
@@ -59,41 +71,184 @@ class VoiceInputState {
         result: result ?? this.result,
         errorMessage: errorMessage ?? this.errorMessage,
         errorCode: errorCode ?? this.errorCode,
+        downloadPercent: downloadPercent ?? this.downloadPercent,
       );
 }
 
 // ── Notifier ──────────────────────────────────────────────────────────────────
 
 class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
-  VoiceInputNotifier(this._service) : super(const VoiceInputState()) {
+  /// [_systemService] 为平台系统识别（speech_to_text），
+  /// [_offlineService] 为本地模型引擎兜底（sherpa-onnx）。
+  VoiceInputNotifier(
+    this._systemService,
+    this._offlineService,
+    this._modelStore,
+  ) : _service = _systemService,
+      super(const VoiceInputState()) {
     _init();
   }
 
-  final VoiceInputService _service;
+  VoiceInputService _service;
+  final VoiceInputService _systemService;
+  final VoiceInputService _offlineService;
+  final VoiceModelStore _modelStore;
 
   /// 看门狗：插件层超时（listenFor/pauseFor）在部分设备上不生效，
   /// 会话可能静默挂起，由本地计时器保证状态最终离开 listening。
   static const _watchdogTimeout = Duration(seconds: 18);
   Timer? _watchdog;
 
-  Future<void> _init() async {
-    bool available;
-    try {
-      available = await _service.initialize();
-    } catch (_) {
-      available = false;
+  StreamSubscription<double>? _downloadSub;
+
+  /// 初始化：系统识别优先，不可用（权限已授予仍失败）时回退离线引擎；
+  /// 离线模型未下载则进入 modelMissing 引导态。
+  ///
+  /// [allowSystem] 为 false 时跳过系统识别（下载完成/复查等重入场景，
+  /// 避免对已知不可用的系统识别重复初始化）。
+  Future<void> _init({bool allowSystem = true}) async {
+    var status = VoiceInputStatus.notAvailable;
+    var available = false;
+    var micGranted = true;
+    var downloadPercent = 0;
+    if (allowSystem && !kVoiceForceOffline) {
+      _switchTo(_systemService);
+      try {
+        available = await _systemService.initialize();
+      } catch (_) {
+        available = false;
+      }
+    }
+    if (!available) {
+      // 初始化失败时区分原因：权限未授予 → 可引导授权后恢复；
+      // 权限已授予仍失败 → 回退离线引擎。查询失败按不支持兜底。
+      try {
+        final mic = await _service.micStatus();
+        micGranted = mic.isGranted;
+      } catch (_) {
+        micGranted = true;
+      }
+      if (micGranted) {
+        _switchTo(_offlineService);
+        try {
+          available = await _offlineService.initialize();
+        } catch (_) {
+          available = false;
+        }
+        if (available) {
+          status = VoiceInputStatus.idle;
+        } else if (await _safeModelDownloaded()) {
+          // 模型已下载仍初始化失败：引擎异常，按不支持兜底
+          status = VoiceInputStatus.notAvailable;
+        } else if (_modelStore.isDownloading) {
+          // 下载在途（页面重进）：恢复进度显示
+          status = VoiceInputStatus.downloading;
+          downloadPercent = (_modelStore.progress * 100).round();
+          _listenDownloadProgress();
+        } else {
+          status = VoiceInputStatus.modelMissing;
+        }
+      } else {
+        status = VoiceInputStatus.permissionBlocked;
+      }
+    } else {
+      status = VoiceInputStatus.idle;
     }
     if (!mounted) return;
+    state = VoiceInputState(status: status, downloadPercent: downloadPercent);
+  }
+
+  Future<bool> _safeModelDownloaded() async {
+    try {
+      return await _modelStore.isDownloaded();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _switchTo(VoiceInputService service) {
+    if (identical(_service, service)) return;
+    _service = service;
+  }
+
+  /// 下载离线语音模型：modelMissing 态点击触发。
+  ///
+  /// 进度实时映射到状态（下载在 app 级 store 中进行，页面关闭后继续；
+  /// 重新进入页面时恢复进度显示），完成后切换离线引擎并初始化。
+  Future<void> startModelDownload() async {
+    if (state.status != VoiceInputStatus.modelMissing &&
+        state.status != VoiceInputStatus.downloading) {
+      return;
+    }
     state = VoiceInputState(
-      status: available
-          ? VoiceInputStatus.idle
-          : VoiceInputStatus.notAvailable,
+      status: VoiceInputStatus.downloading,
+      downloadPercent: (_modelStore.progress * 100).round(),
     );
+    _listenDownloadProgress();
+    try {
+      await _modelStore.download();
+    } catch (_) {
+      if (!mounted) return;
+      _unlistenDownloadProgress();
+      state = state.copyWith(
+        status: VoiceInputStatus.error,
+        errorMessage: '离线语音模型下载失败，请检查网络后重试',
+        errorCode: VoiceInputError.modelDownloadFailed,
+      );
+      return;
+    }
+    if (!mounted) return;
+    _unlistenDownloadProgress();
+    state = const VoiceInputState(status: VoiceInputStatus.initializing);
+    await _init(allowSystem: false);
+  }
+
+  void _listenDownloadProgress() {
+    _downloadSub ??= _modelStore.progressStream.listen((p) {
+      if (!mounted) return;
+      if (state.status != VoiceInputStatus.downloading) return;
+      state = state.copyWith(downloadPercent: (p * 100).round());
+    });
+  }
+
+  void _unlistenDownloadProgress() {
+    _downloadSub?.cancel();
+    _downloadSub = null;
+  }
+
+  /// 引导授权：permissionBlocked 态下点击按钮触发。
+  ///
+  /// 授权成功 → 重新初始化；仍未授予 → 跳系统设置。
+  /// 注意不能只处理 permanentlyDenied：系统可能因历史拒绝自动静默拒绝
+  /// （不弹窗且 permission_handler 无法识别为永久拒绝），此时设置页是
+  /// 唯一的授权途径。
+  Future<void> requestMicAccess() async {
+    if (state.status != VoiceInputStatus.permissionBlocked) return;
+    final perm = await _service.requestMicPermission();
+    if (!mounted) return;
+    if (perm.isGranted) {
+      state = const VoiceInputState(status: VoiceInputStatus.initializing);
+      await _init();
+      return;
+    }
+    await _service.openMicSettings();
+  }
+
+  /// 从系统设置返回后复查：用户在设置中授权后自动恢复可用。
+  Future<void> recheckAfterSettings() async {
+    if (state.status != VoiceInputStatus.permissionBlocked) return;
+    state = const VoiceInputState(status: VoiceInputStatus.initializing);
+    await _init();
   }
 
   /// 开始语音识别。
   Future<void> startListening() async {
-    if (state.status == VoiceInputStatus.notAvailable) return;
+    if (state.status == VoiceInputStatus.notAvailable ||
+        state.status == VoiceInputStatus.permissionBlocked ||
+        state.status == VoiceInputStatus.modelMissing ||
+        state.status == VoiceInputStatus.downloading) {
+      return;
+    }
     if (_service.isListening) return;
 
     state = const VoiceInputState(status: VoiceInputStatus.listening);
@@ -230,6 +385,7 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
   @override
   void dispose() {
     _cancelWatchdog();
+    _unlistenDownloadProgress();
     _service.dispose();
     super.dispose();
   }
@@ -241,8 +397,20 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
 final voiceInputServiceImplProvider =
     Provider<VoiceInputService>((ref) => SpeechToTextInputService());
 
+/// 离线引擎实现注入点：测试中 override 为 Fake。
+final offlineVoiceServiceProvider = Provider<VoiceInputService>(
+    (ref) => SherpaOfflineInputService(ref.watch(voiceModelStoreProvider)));
+
+/// 模型存储（app 级存活：下载不随录入页关闭中断）。
+final voiceModelStoreProvider =
+    Provider<VoiceModelStore>((ref) => VoiceModelManager());
+
 /// 每个 RecordEditPage 实例持有独立的语音识别会话（autoDispose）。
 final voiceInputProvider =
     StateNotifierProvider.autoDispose<VoiceInputNotifier, VoiceInputState>(
-  (ref) => VoiceInputNotifier(ref.watch(voiceInputServiceImplProvider)),
+  (ref) => VoiceInputNotifier(
+    ref.watch(voiceInputServiceImplProvider),
+    ref.watch(offlineVoiceServiceProvider),
+    ref.watch(voiceModelStoreProvider),
+  ),
 );

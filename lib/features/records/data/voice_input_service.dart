@@ -26,6 +26,15 @@ enum VoiceInputStatus {
 
   /// 设备不支持语音识别
   notAvailable,
+
+  /// 麦克风权限未授予导致初始化失败——显式展示并可引导授权后恢复
+  permissionBlocked,
+
+  /// 离线语音模型未下载（系统识别也不可用时的引导态）
+  modelMissing,
+
+  /// 离线语音模型下载中
+  downloading,
 }
 
 /// 平台错误码（透传给上层用于提示与恢复）。
@@ -64,6 +73,9 @@ abstract final class VoiceInputError {
   /// 本地看门狗超时兜底（插件层静默挂起，无任何回调）。
   static const watchdogTimeout = 'watchdog_timeout';
 
+  /// 离线语音模型下载失败。
+  static const modelDownloadFailed = 'model_download_failed';
+
   /// 其他未知错误。
   static const unknown = 'unknown';
 }
@@ -78,8 +90,18 @@ abstract interface class VoiceInputService {
 
   /// 初始化：申请权限、检测设备能力。
   ///
-  /// 返回 `true` 表示设备支持且权限已授予。
+  /// 返回 `true` 表示设备支持且权限已授予。失败后可再次调用
+  /// （如用户在系统弹框中授权后），成功结果会被缓存。
   Future<bool> initialize();
+
+  /// 查询麦克风运行时权限状态（不弹窗）。
+  Future<PermissionStatus> micStatus();
+
+  /// 申请麦克风运行时权限（可能弹系统授权框）。
+  Future<PermissionStatus> requestMicPermission();
+
+  /// 跳转系统设置的应用详情页（权限被永久拒绝后的唯一授权途径）。
+  Future<void> openMicSettings();
 
   /// 开始聆听。
   ///
@@ -105,13 +127,28 @@ abstract interface class VoiceInputService {
 
 /// 基于 speech_to_text 的平台实现。
 class SpeechToTextInputService implements VoiceInputService {
-  /// [requestMicPermission] 供测试注入，默认走 permission_handler。
+  /// 权限相关操作均可注入，供测试替换。
   SpeechToTextInputService({
     Future<PermissionStatus> Function()? requestMicPermission,
-  }) : _requestMicPermission =
-            requestMicPermission ?? Permission.microphone.request;
+    Future<PermissionStatus> Function()? micStatus,
+    Future<void> Function()? openSettings,
+  })  : _requestMicPermission =
+            requestMicPermission ?? Permission.microphone.request,
+        _micStatus = micStatus ?? _defaultMicStatus,
+        _openSettings = openSettings ?? _defaultOpenSettings;
+
+  /// openAppSettings 返回 `Future<bool>`，统一适配为无值 Future。
+  static Future<void> _defaultOpenSettings() async {
+    await openAppSettings();
+  }
+
+  /// 扩展 getter 不支持 tear-off，用静态方法包装。
+  static Future<PermissionStatus> _defaultMicStatus() =>
+      Permission.microphone.status;
 
   final Future<PermissionStatus> Function() _requestMicPermission;
+  final Future<PermissionStatus> Function() _micStatus;
+  final Future<void> Function() _openSettings;
 
   final stt.SpeechToText _speech = stt.SpeechToText();
 
@@ -130,7 +167,9 @@ class SpeechToTextInputService implements VoiceInputService {
 
   @override
   Future<bool> initialize() async {
-    if (_initialized) return _available;
+    // 仅缓存成功结果：失败（如权限被拒）后允许再次初始化，
+    // 用户授权后无需重启应用即可恢复。
+    if (_initialized && _available) return true;
     try {
       _available = await _speech.initialize(
         onStatus: (s) => _statusSink?.call(s),
@@ -139,9 +178,18 @@ class SpeechToTextInputService implements VoiceInputService {
     } catch (_) {
       _available = false;
     }
-    _initialized = true;
+    _initialized = _available;
     return _available;
   }
+
+  @override
+  Future<PermissionStatus> micStatus() => _micStatus();
+
+  @override
+  Future<PermissionStatus> requestMicPermission() => _requestMicPermission();
+
+  @override
+  Future<void> openMicSettings() => _openSettings();
 
   @override
   Future<void> startListening({
@@ -157,7 +205,7 @@ class SpeechToTextInputService implements VoiceInputService {
 
     // 麦克风运行时权限：未授予时部分 ROM 的识别服务会静默失败，
     // 必须在 listen 之前确保已授权。
-    final perm = await _requestMicPermission();
+    final perm = await requestMicPermission();
     if (!perm.isGranted) {
       onError?.call(VoiceInputError.permissionDenied);
       return;

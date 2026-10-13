@@ -80,10 +80,24 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
     _arm = e?.arm ?? ref.read(appSettingsProvider).defaultArm;
     _posture = e?.posture;
     _measuredAt = e?.measuredAt ?? DateTime.now();
+    // 用户跳系统设置授权后返回时，自动复查语音可用性并恢复按钮
+    _voiceLifecycleListener = AppLifecycleListener(
+      onResume: _recheckVoiceAfterSettings,
+    );
+  }
+
+  late final AppLifecycleListener _voiceLifecycleListener;
+
+  void _recheckVoiceAfterSettings() {
+    final status = ref.read(voiceInputProvider).status;
+    if (status == VoiceInputStatus.permissionBlocked) {
+      ref.read(voiceInputProvider.notifier).recheckAfterSettings();
+    }
   }
 
   @override
   void dispose() {
+    _voiceLifecycleListener.dispose();
     _sysCtrl.dispose();
     _diaCtrl.dispose();
     _pulseCtrl.dispose();
@@ -332,7 +346,19 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
               voiceState: voiceState,
               onTap: voiceState.isListening
                   ? () => ref.read(voiceInputProvider.notifier).stopListening()
-                  : () => ref.read(voiceInputProvider.notifier).startListening(),
+                  : switch (voiceState.status) {
+                      VoiceInputStatus.permissionBlocked => () => ref
+                          .read(voiceInputProvider.notifier)
+                          .requestMicAccess(),
+                      VoiceInputStatus.modelMissing ||
+                      VoiceInputStatus.downloading =>
+                        () => ref
+                            .read(voiceInputProvider.notifier)
+                            .startModelDownload(),
+                      _ => () => ref
+                          .read(voiceInputProvider.notifier)
+                          .startListening(),
+                    },
             ),
             const SizedBox(height: 12),
             FilledButton.icon(
@@ -476,8 +502,11 @@ class _NumberField extends StatelessWidget {
 
 /// 语音输入按钮：与保存按钮同级的整宽按钮。
 ///
-/// 必须始终显式展示——设备不支持时保持可见并禁用（文案明示原因），
-/// 不允许静默隐藏入口；聆听中变为红色提示态并实时显示识别文本。
+/// 必须始终显式展示，不允许静默隐藏入口：
+/// - 设备不支持 → 可见但禁用，文案明示原因；
+/// - 权限未授予 → 可见可点，点击申请授权（被拒则跳系统设置）；
+/// - 离线模型缺失/下载中 → 显示下载入口与进度；
+/// - 聆听中 → 红色提示态并实时显示识别文本。
 class _VoiceInputButton extends StatelessWidget {
   const _VoiceInputButton({
     required this.voiceState,
@@ -493,10 +522,17 @@ class _VoiceInputButton extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final isListening = voiceState.isListening;
     final notAvailable = voiceState.status == VoiceInputStatus.notAvailable;
+    final downloading = voiceState.status == VoiceInputStatus.downloading;
 
     final String label;
     if (notAvailable) {
       label = l10n.voiceNotAvailable;
+    } else if (downloading) {
+      label = l10n.voiceModelDownloading(voiceState.downloadPercent);
+    } else if (voiceState.status == VoiceInputStatus.modelMissing) {
+      label = l10n.voiceModelMissing;
+    } else if (voiceState.status == VoiceInputStatus.permissionBlocked) {
+      label = l10n.voiceNeedPermission;
     } else if (isListening) {
       label = voiceState.partialText.isEmpty
           ? l10n.voiceListening
@@ -505,9 +541,16 @@ class _VoiceInputButton extends StatelessWidget {
       label = l10n.voiceInputAction;
     }
 
+    final icon = switch (voiceState.status) {
+      VoiceInputStatus.modelMissing ||
+      VoiceInputStatus.downloading =>
+        const Icon(Icons.download_rounded),
+      _ => Icon(isListening ? Icons.stop_rounded : Icons.mic_none_outlined),
+    };
+
     return FilledButton.tonalIcon(
-      onPressed: notAvailable ? null : onTap,
-      icon: Icon(isListening ? Icons.stop_rounded : Icons.mic_none_outlined),
+      onPressed: notAvailable || downloading ? null : onTap,
+      icon: icon,
       label: Text(
         label,
         maxLines: 1,
