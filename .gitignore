@@ -63,3 +63,40 @@ desktop.ini
 
 # ZCode 会话元数据
 .zcode/
+
+# Local development output and process records (kept on disk, not published)
+/output/
+/logs/
+/hs_dev_docs/_08_dev_process/
+__pycache__/
+.pytest_cache/
+.venv/
+venv/
+*.tmp
+*.bak
+
+# These obsolete ORT copies are excluded by Android sourceSets.
+# Use the matching runtime from the sherpa_onnx dependency instead.
+/android/app/src/main/jniLibs/
+
+# Distribution artifacts belong in a release/distribution service, not source Git.
+*.apk
+*.aab
+*.apks
+*.ipa
+
+# Local credentials and health databases; safe templates may be committed.
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+/.bloodpressed-signing/
+/.secrets/
+*.pfx
+*.key
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3

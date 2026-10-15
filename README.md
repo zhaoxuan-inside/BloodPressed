@@ -141,6 +141,14 @@ UUID 主键、软删除、`updated_at` 时间戳、`sync_outbox` 离线变更日
 - AI 建议仅供参考，不构成医疗建议；分级提示采用家庭自测标准（135/85）
 - iOS 端未经真机编译验证（开发环境为 Windows）
 
+## 版本管理范围
+
+GitHub 保留应用源码、平台构建配置、`pubspec.lock`、测试及其夹具、内置语音/OCR 模型和必要设计/发布文档。
+内置模型是离线功能所需资源，不属于可删除的构建缓存。
+`.gitignore` 排除 APK、构建输出、日志、缓存、环境密钥、本地健康数据库和 `hs_dev_docs/_08_dev_process/` 内部任务流水/回退快照。
+`android/app/src/main/jniLibs/` 中旧 ORT 副本不参与构建，也不再跟踪；运行库由 sherpa_onnx 依赖提供。
+取消跟踪只更新 Git 索引，本机文件保留；历史提交不在本次清理中改写。
+
 ## 测试
 
 ```bash
