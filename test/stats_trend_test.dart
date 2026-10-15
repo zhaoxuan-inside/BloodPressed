@@ -35,7 +35,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     AppDatabase.resetInstanceForTest();
     db = await AppDatabase.openForTest(
-        await databaseFactoryFfiNoIsolate.openDatabase(inMemoryDatabasePath));
+      await databaseFactoryFfiNoIsolate.openDatabase(inMemoryDatabasePath),
+    );
   });
 
   tearDown(() async {
@@ -68,21 +69,23 @@ void main() {
       await seed(rec(8, 142, 92)); // 清晨偏高（周一）
       await seed(rec(15, 118, 76)); // 下午正常
       // 右臂记录，不进左臂过滤结果
-      await seed(BpRecord(
-        id: 'r-right',
-        systolic: 160,
-        diastolic: 100,
-        measuredAt: DateTime(2026, 10, 5, 8, 30),
-        arm: MeasureArm.right,
-        source: RecordSource.manual,
-        deviceId: 'test',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ));
+      await seed(
+        BpRecord(
+          id: 'r-right',
+          systolic: 160,
+          diastolic: 100,
+          measuredAt: DateTime(2026, 10, 5, 8, 30),
+          arm: MeasureArm.right,
+          source: RecordSource.manual,
+          deviceId: 'test',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
 
-      final container = ProviderContainer(overrides: [
-        appDatabaseProvider.overrideWithValue(db),
-      ]);
+      final container = ProviderContainer(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+      );
       addTearDown(container.dispose);
 
       final query = TrendQuery.custom(
@@ -90,8 +93,7 @@ void main() {
         DateTime(2026, 10, 5),
         arm: MeasureArm.left,
       );
-      final analysis =
-          await container.read(analysisDataProvider(query).future);
+      final analysis = await container.read(analysisDataProvider(query).future);
 
       expect(analysis.totalCount, 2);
       expect(analysis.buckets.first.bucket, TimeBucket.morning);
@@ -99,13 +101,15 @@ void main() {
     });
 
     test('无数据时 isEmpty', () async {
-      final container = ProviderContainer(overrides: [
-        appDatabaseProvider.overrideWithValue(db),
-      ]);
+      final container = ProviderContainer(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+      );
       addTearDown(container.dispose);
-      final query = TrendQuery.custom(DateTime(2026, 10, 5), DateTime(2026, 10, 5));
-      final analysis =
-          await container.read(analysisDataProvider(query).future);
+      final query = TrendQuery.custom(
+        DateTime(2026, 10, 5),
+        DateTime(2026, 10, 5),
+      );
+      final analysis = await container.read(analysisDataProvider(query).future);
       expect(analysis.isEmpty, isTrue);
     });
   });
@@ -116,55 +120,74 @@ void main() {
         id: 'remote-1',
         kind: LlmKind.remote,
         name: '远端',
-        config: {'baseUrl': 'https://api.x.com', 'model': 'm'},
+        config: {
+          'baseUrl': 'https://api.x.com',
+          'model': 'm',
+          'recipientName': 'Test recipient',
+          'recipientPolicyUrl': 'https://example.com/privacy',
+          'recipientRegion': 'mainland',
+        },
       );
       await LlmProfileStore(db).upsert(remoteProfile);
       final prefs = await SharedPreferences.getInstance();
       final settings = AppSettings(prefs);
       await settings.setActiveLlmProfile(remoteProfile.id);
+      await settings.acceptPrivacy();
+      await settings.allowRemote(remoteProfile);
 
-      final container = ProviderContainer(overrides: [
-        appDatabaseProvider.overrideWithValue(db),
-        appSettingsProvider.overrideWithValue(settings),
-        llmProfilesProvider.overrideWith((ref) => LlmProfilesController(
+      final container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          appSettingsProvider.overrideWithValue(settings),
+          llmProfilesProvider.overrideWith(
+            (ref) => LlmProfilesController(
               ref.watch(llmProfileStoreProvider),
               ref.watch(appSettingsProvider),
-            )),
-        activeLlmProfileIdProvider.overrideWith((ref) => remoteProfile.id),
-        builtinModelReadyProvider.overrideWith((ref) => false),
-        isBuiltinActiveProvider.overrideWith((ref) => true),
-        llmEngineProvider.overrideWith((ref) => LlmEngineController(ref)),
-        assistantProvider.overrideWith((ref) => AssistantController(
+            ),
+          ),
+          activeLlmProfileIdProvider.overrideWith((ref) => remoteProfile.id),
+          builtinModelReadyProvider.overrideWith((ref) => false),
+          isBuiltinActiveProvider.overrideWith((ref) => true),
+          llmEngineProvider.overrideWith((ref) => LlmEngineController(ref)),
+          assistantProvider.overrideWith(
+            (ref) => AssistantController(
               ChatRepository(db),
               HealthContextBuilder(RecordsRepository(db, OutboxDao(db))),
               ref.read,
-              gatedChatOverride: (messages, maxTokens) async =>
-                  {'answer': '分析结论', 'confidence': 95},
-            )),
-        pendingAssistantPromptProvider
-            .overrideWith((ref) => '请分析我近7天的血压数据'),
-      ]);
+              gatedChatOverride: (messages, maxTokens) async => {
+                'answer': '分析结论',
+                'confidence': 95,
+              },
+            ),
+          ),
+          pendingAssistantPromptProvider.overrideWith((ref) => '请分析我近7天的血压数据'),
+        ],
+      );
       await container.read(llmProfilesProvider.notifier).refresh();
       await container.read(llmEngineProvider.notifier).activate(remoteProfile);
       addTearDown(container.dispose);
 
-      await tester.pumpWidget(UncontrolledProviderScope(
-        container: container,
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: Locale('zh'),
-          home: AssistantPage(),
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('zh'),
+            home: AssistantPage(),
+          ),
         ),
-      ));
+      );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
       // pending 已清空；用户消息 + 门禁回答均入库到会话状态
       expect(container.read(pendingAssistantPromptProvider), isNull);
       final state = container.read(assistantProvider);
-      expect(state.messages.map((m) => m.role).toList(),
-          containsAll([ChatRole.user, ChatRole.assistant]));
+      expect(
+        state.messages.map((m) => m.role).toList(),
+        containsAll([ChatRole.user, ChatRole.assistant]),
+      );
       expect(state.messages.last.content, '分析结论');
     });
 
@@ -173,46 +196,64 @@ void main() {
         id: 'remote-1',
         kind: LlmKind.remote,
         name: '远端',
-        config: {'baseUrl': 'https://api.x.com', 'model': 'm'},
+        config: {
+          'baseUrl': 'https://api.x.com',
+          'model': 'm',
+          'recipientName': 'Test recipient',
+          'recipientPolicyUrl': 'https://example.com/privacy',
+          'recipientRegion': 'mainland',
+        },
       );
       await LlmProfileStore(db).upsert(remoteProfile);
       final prefs = await SharedPreferences.getInstance();
       final settings = AppSettings(prefs);
       await settings.setActiveLlmProfile(remoteProfile.id);
+      await settings.acceptPrivacy();
+      await settings.allowRemote(remoteProfile);
 
-      final container = ProviderContainer(overrides: [
-        appDatabaseProvider.overrideWithValue(db),
-        appSettingsProvider.overrideWithValue(settings),
-        llmProfilesProvider.overrideWith((ref) => LlmProfilesController(
+      final container = ProviderContainer(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          appSettingsProvider.overrideWithValue(settings),
+          llmProfilesProvider.overrideWith(
+            (ref) => LlmProfilesController(
               ref.watch(llmProfileStoreProvider),
               ref.watch(appSettingsProvider),
-            )),
-        activeLlmProfileIdProvider.overrideWith((ref) => remoteProfile.id),
-        builtinModelReadyProvider.overrideWith((ref) => false),
-        isBuiltinActiveProvider.overrideWith((ref) => true),
-        llmEngineProvider.overrideWith((ref) => LlmEngineController(ref)),
-        assistantProvider.overrideWith((ref) => AssistantController(
+            ),
+          ),
+          activeLlmProfileIdProvider.overrideWith((ref) => remoteProfile.id),
+          builtinModelReadyProvider.overrideWith((ref) => false),
+          isBuiltinActiveProvider.overrideWith((ref) => true),
+          llmEngineProvider.overrideWith((ref) => LlmEngineController(ref)),
+          assistantProvider.overrideWith(
+            (ref) => AssistantController(
               ChatRepository(db),
               HealthContextBuilder(RecordsRepository(db, OutboxDao(db))),
               ref.read,
-              gatedChatOverride: (messages, maxTokens) async =>
-                  {'answer': '不该出现', 'confidence': 95},
-            )),
-        pendingAssistantPromptProvider.overrideWith((ref) => null),
-      ]);
+              gatedChatOverride: (messages, maxTokens) async => {
+                'answer': '不该出现',
+                'confidence': 95,
+              },
+            ),
+          ),
+          pendingAssistantPromptProvider.overrideWith((ref) => null),
+        ],
+      );
       await container.read(llmProfilesProvider.notifier).refresh();
       await container.read(llmEngineProvider.notifier).activate(remoteProfile);
       addTearDown(container.dispose);
 
-      await tester.pumpWidget(UncontrolledProviderScope(
-        container: container,
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: Locale('zh'),
-          home: AssistantPage(),
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('zh'),
+            home: AssistantPage(),
+          ),
         ),
-      ));
+      );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 

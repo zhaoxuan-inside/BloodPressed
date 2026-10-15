@@ -15,7 +15,6 @@ import 'package:blood_pressed/features/settings/presentation/settings_page.dart'
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
 import 'package:blood_pressed/features/stats/presentation/fullscreen_trend_page.dart';
 import 'package:blood_pressed/features/stats/presentation/stats_page.dart';
-import 'package:blood_pressed/features/sync/presentation/sync_page.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// AI助手分支的 branch 索引（StatefulShellRoute 中的固定位置）。
@@ -161,12 +160,6 @@ GoRouter buildAppRouter() {
         builder: (context, state) => const ExportPage(),
       ),
       // —— 以下路由为功能搜索与统一跳转而提升（原 MaterialPageRoute）——
-      GoRoute(
-        path: '/sync',
-        name: 'sync',
-        parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const SyncPage(),
-      ),
       GoRoute(
         path: '/market',
         name: 'market',

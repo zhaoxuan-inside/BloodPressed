@@ -10,9 +10,14 @@ import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// 常用远端 API 预设（name/desc 的展示文案经 l10n 按 [id] 映射）。
 class _RemotePreset {
-  const _RemotePreset(this.id, this.name, this.baseUrl, this.modelHint,
-      this.desc,
-      {this.clearModelOnSelect = false});
+  const _RemotePreset(
+    this.id,
+    this.name,
+    this.baseUrl,
+    this.modelHint,
+    this.desc, {
+    this.clearModelOnSelect = false,
+  });
 
   final String id;
   final String name;
@@ -82,12 +87,14 @@ class RemoteProfileEditPage extends ConsumerStatefulWidget {
       _RemoteProfileEditPageState();
 }
 
-class _RemoteProfileEditPageState
-    extends ConsumerState<RemoteProfileEditPage> {
+class _RemoteProfileEditPageState extends ConsumerState<RemoteProfileEditPage> {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _baseUrlCtrl;
   late final TextEditingController _apiKeyCtrl;
   late final TextEditingController _modelCtrl;
+  late final TextEditingController _recipientCtrl;
+  late final TextEditingController _policyCtrl;
+  String _region = 'unknown';
   late bool _multimodal;
   String? _preset;
   bool _fetchingModels = false;
@@ -102,6 +109,9 @@ class _RemoteProfileEditPageState
     _baseUrlCtrl = TextEditingController(text: e?.baseUrl ?? '');
     _apiKeyCtrl = TextEditingController(text: e?.apiKey ?? '');
     _modelCtrl = TextEditingController(text: e?.remoteModel ?? '');
+    _recipientCtrl = TextEditingController(text: e?.recipientName ?? '');
+    _policyCtrl = TextEditingController(text: e?.recipientPolicyUrl ?? '');
+    _region = e?.recipientRegion ?? 'unknown';
     _multimodal = e?.multimodal ?? false;
   }
 
@@ -111,6 +121,8 @@ class _RemoteProfileEditPageState
     _baseUrlCtrl.dispose();
     _apiKeyCtrl.dispose();
     _modelCtrl.dispose();
+    _recipientCtrl.dispose();
+    _policyCtrl.dispose();
     super.dispose();
   }
 
@@ -118,55 +130,60 @@ class _RemoteProfileEditPageState
     final l10n = AppLocalizations.of(context);
     setState(() {
       _preset = p.name;
+      _recipientCtrl.clear();
+      _policyCtrl.clear();
+      _region = 'unknown';
       _baseUrlCtrl.text = p.baseUrl;
       final displayName = _presetName(l10n, p.id);
-      _nameCtrl.text =
-          _nameCtrl.text.isEmpty ? displayName : _nameCtrl.text;
-      _modelCtrl.text =
-          p.clearModelOnSelect ? '' : _modelCtrl.text;
-      _multimodal = p.baseUrl.contains('dashscope') && p.modelHint.contains('vl');
+      _nameCtrl.text = _nameCtrl.text.isEmpty ? displayName : _nameCtrl.text;
+      _modelCtrl.text = p.clearModelOnSelect ? '' : _modelCtrl.text;
+      _multimodal =
+          p.baseUrl.contains('dashscope') && p.modelHint.contains('vl');
     });
   }
 
   String _presetName(AppLocalizations l10n, String id) => switch (id) {
-        'modelscope' => l10n.presetNameModelscope,
-        'ark' => l10n.presetNameArk,
-        'dashscope' => l10n.presetNameDashScope,
-        'deepseek' => l10n.presetNameDeepSeek,
-        'openai' => l10n.presetNameOpenAI,
-        'ollama' => l10n.presetNameOllama,
-        _ => id,
-      };
+    'modelscope' => l10n.presetNameModelscope,
+    'ark' => l10n.presetNameArk,
+    'dashscope' => l10n.presetNameDashScope,
+    'deepseek' => l10n.presetNameDeepSeek,
+    'openai' => l10n.presetNameOpenAI,
+    'ollama' => l10n.presetNameOllama,
+    _ => id,
+  };
 
   String _presetDesc(AppLocalizations l10n, String id) => switch (id) {
-        'modelscope' => l10n.presetDescModelscope,
-        'ark' => l10n.presetDescArk,
-        'dashscope' => l10n.presetDescDashScope,
-        'deepseek' => l10n.presetDescDeepSeek,
-        'openai' => l10n.presetDescOpenAI,
-        'ollama' => l10n.presetDescOllama,
-        _ => '',
-      };
+    'modelscope' => l10n.presetDescModelscope,
+    'ark' => l10n.presetDescArk,
+    'dashscope' => l10n.presetDescDashScope,
+    'deepseek' => l10n.presetDescDeepSeek,
+    'openai' => l10n.presetDescOpenAI,
+    'ollama' => l10n.presetDescOllama,
+    _ => '',
+  };
 
   /// 拉取远端可用模型列表，弹出选择器；选中后填入 model 字段。
   Future<void> _fetchModels() async {
     final baseUrl = _baseUrlCtrl.text.trim();
     if (baseUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).needBaseUrl)));
+        SnackBar(content: Text(AppLocalizations.of(context).needBaseUrl)),
+      );
       return;
     }
     setState(() => _fetchingModels = true);
-    final engine = RemoteChatEngine(LlmProfile(
-      id: 'tmp',
-      kind: LlmKind.remote,
-      name: 'tmp',
-      config: {
-        'baseUrl': baseUrl,
-        'apiKey': _apiKeyCtrl.text.trim(),
-        'model': _modelCtrl.text.trim(),
-      },
-    ));
+    final engine = RemoteChatEngine(
+      LlmProfile(
+        id: 'tmp',
+        kind: LlmKind.remote,
+        name: 'tmp',
+        config: {
+          'baseUrl': baseUrl,
+          'apiKey': _apiKeyCtrl.text.trim(),
+          'model': _modelCtrl.text.trim(),
+        },
+      ),
+    );
     try {
       final models = await engine.listModels();
       if (!mounted) return;
@@ -183,8 +200,9 @@ class _RemoteProfileEditPageState
       final msg = e is InferenceException
           ? e.message
           : AppLocalizations.of(context).fetchFailed(e.toString());
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 4)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg), duration: const Duration(seconds: 4)),
+      );
     } finally {
       engine.dispose();
       if (mounted) setState(() => _fetchingModels = false);
@@ -197,7 +215,8 @@ class _RemoteProfileEditPageState
     final model = _modelCtrl.text.trim();
     if (name.isEmpty || baseUrl.isEmpty || model.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).needAllFields)));
+        SnackBar(content: Text(AppLocalizations.of(context).needAllFields)),
+      );
       return;
     }
     final controller = ref.read(llmProfilesProvider.notifier);
@@ -209,6 +228,9 @@ class _RemoteProfileEditPageState
         apiKey: _apiKeyCtrl.text.trim(),
         model: model,
         multimodal: _multimodal,
+        recipientName: _recipientCtrl.text.trim(),
+        recipientPolicyUrl: _policyCtrl.text.trim(),
+        recipientRegion: _region,
       );
     } else {
       final profile = await controller.addRemote(
@@ -217,6 +239,9 @@ class _RemoteProfileEditPageState
         apiKey: _apiKeyCtrl.text.trim(),
         model: model,
         multimodal: _multimodal,
+        recipientName: _recipientCtrl.text.trim(),
+        recipientPolicyUrl: _policyCtrl.text.trim(),
+        recipientRegion: _region,
       );
       // 新建远端配置自动激活：统一走双写 helper，激活态重启不丢
       await activateAndPersist(
@@ -236,7 +261,8 @@ class _RemoteProfileEditPageState
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-          title: Text(_isEditing ? l10n.remoteEditTitle : l10n.remoteAddTitle)),
+        title: Text(_isEditing ? l10n.remoteEditTitle : l10n.remoteAddTitle),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
@@ -246,29 +272,37 @@ class _RemoteProfileEditPageState
             spacing: 8,
             runSpacing: 8,
             children: _presets
-                .map((p) => ChoiceChip(
-                      label: Text(_presetName(l10n, p.id)),
-                      selected: _preset == p.name,
-                      onSelected: (_) => _applyPreset(p),
-                    ))
+                .map(
+                  (p) => ChoiceChip(
+                    label: Text(_presetName(l10n, p.id)),
+                    selected: _preset == p.name,
+                    onSelected: (_) => _applyPreset(p),
+                  ),
+                )
                 .toList(),
           ),
           const SizedBox(height: 8),
           Text(
             _presetDesc(
-                l10n,
-                _presets
-                    .firstWhere((p) => p.name == _preset,
-                        orElse: () => const _RemotePreset('', '', '', '', ''))
-                    .id),
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.outline),
+              l10n,
+              _presets
+                  .firstWhere(
+                    (p) => p.name == _preset,
+                    orElse: () => const _RemotePreset('', '', '', '', ''),
+                  )
+                  .id,
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.outline,
+            ),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _nameCtrl,
             decoration: InputDecoration(
-                labelText: l10n.fieldName, hintText: l10n.nameHint),
+              labelText: l10n.fieldName,
+              hintText: l10n.nameHint,
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -283,9 +317,7 @@ class _RemoteProfileEditPageState
           TextField(
             controller: _apiKeyCtrl,
             obscureText: true,
-            decoration: InputDecoration(
-              labelText: l10n.fieldApiKey,
-            ),
+            decoration: InputDecoration(labelText: l10n.fieldApiKey),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -297,9 +329,10 @@ class _RemoteProfileEditPageState
                   ? const Padding(
                       padding: EdgeInsets.all(12),
                       child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2)),
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     )
                   : IconButton(
                       tooltip: l10n.fetchModelsTooltip,
@@ -316,6 +349,37 @@ class _RemoteProfileEditPageState
             onChanged: (v) => setState(() => _multimodal = v),
           ),
           const SizedBox(height: 16),
+          Text(l10n.remoteDisclosureTitle, style: theme.textTheme.titleMedium),
+          Text(l10n.remoteDisclosureHelp, style: theme.textTheme.bodySmall),
+          TextField(
+            controller: _recipientCtrl,
+            decoration: InputDecoration(labelText: l10n.remoteRecipientName),
+          ),
+          TextField(
+            controller: _policyCtrl,
+            keyboardType: TextInputType.url,
+            decoration: InputDecoration(labelText: l10n.remoteRecipientPolicy),
+          ),
+          DropdownButtonFormField<String>(
+            initialValue: _region,
+            decoration: InputDecoration(labelText: l10n.remoteRecipientRegion),
+            items: [
+              DropdownMenuItem(
+                value: 'unknown',
+                child: Text(l10n.remoteRegionUnknown),
+              ),
+              DropdownMenuItem(
+                value: 'mainland',
+                child: Text(l10n.remoteRegionMainland),
+              ),
+              DropdownMenuItem(
+                value: 'overseas',
+                child: Text(l10n.remoteRegionOverseas),
+              ),
+            ],
+            onChanged: (value) => setState(() => _region = value ?? 'unknown'),
+          ),
+          const SizedBox(height: 16),
           FilledButton.icon(
             icon: const Icon(Icons.check),
             label: Text(_isEditing ? l10n.saveBtn : l10n.addActivateBtn),
@@ -326,7 +390,6 @@ class _RemoteProfileEditPageState
     );
   }
 }
-
 
 /// 模型选择底部弹层：支持关键字过滤。
 class _ModelPickerSheet extends StatefulWidget {
@@ -347,8 +410,8 @@ class _ModelPickerSheetState extends State<_ModelPickerSheet> {
     final filtered = _query.isEmpty
         ? widget.models
         : widget.models
-            .where((m) => m.toLowerCase().contains(_query.toLowerCase()))
-            .toList();
+              .where((m) => m.toLowerCase().contains(_query.toLowerCase()))
+              .toList();
     return SafeArea(
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 0.65,
@@ -373,8 +436,10 @@ class _ModelPickerSheetState extends State<_ModelPickerSheet> {
                       itemCount: filtered.length,
                       itemBuilder: (ctx, i) => ListTile(
                         dense: true,
-                        title: Text(filtered[i],
-                            style: const TextStyle(fontSize: 13)),
+                        title: Text(
+                          filtered[i],
+                          style: const TextStyle(fontSize: 13),
+                        ),
                         onTap: () => Navigator.of(ctx).pop(filtered[i]),
                       ),
                     ),

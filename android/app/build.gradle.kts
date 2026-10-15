@@ -1,7 +1,22 @@
+import java.util.Properties
+import java.io.File
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+val legacyBuild = providers.gradleProperty("bloodPressedLegacy").orNull == "true"
+val signingPropertiesFile = System.getenv("BP_SIGNING_PROPERTIES")?.let { file(it) }
+    ?: File(System.getProperty("user.home"), ".bloodpressed-signing/signing.properties")
+val releaseKeys = Properties().apply {
+    if (signingPropertiesFile.isFile) signingPropertiesFile.inputStream().use { load(it) }
+}
+gradle.taskGraph.whenReady {
+    if (!legacyBuild && allTasks.any { it.name.contains("Release") } && !signingPropertiesFile.isFile) {
+        throw GradleException("Formal release signing is missing. Run scripts/init_android_signing.ps1; debug signing fallback is disabled.")
+    }
 }
 
 android {
@@ -21,8 +36,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.blood_pressed"
+        applicationId = if (legacyBuild) "com.example.blood_pressed" else "com.zhaoxuan.bloodpressed"
         // 本地 GGUF 推理与 PP-OCR 端侧推理需要较新的运行时，minSdk 24 (Android 7.0)
         minSdk = maxOf(24, flutter.minSdkVersion)
         targetSdk = flutter.targetSdkVersion
@@ -40,11 +54,20 @@ android {
         }
     }
 
+    signingConfigs {
+        if (signingPropertiesFile.isFile) {
+            create("formalRelease") {
+                storeFile = file(releaseKeys.getProperty("storeFile"))
+                storePassword = releaseKeys.getProperty("storePassword")
+                keyAlias = releaseKeys.getProperty("keyAlias")
+                keyPassword = releaseKeys.getProperty("keyPassword")
+            }
+        }
+    }
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (legacyBuild) signingConfigs.getByName("debug")
+                else signingConfigs.findByName("formalRelease")
             // R8 规则入口：当前无额外规则（onnxruntime / llamadart 均无需 keep），
             // 保留声明便于后续插件按需追加规则
             proguardFiles(

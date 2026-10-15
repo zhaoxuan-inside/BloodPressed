@@ -111,6 +111,9 @@ class RealAppHarness {
         );
     prefs = await SharedPreferences.getInstance();
     settings = AppSettings(prefs);
+    // Business-only fixtures represent a user who already accepted the policy.
+    // Cold-start/refusal is exercised independently through PrivacyStartup.
+    await settings.acceptPrivacy();
     await settings.deviceId();
     // 固定中文界面语言：测试宿主 platform locale 为 en_US，
     // 跟随系统会让存量中文断言全部失效

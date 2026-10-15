@@ -17,7 +17,6 @@ import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/llm/presentation/model_center_page.dart';
 import 'package:blood_pressed/features/records/presentation/record_edit_page.dart';
 import 'package:blood_pressed/features/settings/presentation/settings_page.dart';
-import 'package:blood_pressed/features/sync/presentation/sync_page.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
 import 'support/real_test_harness.dart';
@@ -50,7 +49,8 @@ void main() {
 
     test('关键词命中（zh）', () {
       final ids = service.match('备份').map((e) => e.id).toList();
-      expect(ids, contains('sync'));
+      expect(ids, isNot(contains('sync')));
+      expect(kAppFeatureRegistry.any((entry) => entry.id == 'sync'), isFalse);
     });
 
     test('关键词命中（en，大小写不敏感）', () {
@@ -110,7 +110,6 @@ void main() {
         '/market',
         '/settings',
         '/export',
-        '/sync',
         '/search',
       };
       for (final entry in kAppFeatureRegistry) {
@@ -184,7 +183,7 @@ void main() {
   });
 
   group('路由与页面', () {
-    testWidgets('提升的 4 条路由均可直达', (tester) async {
+    testWidgets('提升的 3 条路由均可直达，云登录入口隐藏', (tester) async {
       final app = RealAppHarness();
       await app.setUp();
       addTearDown(app.tearDown);
@@ -206,11 +205,6 @@ void main() {
 
       // go_router 的 push Future 在 pop 时才完成，连续 unawaited push
       // 会丢弃前序命令式路由——逐个 push→验证→pop
-      unawaited(router.push('/sync'));
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(find.byType(SyncPage), findsOneWidget);
-      router.pop();
-      await tester.pump(const Duration(milliseconds: 300));
 
       unawaited(router.push('/market'));
       await tester.pump(const Duration(milliseconds: 300));

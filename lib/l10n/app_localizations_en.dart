@@ -1284,4 +1284,85 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get privacyPolicyLoadError =>
       'Unable to load the privacy policy. Please reopen this page.';
+
+  @override
+  String get privacyWelcomeTitle => 'Welcome to BloodPressed';
+
+  @override
+  String get privacyWelcomeBody =>
+      'Blood pressure and pulse are sensitive health data. Records stay on your device by default. Camera, speech, reminders and remote AI are optional; permissions are requested when used. System speech services may use the network; bundled recognition runs locally. Remote health sharing requires separate consent. Read the privacy policy before accepting. Business and sharing services start only after acceptance. Operator: Zhao Xuan; contact: zhaoxuanmail@163.com.';
+
+  @override
+  String get privacyAccept => 'Agree and continue';
+
+  @override
+  String get privacyDecline => 'Not now';
+
+  @override
+  String get privacyRefused =>
+      'You have not agreed. Business services remain stopped. You can still read the policy and decide later.';
+
+  @override
+  String get privacyStartupError =>
+      'Startup failed. Return to the privacy notice and try again.';
+
+  @override
+  String get privacyWithdraw => 'Withdraw privacy consent';
+
+  @override
+  String get privacyWithdrawBody =>
+      'This stops the current session and reminders and returns to the privacy notice. Local records and settings are retained. Data already sent to a provider cannot be recalled. You must agree again to resume.';
+
+  @override
+  String get remoteConsentTitle => 'Separate consent for remote health data';
+
+  @override
+  String get remoteConsentBody =>
+      'The recipient, endpoint, model and privacy policy above come from your configuration. Health analysis sends your question, chat history and a summary of the past 30 days of blood pressure, pulse and measurement times. Trend analysis also includes the selected trend data. The provider receives your IP address and API key for authentication, and handles retention under its policy. Verify the recipient, retention and rights process first. This feature is available only for services you have verified as processing in mainland China. You may decline and keep using local records and local models, or withdraw in Settings. Declining sends no request.';
+
+  @override
+  String get remoteConsentAccept => 'Agree to send health data';
+
+  @override
+  String get remoteConsentRequired =>
+      'Separate consent is required for this health data recipient.';
+
+  @override
+  String get remoteConsentWithdraw => 'Withdraw remote AI consent';
+
+  @override
+  String get remoteWithdrawBody =>
+      'Stop the current reply and clear all remote health data grants. You will be asked again before sending. Contact the provider about data already sent.';
+
+  @override
+  String get remoteWithdrawDone => 'Remote AI consent withdrawn';
+
+  @override
+  String get remoteDisclosureTitle => 'Health data recipient';
+
+  @override
+  String get remoteDisclosureHelp =>
+      'Enter the actual service operator and its privacy policy. Verify the processing location with the provider. Health data cannot currently be sent to unknown or overseas locations, or non-HTTPS endpoints. Local models remain available.';
+
+  @override
+  String get remoteRecipientName => 'Actual service operator';
+
+  @override
+  String get remoteRecipientPolicy => 'Provider privacy policy HTTPS URL';
+
+  @override
+  String get remoteRecipientRegion => 'Verified data processing location';
+
+  @override
+  String get remoteRegionUnknown => 'Not verified';
+
+  @override
+  String get remoteRegionMainland => 'Mainland China';
+
+  @override
+  String get remoteRegionOverseas => 'Overseas (health sharing unavailable)';
+
+  @override
+  String get remoteDisclosureMissing =>
+      'Complete the actual operator, HTTPS privacy policy URL and verified processing location in AI model settings. Health sharing currently requires HTTPS, no credentials embedded in the endpoint, and verified mainland China processing. Use a local model otherwise.';
 }

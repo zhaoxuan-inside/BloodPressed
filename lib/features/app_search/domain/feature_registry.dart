@@ -134,15 +134,6 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     rootNavigator: true,
   ),
   AppFeatureEntry(
-    id: 'sync',
-    route: '/sync',
-    icon: Icons.cloud_outlined,
-    title: (l10n) => l10n.cloudSync,
-    keywords: ['同步', '云同步', '备份', '多设备', 'sync', 'cloud'],
-    pinyin: ['tongbu', 'beifen', 'yunkongbu'],
-    rootNavigator: true,
-  ),
-  AppFeatureEntry(
     id: 'appearance',
     route: '/settings',
     icon: Icons.palette_outlined,

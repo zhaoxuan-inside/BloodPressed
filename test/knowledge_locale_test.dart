@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:blood_pressed/features/knowledge/data/knowledge_repository.dart';
 import 'package:blood_pressed/features/knowledge/domain/knowledge_article.dart';
+
 import 'support/real_test_harness.dart';
 
 void main() {
@@ -38,7 +39,8 @@ void main() {
     await tester.tap(find.byIcon(Icons.menu_book_outlined));
     await pumpUntilReal(
       tester,
-      () => tester.any(find.text(zhFirstTitle)) ||
+      () =>
+          tester.any(find.text(zhFirstTitle)) ||
           tester.any(find.text(enFirstTitle)),
     );
   }
@@ -57,10 +59,11 @@ void main() {
       matching: find.byType(SegmentedButton<String>),
     );
     expect(langButton, findsOneWidget);
-    await tester.tap(find.descendant(
-      of: langButton,
-      matching: find.text('跟随系统'),
-    ));
+    await tester.ensureVisible(langButton);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(of: langButton, matching: find.text('跟随系统')),
+    );
     await pumpUntilReal(tester, () => tester.any(find.text('System')));
   }
 

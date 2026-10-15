@@ -6,6 +6,7 @@ library;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:blood_pressed/features/llm/presentation/remote_profile_edit_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -239,6 +240,16 @@ void main() {
       find.widgetWithText(TextField, '模型名称（model）'),
       'deepseek-chat',
     );
+    await tester.scrollUntilVisible(
+      find.text('添加并启用'),
+      300,
+      scrollable: find
+          .descendant(
+            of: find.byType(RemoteProfileEditPage),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     await tester.tap(find.text('添加并启用'));
     await pumpUntilReal(tester, () => tester.any(find.text('从模型中心安装模型')));
 
@@ -262,13 +273,14 @@ void main() {
     expect(find.text('帮我分析一下最近的血压情况'), findsOneWidget);
   });
 
-  testWidgets('我的页：设置落盘、云同步占位、模型中心入口、免责声明', (tester) async {
+  testWidgets('我的页：设置落盘、隐藏云登录、模型中心入口、免责声明', (tester) async {
     await app.pumpApp(tester);
 
     await tester.tap(find.byIcon(Icons.person_outline));
     await pumpUntilReal(tester, () => tester.any(find.text('AI 模型配置')));
     expect(find.text('导出与分享'), findsOneWidget);
-    expect(find.text('云同步'), findsOneWidget);
+    expect(find.text('云同步'), findsNothing);
+    expect(find.text('未登录'), findsNothing);
     expect(find.text('默认测量臂'), findsOneWidget);
 
     await tester.tap(find.text('右臂'));
@@ -288,15 +300,6 @@ void main() {
     await tester.pump();
     expect(app.settings.themeMode, 'dark');
 
-    // 新增语言设置区块后页面更长，云同步行需滚入视口再点
-    await tester.ensureVisible(find.text('云同步'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('云同步'));
-    await pumpUntilReal(tester, () => tester.any(find.text('未开启')));
-    expect(find.textContaining('尚未接入云平台'), findsOneWidget);
-    // 中文 locale 下返回键 tooltip 为"返回"，pageBack 找的是英文 'Back'
-    await tester.tap(find.byTooltip('返回'));
-    await tester.pumpAndSettle();
     // 列表此前滚动到下方（懒加载），顶部行未构建，向上拖回 AI 模型配置行
     for (var i = 0; i < 6 && !tester.any(find.text('AI 模型配置')); i++) {
       await tester.dragFrom(const Offset(180, 400), const Offset(0, 400));
@@ -519,6 +522,9 @@ void main() {
           'baseUrl': 'https://api-inference.modelscope.cn/v1',
           'apiKey': 'invalid-token-bloodpressed-test',
           'model': 'Qwen/Qwen3-32B',
+          'recipientName': '测试用已披露服务',
+          'recipientPolicyUrl': 'https://modelscope.cn/privacy',
+          'recipientRegion': 'mainland',
         },
       );
       await app.profiles.upsert(profile);
@@ -532,6 +538,10 @@ void main() {
     );
     await tester.enterText(find.byType(TextField), '最近血压偏高要注意什么？');
     await tester.tap(find.byIcon(Icons.send));
+    await pumpUntilReal(tester, () => tester.any(find.text('单独同意发送健康信息')));
+    // No user message is persisted or sent before this separate decision.
+    expect(await tester.runAsync(() => app.chat.history()), isEmpty);
+    await tester.tap(find.text('单独同意发送健康信息'));
     await pumpUntilReal(
       tester,
       () =>

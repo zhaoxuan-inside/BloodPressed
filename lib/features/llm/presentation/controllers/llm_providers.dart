@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:blood_pressed/core/providers.dart';
 
 import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:uuid/uuid.dart';
@@ -20,7 +21,7 @@ import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 class LlmProfilesController
     extends StateNotifier<AsyncValue<List<LlmProfile>>> {
   LlmProfilesController(this._store, this._settings)
-      : super(const AsyncLoading()) {
+    : super(const AsyncLoading()) {
     refresh();
   }
 
@@ -41,6 +42,9 @@ class LlmProfilesController
     required String apiKey,
     required String model,
     required bool multimodal,
+    String recipientName = '',
+    String recipientPolicyUrl = '',
+    String recipientRegion = 'unknown',
   }) async {
     final profile = LlmProfile(
       id: const Uuid().v4(),
@@ -51,6 +55,9 @@ class LlmProfilesController
         'apiKey': apiKey,
         'model': model,
         'multimodal': multimodal,
+        'recipientName': recipientName,
+        'recipientPolicyUrl': recipientPolicyUrl,
+        'recipientRegion': recipientRegion,
       },
     );
     await _store.upsert(profile);
@@ -79,8 +86,7 @@ class LlmProfilesController
   }
 
   Future<void> updateLocalParams(LlmProfile profile, int contextSize) async {
-    await _store
-        .upsert(profile.copyWithConfig({'contextSize': contextSize}));
+    await _store.upsert(profile.copyWithConfig({'contextSize': contextSize}));
     await refresh();
   }
 
@@ -91,27 +97,32 @@ class LlmProfilesController
     required String apiKey,
     required String model,
     required bool multimodal,
+    String recipientName = '',
+    String recipientPolicyUrl = '',
+    String recipientRegion = 'unknown',
   }) async {
-    await _store.upsert(LlmProfile(
-      id: profile.id,
-      kind: LlmKind.remote,
-      name: name,
-      config: profile.copyWithConfig({
-        'baseUrl': baseUrl,
-        'apiKey': apiKey,
-        'model': model,
-        'multimodal': multimodal,
-      }).config,
-    ));
+    await _store.upsert(
+      LlmProfile(
+        id: profile.id,
+        kind: LlmKind.remote,
+        name: name,
+        config: profile.copyWithConfig({
+          'baseUrl': baseUrl,
+          'apiKey': apiKey,
+          'model': model,
+          'multimodal': multimodal,
+          'recipientName': recipientName,
+          'recipientPolicyUrl': recipientPolicyUrl,
+          'recipientRegion': recipientRegion,
+        }).config,
+      ),
+    );
     await refresh();
   }
 
   /// 为已下载的模型文件幂等建档（模型中心「安装」语义）：
   /// 同一 modelPath 只建一份档案；返回是否新建。
-  Future<bool> ensureLocalProfileForFile(
-    String modelPath,
-    String name,
-  ) async {
+  Future<bool> ensureLocalProfileForFile(String modelPath, String name) async {
     final existing = await _store.list();
     if (existing.any((p) => p.modelPath == modelPath)) return false;
     await addLocalModel(name: name, modelPath: modelPath);
@@ -128,10 +139,11 @@ class LlmProfilesController
 }
 
 final llmProfilesProvider =
-    StateNotifierProvider<LlmProfilesController, AsyncValue<List<LlmProfile>>>(
-        (ref) {
-  throw UnimplementedError('需在 main() 中覆盖');
-});
+    StateNotifierProvider<LlmProfilesController, AsyncValue<List<LlmProfile>>>((
+      ref,
+    ) {
+      throw UnimplementedError('需在 main() 中覆盖');
+    });
 
 /// 当前激活的 LLM 档案 id（与 AppSettings 双写保持一致）。
 final activeLlmProfileIdProvider = StateProvider<String?>((ref) => null);
@@ -221,6 +233,7 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
 
   LocalChatEngine? _localEngine;
   InferenceEngine? _engine;
+  LlmProfile? _engineProfile;
 
   LlmProfile? activeProfile() => _ref.read(activeLlmProfileProvider);
 
@@ -232,11 +245,13 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
     // 防止重复加载（启动预热与页面 ensureReady 并发触发）
     if ((state.status == LlmEngineStatus.loading ||
             state.status == LlmEngineStatus.ready) &&
-        state.activeProfileId == profile.id) {
+        state.activeProfileId == profile.id &&
+        identical(_engineProfile, profile)) {
       return null;
     }
     state = LlmEngineState(status: LlmEngineStatus.loading);
     try {
+      if (_engine is RemoteChatEngine) await _engine!.dispose();
       if (profile.kind == LlmKind.local) {
         await _localEngine!.load(profile);
         _engine = _localEngine;
@@ -244,6 +259,7 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
         await _localEngine?.unload();
         _engine = RemoteChatEngine(profile);
       }
+      _engineProfile = profile;
       state = LlmEngineState(
         status: LlmEngineStatus.ready,
         activeProfileId: profile.id,
@@ -267,16 +283,24 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
     final p = effectiveProfile();
     if (p == null) return AppLocaleService.auto.llmNotConfigured;
     if (state.status == LlmEngineStatus.ready &&
-        state.activeProfileId == p.id) {
+        state.activeProfileId == p.id &&
+        identical(_engineProfile, p)) {
       return null;
     }
     return activate(p);
   }
 
   /// 流式对话。
-  Stream<String> chatStream(List<ChatMessage> messages,
-      {double temperature = 0.7}) async* {
+  Stream<String> chatStream(
+    List<ChatMessage> messages, {
+    double temperature = 0.7,
+  }) async* {
     final engine = _engine;
+    final recipient = _engineProfile;
+    if (recipient?.kind == LlmKind.remote &&
+        !_ref.read(appSettingsProvider).hasRemoteConsent(recipient!)) {
+      throw InferenceException(AppLocaleService.auto.remoteConsentRequired);
+    }
     if (engine == null || !engine.isReady) {
       throw InferenceException(AppLocaleService.auto.llmNotReady);
     }
@@ -304,13 +328,16 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
   }
 
   Future<void> deactivate() async {
+    if (_engine is RemoteChatEngine) await _engine!.dispose();
     await _localEngine?.unload();
     _engine = null;
+    _engineProfile = null;
     state = const LlmEngineState(status: LlmEngineStatus.idle);
   }
 
   @override
   void dispose() {
+    if (_engine is RemoteChatEngine) _engine!.dispose();
     _localEngine?.dispose();
     super.dispose();
   }
@@ -318,41 +345,40 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
 
 final llmEngineProvider =
     StateNotifierProvider<LlmEngineController, LlmEngineState>((ref) {
-  throw UnimplementedError('需在 main() 中覆盖');
-});
+      throw UnimplementedError('需在 main() 中覆盖');
+    });
 
 // ---------------- 模型下载 / 模型中心（双社区） ----------------
 
-final modelscopeClientProvider =
-    Provider<ModelScopeClient>((ref) => ModelScopeClient());
+final modelscopeClientProvider = Provider<ModelScopeClient>(
+  (ref) => ModelScopeClient(),
+);
 
-final huggingFaceClientProvider =
-    Provider<HuggingFaceClient>((ref) => HuggingFaceClient());
+final huggingFaceClientProvider = Provider<HuggingFaceClient>(
+  (ref) => HuggingFaceClient(),
+);
 
 /// 模型中心：并行搜索/查找多个模型社区，能搜到哪个就用哪个。
 final modelCenterServiceProvider = Provider<ModelCenterService>(
-    (ref) => ModelCenterService({
-          ref.watch(modelscopeClientProvider).id:
-              ref.watch(modelscopeClientProvider),
-          ref.watch(huggingFaceClientProvider).id:
-              ref.watch(huggingFaceClientProvider),
-        }));
+  (ref) => ModelCenterService({
+    ref.watch(modelscopeClientProvider).id: ref.watch(modelscopeClientProvider),
+    ref.watch(huggingFaceClientProvider).id: ref.watch(
+      huggingFaceClientProvider,
+    ),
+  }),
+);
 
-final modelDownloaderProvider = ChangeNotifierProvider<ModelDownloadService>(
-    (ref) {
+final modelDownloaderProvider = ChangeNotifierProvider<ModelDownloadService>((
+  ref,
+) {
   final scopeClient = ref.watch(modelscopeClientProvider);
   final hfClient = ref.watch(huggingFaceClientProvider);
   final service = ModelDownloadService(scopeClient)
-    ..communities = {
-      scopeClient.id: scopeClient,
-      hfClient.id: hfClient,
-    };
+    ..communities = {scopeClient.id: scopeClient, hfClient.id: hfClient};
   // 下载完成 → 自动建档（「安装」）。幂等：同一路径只建一份。
   service.onCompleted = (communityId, repoId, filePath) async {
     final target = await ModelDownloadService.targetPath(repoId, filePath);
-    final name = filePath.contains('/')
-        ? filePath.split('/').last
-        : filePath;
+    final name = filePath.contains('/') ? filePath.split('/').last : filePath;
     await ref
         .read(llmProfilesProvider.notifier)
         .ensureLocalProfileForFile(target, name);

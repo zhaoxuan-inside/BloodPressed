@@ -11,6 +11,8 @@ import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
 import 'package:blood_pressed/features/settings/data/reminder_service.dart';
 import 'package:blood_pressed/features/settings/presentation/privacy_policy_page.dart';
+import 'package:blood_pressed/features/settings/presentation/privacy_startup.dart';
+import 'package:blood_pressed/features/assistant/presentation/controllers/assistant_providers.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// "我的"设置页。
@@ -127,13 +129,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   subtitle: Text(l10n.exportShareSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/export'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.cloud_outlined),
-                  title: Text(l10n.cloudSync),
-                  subtitle: Text(l10n.cloudSyncSubtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/sync'),
                 ),
               ],
             ),
@@ -282,6 +277,40 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       builder: (_) => const PrivacyPolicyPage(),
                     ),
                   ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.cloud_off_outlined),
+                  title: Text(l10n.remoteConsentWithdraw),
+                  onTap: () async {
+                    final ok = await showConfirmDialog(
+                      context,
+                      title: l10n.remoteConsentWithdraw,
+                      content: l10n.remoteWithdrawBody,
+                    );
+                    if (!ok || !mounted) return;
+                    ref.read(assistantProvider.notifier).stopStreaming();
+                    await settings.withdrawRemote();
+                    await ref.read(llmEngineProvider.notifier).deactivate();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.remoteWithdrawDone)),
+                      );
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.no_accounts_outlined),
+                  title: Text(l10n.privacyWithdraw),
+                  onTap: () async {
+                    final ok = await showConfirmDialog(
+                      context,
+                      title: l10n.privacyWithdraw,
+                      content: l10n.privacyWithdrawBody,
+                    );
+                    if (ok && mounted) {
+                      await ref.read(withdrawPrivacyProvider)();
+                    }
+                  },
                 ),
               ],
             ),

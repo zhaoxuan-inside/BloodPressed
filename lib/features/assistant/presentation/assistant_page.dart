@@ -8,6 +8,7 @@ import 'package:blood_pressed/features/llm/presentation/controllers/llm_provider
 import 'package:blood_pressed/features/llm/presentation/widgets/builtin_model_card.dart';
 import 'package:blood_pressed/features/assistant/presentation/controllers/assistant_providers.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
+import 'package:blood_pressed/features/settings/presentation/remote_health_consent.dart';
 
 /// AI 健康指导聊天页。
 class AssistantPage extends ConsumerStatefulWidget {
@@ -25,11 +26,13 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
   void initState() {
     super.initState();
     // 消费外部注入的分析请求（趋势页「AI 分析」）：只发一次，随即清空
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
       final pending = ref.read(pendingAssistantPromptProvider);
       if (pending != null && pending.trim().isNotEmpty) {
         ref.read(pendingAssistantPromptProvider.notifier).state = null;
-        ref.read(assistantProvider.notifier).send(pending);
+        _inputCtrl.text = pending;
+        await _send();
       }
     });
   }
@@ -55,6 +58,11 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
 
   Future<void> _send() async {
     final text = _inputCtrl.text;
+    if (text.trim().isEmpty ||
+        !await ensureRemoteHealthConsent(context, ref) ||
+        !mounted) {
+      return;
+    }
     _inputCtrl.clear();
     await ref.read(assistantProvider.notifier).send(text);
     _scrollToBottom();
@@ -70,7 +78,8 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
     final hasUserModel = ref.watch(activeLlmProfileProvider) != null;
     final builtinReady = ref.watch(builtinModelReadyProvider);
 
-    final hasModel = effectiveProfile != null &&
+    final hasModel =
+        effectiveProfile != null &&
         (engineState.status == LlmEngineStatus.ready ||
             engineState.status == LlmEngineStatus.idle ||
             engineState.status == LlmEngineStatus.loading);
@@ -83,8 +92,9 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
             if (effectiveProfile != null)
               Text(
                 l10n.assistantModelLabel(effectiveProfile.name),
-                style: theme.textTheme.labelSmall
-                    ?.copyWith(color: theme.colorScheme.outline),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
               ),
           ],
         ),
@@ -102,7 +112,9 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
                   confirmText: l10n.clearConversationConfirm,
                 );
                 if (ok) {
-                  await ref.read(assistantProvider.notifier).clearConversation();
+                  await ref
+                      .read(assistantProvider.notifier)
+                      .clearConversation();
                 }
               },
             ),
@@ -113,51 +125,53 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
           Expanded(
             child: !hasModel
                 ? !hasUserModel && !builtinReady
-                    // 全新安装：内置模型未下载 → 下载引导卡片
-                    ? SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            const BuiltinModelCard(),
-                            const SizedBox(height: 12),
-                            TextButton(
-                              onPressed: () => context.push('/llm'),
-                              child: Text(l10n.goConfigure),
-                            ),
-                          ],
-                        ),
-                      )
-                    : _NoModelHint(onConfigure: () => context.push('/llm'))
+                      // 全新安装：内置模型未下载 → 下载引导卡片
+                      ? SingleChildScrollView(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              const BuiltinModelCard(),
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: () => context.push('/llm'),
+                                child: Text(l10n.goConfigure),
+                              ),
+                            ],
+                          ),
+                        )
+                      : _NoModelHint(onConfigure: () => context.push('/llm'))
                 : state.messages.isEmpty && state.streamingContent == null
-                    ? _Welcome(onSuggest: (s) {
-                        _inputCtrl.text = s;
-                      })
-                    : ListView.builder(
-                        controller: _scrollCtrl,
-                        padding: const EdgeInsets.all(12),
-                        itemCount: state.messages.length +
-                            (state.streamingContent != null ? 1 : 0),
-                        itemBuilder: (context, i) {
-                          if (i < state.messages.length) {
-                            final m = state.messages[i];
-                            if (m.role == ChatRole.system) {
-                              return const SizedBox.shrink();
-                            }
-                            return _Bubble(
-                              isUser: m.role == ChatRole.user,
-                              text: m.content,
-                            );
-                          }
-                          return _Bubble(
-                            isUser: false,
-                            text: state.streamingContent ?? '',
-                            streaming: true,
-                          );
-                        },
-                      ),
+                ? _Welcome(
+                    onSuggest: (s) {
+                      _inputCtrl.text = s;
+                    },
+                  )
+                : ListView.builder(
+                    controller: _scrollCtrl,
+                    padding: const EdgeInsets.all(12),
+                    itemCount:
+                        state.messages.length +
+                        (state.streamingContent != null ? 1 : 0),
+                    itemBuilder: (context, i) {
+                      if (i < state.messages.length) {
+                        final m = state.messages[i];
+                        if (m.role == ChatRole.system) {
+                          return const SizedBox.shrink();
+                        }
+                        return _Bubble(
+                          isUser: m.role == ChatRole.user,
+                          text: m.content,
+                        );
+                      }
+                      return _Bubble(
+                        isUser: false,
+                        text: state.streamingContent ?? '',
+                        streaming: true,
+                      );
+                    },
+                  ),
           ),
-          if (state.error != null)
-            ErrorBanner(state.error!),
+          if (state.error != null) ErrorBanner(state.error!),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
@@ -178,7 +192,9 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
                           borderRadius: BorderRadius.circular(24),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                       ),
                     ),
                   ),
@@ -202,8 +218,9 @@ class _AssistantPageState extends ConsumerState<AssistantPage> {
             padding: const EdgeInsets.only(bottom: 6),
             child: Text(
               l10n.assistantDisclaimer,
-              style: theme.textTheme.labelSmall
-                  ?.copyWith(color: theme.colorScheme.outline),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
             ),
           ),
         ],
@@ -264,17 +281,24 @@ class _NoModelHint extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.smart_toy_outlined,
-                size: 56, color: theme.colorScheme.outline),
+            Icon(
+              Icons.smart_toy_outlined,
+              size: 56,
+              color: theme.colorScheme.outline,
+            ),
             const SizedBox(height: 12),
-            Text(AppLocalizations.of(context).noModelYet,
-                style: theme.textTheme.titleMedium),
+            Text(
+              AppLocalizations.of(context).noModelYet,
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 6),
             Text(
               AppLocalizations.of(context).noModelHint,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.outline, height: 1.5),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 20),
             FilledButton.icon(
@@ -295,11 +319,11 @@ class _Welcome extends StatelessWidget {
   final ValueChanged<String> onSuggest;
 
   List<String> _suggestions(AppLocalizations l10n) => [
-        l10n.suggestAnalyze,
-        l10n.suggestDiet,
-        l10n.suggestMeasure,
-        l10n.suggestExercise,
-      ];
+    l10n.suggestAnalyze,
+    l10n.suggestDiet,
+    l10n.suggestMeasure,
+    l10n.suggestExercise,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -309,23 +333,26 @@ class _Welcome extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       children: [
         const SizedBox(height: 12),
-        Text(l10n.assistantWelcomeTitle,
-            style: theme.textTheme.titleMedium),
+        Text(l10n.assistantWelcomeTitle, style: theme.textTheme.titleMedium),
         const SizedBox(height: 6),
         Text(
           l10n.assistantWelcomeBody,
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: theme.colorScheme.outline, height: 1.5),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.outline,
+            height: 1.5,
+          ),
         ),
         const SizedBox(height: 16),
-        ..._suggestions(l10n).map((s) => Card(
-              child: ListTile(
-                dense: true,
-                leading: const Icon(Icons.chat_bubble_outline, size: 18),
-                title: Text(s, style: theme.textTheme.bodyMedium),
-                onTap: () => onSuggest(s),
-              ),
-            )),
+        ..._suggestions(l10n).map(
+          (s) => Card(
+            child: ListTile(
+              dense: true,
+              leading: const Icon(Icons.chat_bubble_outline, size: 18),
+              title: Text(s, style: theme.textTheme.bodyMedium),
+              onTap: () => onSuggest(s),
+            ),
+          ),
+        ),
       ],
     );
   }

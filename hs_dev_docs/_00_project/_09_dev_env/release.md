@@ -57,6 +57,21 @@ curl -F "file=@build/app/outputs/flutter-apk/app-release.apk" \
 
 ## 5. 发布记录
 
+2026-10-15：**1.2.4+6 ARM64（隐私授权与正式身份）**，双包：
+
+- 商店包 `build/app/outputs/flutter-apk/BloodPressed-1.2.4+6-arm64-v8a-store.apk`，220,034,939 字节。
+  SHA256 `2c92a369751ff283fbc21ab5263ec3bfdcc4958c07f80649d2ce0bd0915df762`。
+  包名 `com.zhaoxuan.bloodpressed`，正式证书 SHA256 `87c43a7a7f202eeceb64477b17cad8b0ec4fbb3c3ab43b7fc28ac249245ba8b9`。
+- 覆盖测试包 `build/app/outputs/flutter-apk/BloodPressed-1.2.4+6-arm64-v8a-legacy-test.apk`，220,034,923 字节。
+  SHA256 `775c8160fba9658601683890437e431ce8dd81885c235fbf294e2e83f8e5bc73`。
+  包名 `com.example.blood_pressed`，保持旧调试证书，供已有测试版覆盖安装。
+
+两包 versionName 1.2.4、versionCode 6、minSdk 24、targetSdk 36、仅 arm64-v8a，v2 签名验证通过。
+正式身份与测试身份独立，已有数据继续留在旧测试版中；正式包不自动继承旧包数据。
+首启同意前不启动业务，远端健康信息单独授权可撤回，云同步及账号登录占位入口隐藏。
+281 项全量测试通过、静态分析无问题。政策网页更新提交 gh-pages 3f6f1f5，HTTP 200 已验证。
+密钥在仓库外创建；备份与构建说明见 `docs/android-signing.md`。未做真机安装或商店 SDK 检测。
+
 2026-10-15：**1.2.3+5 ARM64（设置优化与隐私政策）**，219,968,959 字节（209.78 MiB）。
 产物 `build/app/outputs/flutter-apk/BloodPressed-1.2.3+5-arm64-v8a.apk`。
 SHA256：`e884ac09c5858c56b2b48eb00c161db996eba48a4f76ac86103aa893e3097e1a`。
@@ -87,10 +102,11 @@ aapt 与 ZIP 检查均确认仅 `arm64-v8a`，minSdk 24，versionCode 3；apksig
 ## 6. 更新日志模板（发布时填入）
 
 ```
-本次更新（1.2.3）：
-1. 移除普通用户不需要的“微信分享配置”入口，保留分享功能。
-2. 增加可离线查看的隐私政策，网页与 APP 正文同步。
-3. 保留内置离线语音模型及 ARM64 支持。
+本次更新（1.2.4）：
+1. 增加首启隐私同意、拒绝和撤回流程，同意后才启动业务。
+2. 远端健康信息发送需单独授权，接收方/模型变化重新确认，支持撤回。
+3. 隐藏尚未接入的云同步和登录入口，更新隐私政策正文。
+4. 提供正式签名商店包和旧身份覆盖测试包，均为 ARM64。
 ```
 
 ## 7. 发布检查单

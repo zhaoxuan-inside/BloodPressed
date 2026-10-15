@@ -213,7 +213,7 @@ class RemoteChatEngine implements InferenceEngine {
 
   @override
   Future<void> dispose() async {
-    _dio.close();
+    _dio.close(force: true);
   }
 }
 

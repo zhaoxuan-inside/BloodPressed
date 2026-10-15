@@ -1229,4 +1229,82 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get privacyPolicyLoadError => '隐私政策暂时无法加载，请重新进入。';
+
+  @override
+  String get privacyWelcomeTitle => '欢迎使用血压了么';
+
+  @override
+  String get privacyWelcomeBody =>
+      '本应用用于记录和分析血压，血压和脉搏属于敏感健康信息。记录默认保存在本机。拍照、语音、提醒和远端 AI 为可选功能，相关权限在使用时申请。系统语音服务可能联网；内置语音模型可在本机识别。远端 AI 发送健康信息前会另行征求同意。请先阅读隐私政策；同意后才启动业务及分享服务。运营者：赵宣，联系邮箱：zhaoxuanmail@163.com。';
+
+  @override
+  String get privacyAccept => '同意并进入';
+
+  @override
+  String get privacyDecline => '暂不同意';
+
+  @override
+  String get privacyRefused => '你尚未同意，应用业务尚未启动。你仍可查看隐私政策，或稍后再决定。';
+
+  @override
+  String get privacyStartupError => '应用启动失败，请返回隐私说明后重试。';
+
+  @override
+  String get privacyWithdraw => '撤回隐私同意';
+
+  @override
+  String get privacyWithdrawBody =>
+      '撤回后停止当前会话及提醒，返回隐私说明页面。已有本地记录和配置会保留；已发送给服务商的数据无法从本机撤回。再次使用需要重新同意。';
+
+  @override
+  String get remoteConsentTitle => '远端健康信息单独授权';
+
+  @override
+  String get remoteConsentBody =>
+      '以上为你配置的接收方、服务地址、模型及隐私政策。为了生成健康分析，将向其发送本次问题、聊天历史、近30天血压/脉搏与测量时间摘要；从趋势页发起时还包含所选趋势分析数据。服务商也会接收网络 IP 和用于鉴权的 API Key，并按其政策处理及保存数据。请先核实接收方身份、存储期限和权利行使方式。仅在你确认服务处理地域为中国大陆后开放此功能。你可以拒绝并继续使用本地记录与本地模型；可在“我的”撤回授权。拒绝不会发送本次请求。';
+
+  @override
+  String get remoteConsentAccept => '单独同意发送健康信息';
+
+  @override
+  String get remoteConsentRequired => '请先单独授权此服务接收健康信息。';
+
+  @override
+  String get remoteConsentWithdraw => '撤回远端 AI 授权';
+
+  @override
+  String get remoteWithdrawBody =>
+      '停止当前回复并清除所有远端 AI 健康信息授权。下次发送前会重新询问。此前已发送的数据请联系对应服务商处理。';
+
+  @override
+  String get remoteWithdrawDone => '远端 AI 授权已撤回';
+
+  @override
+  String get remoteDisclosureTitle => '健康数据接收方说明';
+
+  @override
+  String get remoteDisclosureHelp =>
+      '填写服务实际运营者和其隐私政策，并按服务商说明核实数据处理地域。未明确地域、境外服务或非 HTTPS 地址暂不发送健康信息，可使用本地模型。';
+
+  @override
+  String get remoteRecipientName => '服务实际运营者';
+
+  @override
+  String get remoteRecipientPolicy => '服务商隐私政策 HTTPS 链接';
+
+  @override
+  String get remoteRecipientRegion => '经核实的数据处理地域';
+
+  @override
+  String get remoteRegionUnknown => '尚未核实';
+
+  @override
+  String get remoteRegionMainland => '中国大陆';
+
+  @override
+  String get remoteRegionOverseas => '境外（暂不发送健康信息）';
+
+  @override
+  String get remoteDisclosureMissing =>
+      '请先在 AI 模型配置中补充服务实际运营者、隐私政策 HTTPS 链接和经核实的数据处理地域。当前仅支持 HTTPS、无地址内嵌凭证且确认在中国大陆处理的服务发送健康信息；其他情况请使用本地模型。';
 }

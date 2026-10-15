@@ -16,6 +16,8 @@ import 'features/llm/domain/builtin_model.dart';
 import 'features/llm/presentation/controllers/llm_providers.dart';
 import 'features/settings/data/app_settings.dart';
 import 'features/settings/data/reminder_service.dart';
+import 'features/settings/presentation/privacy_startup.dart';
+import 'core/router/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,10 +25,31 @@ Future<void> main() async {
   // 1. 基础存储
   final prefs = await SharedPreferences.getInstance();
   final settings = AppSettings(prefs);
-  await settings.deviceId(); // 确保设备 ID 已生成
+  AppDatabase? database;
+  runApp(
+    PrivacyStartup(
+      settings: settings,
+      cleanup: () async {
+        await ReminderService.cancelAllReminders();
+        await database?.db.close();
+        AppDatabase.resetInstanceForTest();
+        database = null;
+      },
+      initialize: (withdraw) async {
+        database = await AppDatabase.open();
+        return _initializeBusiness(prefs, settings, database!, withdraw);
+      },
+    ),
+  );
+}
 
-  // 2. 数据库
-  final database = await AppDatabase.open();
+Future<Widget> _initializeBusiness(
+  SharedPreferences prefs,
+  AppSettings settings,
+  AppDatabase database,
+  Future<void> Function() withdraw,
+) async {
+  await settings.deviceId(); // 确保设备 ID 已生成
 
   // 3. 微信分享注册（未配置 AppID 时静默跳过，不阻塞首帧）
   unawaited(
@@ -44,30 +67,34 @@ Future<void> main() async {
   final builtinPath = builtinModelFilePath(docsPath);
   final builtinReady = File(builtinPath).existsSync();
 
-  runApp(
-    ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        appSettingsProvider.overrideWithValue(settings),
-        appDatabaseProvider.overrideWithValue(database),
-        llmProfilesProvider.overrideWith((ref) => LlmProfilesController(
-              ref.watch(llmProfileStoreProvider),
-              ref.watch(appSettingsProvider),
-            )),
-        llmEngineProvider.overrideWith((ref) => LlmEngineController(ref)),
-        assistantProvider.overrideWith((ref) => AssistantController(
-              ref.watch(chatRepositoryProvider),
-              HealthContextBuilder(ref.watch(recordsRepositoryProvider)),
-              ref.read,
-            )),
-        activeLlmProfileIdProvider
-            .overrideWith((ref) => settings.activeLlmProfileId),
-        builtinModelPathProvider.overrideWith((ref) => builtinPath),
-        builtinModelReadyProvider.overrideWith((ref) => builtinReady),
-        themeModeNameProvider.overrideWith((ref) => settings.themeMode),
-        localePrefProvider.overrideWith((ref) => settings.localePref),
-      ],
-      child: const BloodPressedApp(),
-    ),
+  return ProviderScope(
+    overrides: [
+      withdrawPrivacyProvider.overrideWithValue(withdraw),
+      sharedPreferencesProvider.overrideWithValue(prefs),
+      appSettingsProvider.overrideWithValue(settings),
+      appDatabaseProvider.overrideWithValue(database),
+      llmProfilesProvider.overrideWith(
+        (ref) => LlmProfilesController(
+          ref.watch(llmProfileStoreProvider),
+          ref.watch(appSettingsProvider),
+        ),
+      ),
+      llmEngineProvider.overrideWith((ref) => LlmEngineController(ref)),
+      assistantProvider.overrideWith(
+        (ref) => AssistantController(
+          ref.watch(chatRepositoryProvider),
+          HealthContextBuilder(ref.watch(recordsRepositoryProvider)),
+          ref.read,
+        ),
+      ),
+      activeLlmProfileIdProvider.overrideWith(
+        (ref) => settings.activeLlmProfileId,
+      ),
+      builtinModelPathProvider.overrideWith((ref) => builtinPath),
+      builtinModelReadyProvider.overrideWith((ref) => builtinReady),
+      themeModeNameProvider.overrideWith((ref) => settings.themeMode),
+      localePrefProvider.overrideWith((ref) => settings.localePref),
+    ],
+    child: BloodPressedApp(router: buildAppRouter()),
   );
 }

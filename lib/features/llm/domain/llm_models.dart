@@ -29,13 +29,31 @@ class LlmProfile {
   String get apiKey => config['apiKey'] as String? ?? '';
   String get remoteModel => config['model'] as String? ?? '';
   bool get multimodal => config['multimodal'] == true;
+  String get recipientName => config['recipientName'] as String? ?? '';
+  String get recipientPolicyUrl =>
+      config['recipientPolicyUrl'] as String? ?? '';
+  String get recipientRegion =>
+      config['recipientRegion'] as String? ?? 'unknown';
+  bool get healthDisclosureComplete {
+    final policy = Uri.tryParse(recipientPolicyUrl);
+    final service = Uri.tryParse(baseUrl);
+    return recipientName.trim().isNotEmpty &&
+        recipientRegion == 'mainland' &&
+        policy?.scheme == 'https' &&
+        (policy?.host.isNotEmpty ?? false) &&
+        service?.scheme == 'https' &&
+        (service?.host.isNotEmpty ?? false) &&
+        service!.userInfo.isEmpty &&
+        !service.hasQuery &&
+        !service.hasFragment;
+  }
 
   LlmProfile copyWithConfig(Map<String, Object?> overrides) => LlmProfile(
-        id: id,
-        kind: kind,
-        name: name,
-        config: {...config, ...overrides},
-      );
+    id: id,
+    kind: kind,
+    name: name,
+    config: {...config, ...overrides},
+  );
 
   /// 是否可直接用于对话（本地：文件已下载；远端：必填项齐全）。
   bool get usable {
@@ -71,27 +89,28 @@ class ChatMessage {
   final DateTime createdAt;
 
   ChatMessage copyWith({String? content}) => ChatMessage(
-        id: id,
-        role: role,
-        content: content ?? this.content,
-        createdAt: createdAt,
-      );
+    id: id,
+    role: role,
+    content: content ?? this.content,
+    createdAt: createdAt,
+  );
 
   Map<String, Object?> toMap() => {
-        'id': id,
-        'role': role.name,
-        'content': content,
-        'created_at': createdAt.millisecondsSinceEpoch,
-      };
+    'id': id,
+    'role': role.name,
+    'content': content,
+    'created_at': createdAt.millisecondsSinceEpoch,
+  };
 
   static ChatMessage fromMap(Map<String, Object?> map) => ChatMessage(
-        id: map['id'] as String,
-        role: ChatRole.values.firstWhere(
-          (r) => r.name == map['role'],
-          orElse: () => ChatRole.assistant,
-        ),
-        content: (map['content'] as String?) ?? '',
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-            (map['created_at'] as int?) ?? 0),
-      );
+    id: map['id'] as String,
+    role: ChatRole.values.firstWhere(
+      (r) => r.name == map['role'],
+      orElse: () => ChatRole.assistant,
+    ),
+    content: (map['content'] as String?) ?? '',
+    createdAt: DateTime.fromMillisecondsSinceEpoch(
+      (map['created_at'] as int?) ?? 0,
+    ),
+  );
 }

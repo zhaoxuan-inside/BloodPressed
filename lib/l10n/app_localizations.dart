@@ -2339,6 +2339,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to load the privacy policy. Please reopen this page.'**
   String get privacyPolicyLoadError;
+
+  /// No description provided for @privacyWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to BloodPressed'**
+  String get privacyWelcomeTitle;
+
+  /// No description provided for @privacyWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood pressure and pulse are sensitive health data. Records stay on your device by default. Camera, speech, reminders and remote AI are optional; permissions are requested when used. System speech services may use the network; bundled recognition runs locally. Remote health sharing requires separate consent. Read the privacy policy before accepting. Business and sharing services start only after acceptance. Operator: Zhao Xuan; contact: zhaoxuanmail@163.com.'**
+  String get privacyWelcomeBody;
+
+  /// No description provided for @privacyAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Agree and continue'**
+  String get privacyAccept;
+
+  /// No description provided for @privacyDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get privacyDecline;
+
+  /// No description provided for @privacyRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not agreed. Business services remain stopped. You can still read the policy and decide later.'**
+  String get privacyRefused;
+
+  /// No description provided for @privacyStartupError.
+  ///
+  /// In en, this message translates to:
+  /// **'Startup failed. Return to the privacy notice and try again.'**
+  String get privacyStartupError;
+
+  /// No description provided for @privacyWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw privacy consent'**
+  String get privacyWithdraw;
+
+  /// No description provided for @privacyWithdrawBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This stops the current session and reminders and returns to the privacy notice. Local records and settings are retained. Data already sent to a provider cannot be recalled. You must agree again to resume.'**
+  String get privacyWithdrawBody;
+
+  /// No description provided for @remoteConsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate consent for remote health data'**
+  String get remoteConsentTitle;
+
+  /// No description provided for @remoteConsentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The recipient, endpoint, model and privacy policy above come from your configuration. Health analysis sends your question, chat history and a summary of the past 30 days of blood pressure, pulse and measurement times. Trend analysis also includes the selected trend data. The provider receives your IP address and API key for authentication, and handles retention under its policy. Verify the recipient, retention and rights process first. This feature is available only for services you have verified as processing in mainland China. You may decline and keep using local records and local models, or withdraw in Settings. Declining sends no request.'**
+  String get remoteConsentBody;
+
+  /// No description provided for @remoteConsentAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Agree to send health data'**
+  String get remoteConsentAccept;
+
+  /// No description provided for @remoteConsentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate consent is required for this health data recipient.'**
+  String get remoteConsentRequired;
+
+  /// No description provided for @remoteConsentWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw remote AI consent'**
+  String get remoteConsentWithdraw;
+
+  /// No description provided for @remoteWithdrawBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop the current reply and clear all remote health data grants. You will be asked again before sending. Contact the provider about data already sent.'**
+  String get remoteWithdrawBody;
+
+  /// No description provided for @remoteWithdrawDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Remote AI consent withdrawn'**
+  String get remoteWithdrawDone;
+
+  /// No description provided for @remoteDisclosureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health data recipient'**
+  String get remoteDisclosureTitle;
+
+  /// No description provided for @remoteDisclosureHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the actual service operator and its privacy policy. Verify the processing location with the provider. Health data cannot currently be sent to unknown or overseas locations, or non-HTTPS endpoints. Local models remain available.'**
+  String get remoteDisclosureHelp;
+
+  /// No description provided for @remoteRecipientName.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual service operator'**
+  String get remoteRecipientName;
+
+  /// No description provided for @remoteRecipientPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider privacy policy HTTPS URL'**
+  String get remoteRecipientPolicy;
+
+  /// No description provided for @remoteRecipientRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified data processing location'**
+  String get remoteRecipientRegion;
+
+  /// No description provided for @remoteRegionUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified'**
+  String get remoteRegionUnknown;
+
+  /// No description provided for @remoteRegionMainland.
+  ///
+  /// In en, this message translates to:
+  /// **'Mainland China'**
+  String get remoteRegionMainland;
+
+  /// No description provided for @remoteRegionOverseas.
+  ///
+  /// In en, this message translates to:
+  /// **'Overseas (health sharing unavailable)'**
+  String get remoteRegionOverseas;
+
+  /// No description provided for @remoteDisclosureMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the actual operator, HTTPS privacy policy URL and verified processing location in AI model settings. Health sharing currently requires HTTPS, no credentials embedded in the endpoint, and verified mainland China processing. Use a local model otherwise.'**
+  String get remoteDisclosureMissing;
 }
 
 class _AppLocalizationsDelegate

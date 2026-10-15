@@ -1,6 +1,10 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import 'dart:convert';
+
+import 'package:blood_pressed/features/llm/domain/llm_models.dart';
+
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/settings/domain/reminder_schedule.dart';
 
@@ -12,6 +16,51 @@ class AppSettings {
   AppSettings(this._prefs);
 
   final SharedPreferences _prefs;
+
+  static const privacyVersion = '2026-10-15-v2';
+  bool get hasPrivacyConsent =>
+      _prefs.getString('privacy_consent') == privacyVersion;
+  Future<void> acceptPrivacy() async {
+    await _prefs.setString('privacy_consent', privacyVersion);
+  }
+
+  String remoteConsentKey(LlmProfile profile) => jsonEncode([
+    privacyVersion,
+    profile.id,
+    profile.baseUrl,
+    profile.remoteModel,
+    profile.recipientName,
+    profile.recipientPolicyUrl,
+    profile.recipientRegion,
+  ]);
+  bool hasRemoteConsent(LlmProfile profile) =>
+      hasPrivacyConsent &&
+      profile.healthDisclosureComplete &&
+      (_prefs.getStringList('remote_health_grants') ?? []).contains(
+        remoteConsentKey(profile),
+      );
+  Future<void> allowRemote(LlmProfile profile) async {
+    if (!hasPrivacyConsent) throw StateError('Privacy consent is required');
+    if (!profile.healthDisclosureComplete) {
+      throw StateError('Recipient disclosure is required');
+    }
+    await _prefs.setStringList(
+      'remote_health_grants',
+      {
+        ...?_prefs.getStringList('remote_health_grants'),
+        remoteConsentKey(profile),
+      }.toList(),
+    );
+  }
+
+  Future<void> withdrawRemote() async {
+    await _prefs.remove('remote_health_grants');
+  }
+
+  Future<void> withdrawPrivacy() async {
+    await _prefs.remove('privacy_consent');
+    await withdrawRemote();
+  }
 
   static const _kDeviceId = 'device_id';
   static const _kDefaultArm = 'default_arm';
@@ -42,10 +91,9 @@ class AppSettings {
   }
 
   // ---- 默认测量臂 ----
-  MeasureArm get defaultArm =>
-      _prefs.getString(_kDefaultArm) == 'right'
-          ? MeasureArm.right
-          : MeasureArm.left;
+  MeasureArm get defaultArm => _prefs.getString(_kDefaultArm) == 'right'
+      ? MeasureArm.right
+      : MeasureArm.left;
   Future<void> setDefaultArm(MeasureArm arm) =>
       _prefs.setString(_kDefaultArm, arm.name);
 
@@ -73,8 +121,10 @@ class AppSettings {
   ReminderMode get reminderMode {
     final raw = _prefs.getString(_kReminderMode);
     if (raw != null) {
-      return ReminderMode.values
-          .firstWhere((m) => m.name == raw, orElse: () => ReminderMode.off);
+      return ReminderMode.values.firstWhere(
+        (m) => m.name == raw,
+        orElse: () => ReminderMode.off,
+      );
     }
     return reminderEnabled ? ReminderMode.daily : ReminderMode.off;
   }
@@ -90,7 +140,11 @@ class AppSettings {
   int get intervalMinutes => _prefs.getInt(_kIntervalMinutes) ?? 30;
 
   Future<void> setIntervalWindow(
-      int startHour, int startMinute, int endHour, int endMinute) async {
+    int startHour,
+    int startMinute,
+    int endHour,
+    int endMinute,
+  ) async {
     await _prefs.setInt(_kIntervalStartHour, startHour);
     await _prefs.setInt(_kIntervalStartMinute, startMinute);
     await _prefs.setInt(_kIntervalEndHour, endHour);
@@ -100,8 +154,11 @@ class AppSettings {
   Future<void> setIntervalMinutes(int minutes) {
     if (minutes < IntervalReminderConfig.minIntervalMinutes) {
       throw ArgumentError.value(
-          minutes, 'intervalMinutes', '提醒周期不得小于 '
-          '${IntervalReminderConfig.minIntervalMinutes} 分钟');
+        minutes,
+        'intervalMinutes',
+        '提醒周期不得小于 '
+            '${IntervalReminderConfig.minIntervalMinutes} 分钟',
+      );
     }
     return _prefs.setInt(_kIntervalMinutes, minutes);
   }
@@ -132,8 +189,7 @@ class AppSettings {
   // ---- 文章收藏 ----
   List<String> get favoriteArticles =>
       _prefs.getStringList(_kFavoriteArticles) ?? [];
-  bool isFavorite(String articleId) =>
-      favoriteArticles.contains(articleId);
+  bool isFavorite(String articleId) => favoriteArticles.contains(articleId);
   Future<void> toggleFavorite(String articleId) async {
     final list = [...favoriteArticles];
     if (list.contains(articleId)) {
