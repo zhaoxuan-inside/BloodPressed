@@ -8,8 +8,8 @@
 | # | 功能 | 说明 |
 |---|------|------|
 | 1 | 大模型安装/配置 | 以"插件"形式从**魔搭社区**下载 GGUF 模型离线运行（断点续传）；也可配置 OpenAI 兼容远端 API（DashScope / DeepSeek / ModelScope API-Inference / Ollama 等） |
-| 2 | 相机调用 | 实时取景拍摄血压计屏幕，带取景框提示 |
-| 3 | 图片识别 | ML Kit 离线 OCR + 自研解析引擎（分数式/标签式/相邻数值三种模式 + 置信度评分）；低置信度自动用**多模态大模型兜底**；结果经人工确认后入库 |
+| 2 | 相机调用 | 系统相机拍摄血压计屏幕，支持相册选图 |
+| 3 | 图片识别 | 本地七段码识别 + PP-OCRv5 ONNX 与位置解析；低置信度提示人工修正；结果经确认后入库 |
 | 4 | 记录管理 | 高压/低压/脉搏、时间、左/右臂、体位、备注、来源；软删除 |
 | 5 | 趋势图表 | 高压/低压/脉搏折线（按天聚合），7/30/90 天与自定义范围、左右臂筛选、135/85 参考线、统计概览（均值/最值/达标率） |
 | 6 | 健康指导 | 聊天式 AI 助手，自动注入近 30 天血压摘要（含双臂对比）作为上下文 |
@@ -22,10 +22,10 @@
 - **Flutter 3.47**（Dart 3.13），Material 3，中文界面
 - 状态管理：flutter_riverpod；路由：go_router（5 Tab Shell + 子页）
 - 存储：sqflite（单会话 SQLite，UUID 主键 + 软删除 + outbox 变更日志）
-- 相机/相册：camera + image_picker + permission_handler
-- OCR：google_mlkit_text_recognition（中文脚本，依赖 GMS）
+- 相机/相册：image_picker + permission_handler
+- OCR：七段码识别 + PP-OCRv5（onnxruntime，离线且不依赖 GMS）
 - 本地推理：[llamadart](https://pub.dev/packages/llamadart)（llama.cpp GGUF）
-- 远端推理：自实现 OpenAI 兼容客户端（SSE 流式 + 多模态图片）
+- 远端推理：自实现 OpenAI 兼容客户端（SSE 流式）
 - 图表：fl_chart；Markdown：flutter_markdown_plus
 - 分享：fluwx（微信）+ share_plus（系统分享）
 
@@ -38,16 +38,15 @@
 lib/
 ├── main.dart / app.dart          # 初始化装配 / 主题与路由根
 ├── core/
-│   ├── design/                   # 设计令牌（Design Tokens）：AppColors / AppDimens /
-│   │                             #   BpCategoryStyle——颜色、间距、圆角唯一来源
+│   ├── design/                   # AppColors / BpCategoryStyle——颜色与分级样式
 │   ├── widgets/                  # 共享组件：CategoryBadge / StatCard / QuickAction /
 │   │                             #   EmptyState / SectionHeader / ErrorBanner
 │   ├── db/                       # 建表迁移 + outbox DAO（基础设施）
-│   ├── providers.dart            # Riverpod 依赖装配（main 覆盖注入）
+│   ├── providers.dart            # Riverpod 依赖装配（启动时注入基础存储）
 │   ├── router/ theme/ utils/
 └── features/
     └── <feature>/
-        ├── domain/               # 实体、仓库契约、纯逻辑（如 OCR 解析引擎、SyncService 接口）
+        ├── domain/               # 实体、仓库契约、纯逻辑（如 OCR 解析引擎）
         ├── data/                 # 仓库实现、数据源（SQLite/REST/Assets）、引擎实现
         └── presentation/         # 页面 + 控制器（Riverpod StateNotifier = ViewModel）
             ├── controllers/
@@ -60,12 +59,11 @@ lib/
 |---|---|
 | records | ④ 记录：领域模型/仓库 + 录入表单 + 首页 |
 | stats | ⑤ 趋势图：按天聚合控制器 + fl_chart 页面 |
-| camera_ocr | ②③ 相机 + OCR：解析引擎（domain，纯 Dart 可测）/ ML Kit 服务（data）/ 兜底流程 |
+| camera_ocr | ②③ 相机 + OCR：解析引擎（domain，纯 Dart 可测）/ 七段码与 PP-OCR 服务（data）/ 确认流程 |
 | llm | ① 大模型：引擎抽象（domain）/ 远端 SSE + 本地 llama.cpp + 魔搭市场与下载器（data）/ 配置与市场页 |
 | assistant | ⑥ 健康指导聊天：上下文构建 + 会话仓库 + 聊天页 |
 | export | ⑦⑧ CSV + 分享卡 + 微信/系统分享 |
 | knowledge | ⑨ 知识阅读：13 篇内置文章 |
-| sync | 云同步抽象：SyncService 接口（domain）+ LocalOnly 实现（data）+ 占位页 |
 | settings | 设置 / 提醒通知 / 微信配置 |
 
 约束：presentation 层只依赖 domain 契约与 core；跨 feature 引用一律走
@@ -124,19 +122,19 @@ App 内：**我的 → AI 模型 → 从魔搭社区安装模型**。精选列�
 | OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini`（多模态） |
 | Ollama（局域网） | `http://<电脑IP>:11434/v1` | `qwen2.5:3b` |
 
-勾选"支持图片输入"后，可用该模型做血压照片识别兜底。
+当前拍照识别使用本地七段码识别与 PP-OCR，不向远端模型上传图片。
 
-### 4. 云同步（预留能力，默认关闭）
+### 4. 本地存储
 
 当前版本为纯本地存储。数据层已按同步友好设计：
 UUID 主键、软删除、`updated_at` 时间戳、`sync_outbox` 离线变更日志。
-确定云平台后，实现 `lib/features/sync/sync_service.dart` 中的 `SyncService`
-接口并在 `syncServiceProvider` 替换实现即可，业务代码零改动。
+当前没有云同步服务或账号入口。未接入平台的同步页面与空服务已移除；
+本地数据库及既有变更日志保持兼容。
 
 ## 已知限制
 
-- **ML Kit OCR 依赖 Google Play Services**：无 GMS 的设备（如部分华为机型）离线识别不可用，
-  App 会自动引导使用多模态大模型兜底或手动录入
+- **拍照识别需人工核对**：本地七段码与 PP-OCR 不依赖 Google Play Services；
+  识别结果会进入确认表单，低置信度时可手动修正
 - 本地推理对内存有要求：建议 6GB 以上内存手机运行 ≤2B 模型；4B 模型需 8GB+
 - AI 建议仅供参考，不构成医疗建议；分级提示采用家庭自测标准（135/85）
 - iOS 端未经真机编译验证（开发环境为 Windows）
@@ -164,5 +162,5 @@ flutter test      # 全功能用例均走真实数据：OCR 解析引擎、血�
 > （sqflite_ffi 内存库）。魔搭与推理相关用例直连 modelscope.cn，
 > 运行需外网；UI 通过 `overrideHttpClient=false` + `runAsync` 驱动真实请求。
 >
-> 相机取景、ML Kit 离线 OCR、本地 GGUF 推理依赖真机/已下载模型，无法在
+> 相机拍摄、PP-OCR 离线识别、本地 GGUF 推理依赖真机/已下载模型，无法在
 > Windows 单元测试进程里执行；解析引擎与 OCR 确认入库已覆盖。

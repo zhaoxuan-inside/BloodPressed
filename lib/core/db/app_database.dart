@@ -23,7 +23,6 @@ class AppDatabase {
       version: _dbVersion,
       onConfigure: (d) => d.execute('PRAGMA foreign_keys = ON'),
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
     );
     _instance = AppDatabase._(db);
     return _instance!;
@@ -108,8 +107,4 @@ class AppDatabase {
         'CREATE INDEX idx_chat_created ON chat_messages (created_at)');
   }
 
-  static Future<void> _onUpgrade(
-      Database db, int oldVersion, int newVersion) async {
-    // 后续版本在此按 oldVersion 逐级迁移。
-  }
 }

@@ -256,37 +256,3 @@ class OcrBpParser {
 
   static bool _inRange(int v, int lo, int hi) => v >= lo && v <= hi;
 }
-
-/// 从大模型返回的文本中提取结构化识别结果（多模态兜底用）。
-///
-/// 期望模型输出 JSON：{"systolic":120,"diastolic":80,"pulse":72}
-/// 模型可能包裹在 ```json ``` 中或夹带说明文字，这里做宽容提取。
-BpCandidate? parseLlmExtraction(String output) {
-  final jsonMatch =
-      RegExp(r'\{[^{}]*\}', dotAll: true).allMatches(output).toList();
-  for (final m in jsonMatch.reversed) {
-    final raw = m.group(0)!;
-    final sys = RegExp(r'"?systolic"?\s*[:：]\s*"?(\d{2,3})')
-        .firstMatch(raw)
-        ?.group(1);
-    final dia = RegExp(r'"?diastolic"?\s*[:：]\s*"?(\d{2,3})')
-        .firstMatch(raw)
-        ?.group(1);
-    final pulse = RegExp(r'"?pulse"?\s*[:：]\s*"?(\d{2,3})')
-        .firstMatch(raw)
-        ?.group(1);
-    final sysV = sys == null ? null : int.tryParse(sys);
-    final diaV = dia == null ? null : int.tryParse(dia);
-    final pulseV = pulse == null ? null : int.tryParse(pulse);
-    if (sysV == null || diaV == null) continue;
-    final c = BpCandidate(
-      systolic: sysV,
-      diastolic: diaV,
-      pulse: pulseV,
-      confidence: 0.75,
-      pattern: 'llm',
-    );
-    if (c.plausible) return c;
-  }
-  return null;
-}

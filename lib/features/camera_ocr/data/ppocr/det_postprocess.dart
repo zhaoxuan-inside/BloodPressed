@@ -3,38 +3,12 @@
 /// 输入 PP-OCR 检测模型输出的概率图（单通道 H×W）：
 /// * [quadsFromProbMap] 完整后处理：连通域 → 凸包 → 最小面积旋转矩形 →
 ///   unclip 扩张，输出**旋转四边形**（配合透视裁剪使用，识别质量更好）；
-/// * [boxesFromProbMap] 简化后处理：输出轴对齐框（调试用）。
 library;
 
 import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
-
-/// 检测出的文本框（轴对齐，调试用）。
-class DetBox {
-  const DetBox({
-    required this.left,
-    required this.top,
-    required this.right,
-    required this.bottom,
-    required this.score,
-  });
-
-  final int left;
-  final int top;
-  final int right;
-  final int bottom;
-  final double score;
-
-  int get width => right - left;
-  int get height => bottom - top;
-  int get area => width * height;
-
-  @override
-  String toString() =>
-      'DetBox($left,$top,$right,$bottom,score=${score.toStringAsFixed(2)})';
-}
 
 /// 检测出的文本四边形（原图坐标，四角按周向顺序：
 /// 左上 → 右上 → 右下 → 左下，以矩形长边为"宽"）。
@@ -52,18 +26,6 @@ class DetQuad {
         xs.reduce(math.max), ys.reduce(math.max));
   }
 
-  /// 边长（宽=角点 0-1 边，高=角点 1-2 边）。
-  double get edge01 {
-    final dx = corners[1].dx - corners[0].dx;
-    final dy = corners[1].dy - corners[0].dy;
-    return math.sqrt(dx * dx + dy * dy);
-  }
-
-  double get edge12 {
-    final dx = corners[2].dx - corners[1].dx;
-    final dy = corners[2].dy - corners[1].dy;
-    return math.sqrt(dx * dx + dy * dy);
-  }
 }
 
 class _Point2 {
@@ -260,34 +222,4 @@ List<DetQuad> quadsFromProbMap({
     return byRow != 0 ? byRow : ba.left.compareTo(bb.left);
   });
   return quads;
-}
-
-/// 从概率图提取轴对齐文本框（简化后处理，调试用）。
-List<DetBox> boxesFromProbMap({
-  required Float32List prob,
-  required int width,
-  required int height,
-  double thresh = 0.3,
-  double boxThresh = 0.45,
-  double unclipRatio = 1.8,
-  int minArea = 24,
-}) {
-  final quads = quadsFromProbMap(
-    prob: prob,
-    width: width,
-    height: height,
-    thresh: thresh,
-    boxThresh: boxThresh,
-    unclipRatio: unclipRatio,
-    minArea: minArea,
-  );
-  return quads
-      .map((q) => DetBox(
-            left: q.bounds.left.floor(),
-            top: q.bounds.top.floor(),
-            right: q.bounds.right.ceil(),
-            bottom: q.bounds.bottom.ceil(),
-            score: q.score,
-          ))
-      .toList();
 }

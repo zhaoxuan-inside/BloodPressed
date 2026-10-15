@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:blood_pressed/core/providers.dart';
 
 import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 
@@ -221,7 +222,11 @@ class AssistantController extends StateNotifier<ChatUiState> {
 
 final assistantProvider =
     StateNotifierProvider<AssistantController, ChatUiState>((ref) {
-  throw UnimplementedError('需在 main() 中覆盖');
+  return AssistantController(
+    ref.watch(chatRepositoryProvider),
+    HealthContextBuilder(ref.watch(recordsRepositoryProvider)),
+    ref.read,
+  );
 });
 
 /// 待自动发送的分析请求：其它页面（如趋势页「AI 分析」）写入后跳转

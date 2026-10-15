@@ -17,10 +17,6 @@ enum BpCategory {
   final String label;
   final String advice;
 
-  /// 家庭自测阈值：高压 <135 且 低压 <85 视为正常。
-  static const double homeElevatedSystolic = 135;
-  static const double homeElevatedDiastolic = 85;
-
   static BpCategory fromValues(int systolic, int diastolic) {
     if (systolic < 90 || diastolic < 60) return BpCategory.low;
     if (systolic >= 160 || diastolic >= 100) return BpCategory.grade2;
@@ -29,11 +25,6 @@ enum BpCategory {
     return BpCategory.normal;
   }
 
-  /// 是否达到"需要关注"及以上水平（正常高值及以上）。
-  bool get needsAttention =>
-      this == BpCategory.elevated ||
-      this == BpCategory.grade1 ||
-      this == BpCategory.grade2;
 }
 
 /// 分级配色（亮/暗主题下均可读）。

@@ -9,11 +9,6 @@ import 'package:blood_pressed/core/i18n/app_locale_service.dart';
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
 import 'package:blood_pressed/features/settings/domain/reminder_schedule.dart';
 
-/// 定时通知触发时的后台回调入口（顶层函数 + entry-point 标注，
-/// 防止 release AOT 被 tree-shaking 剥离导致通知静默丢失）。
-@pragma('vm:entry-point')
-Future<void> notificationTapBackground(NotificationResponse details) async {}
-
 /// 测量提醒（本地通知）：每日定时提醒 + 周期提醒（提醒窗口内按提醒周期）。
 ///
 /// 周期提醒采用"批量预排一次性通知"：以 2 天为水平按触发时刻逐条排程
@@ -62,8 +57,8 @@ class ReminderService {
     if (_initialized) return;
     tzdata.initializeTimeZones();
     try {
-      final name = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(name));
+      final timezone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timezone.identifier));
     } catch (_) {
       // 兜底：无法获取时区时使用 UTC，提醒时刻可能偏移，但不崩溃
     }
@@ -76,7 +71,6 @@ class ReminderService {
     try {
       await _plugin.initialize(
         const InitializationSettings(android: androidInit, iOS: iosInit),
-        onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       );
       _initialized = true;
     } catch (_) {

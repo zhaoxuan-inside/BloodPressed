@@ -95,7 +95,6 @@ class _RemoteProfileEditPageState extends ConsumerState<RemoteProfileEditPage> {
   late final TextEditingController _recipientCtrl;
   late final TextEditingController _policyCtrl;
   String _region = 'unknown';
-  late bool _multimodal;
   String? _preset;
   bool _fetchingModels = false;
 
@@ -112,7 +111,6 @@ class _RemoteProfileEditPageState extends ConsumerState<RemoteProfileEditPage> {
     _recipientCtrl = TextEditingController(text: e?.recipientName ?? '');
     _policyCtrl = TextEditingController(text: e?.recipientPolicyUrl ?? '');
     _region = e?.recipientRegion ?? 'unknown';
-    _multimodal = e?.multimodal ?? false;
   }
 
   @override
@@ -137,8 +135,6 @@ class _RemoteProfileEditPageState extends ConsumerState<RemoteProfileEditPage> {
       final displayName = _presetName(l10n, p.id);
       _nameCtrl.text = _nameCtrl.text.isEmpty ? displayName : _nameCtrl.text;
       _modelCtrl.text = p.clearModelOnSelect ? '' : _modelCtrl.text;
-      _multimodal =
-          p.baseUrl.contains('dashscope') && p.modelHint.contains('vl');
     });
   }
 
@@ -227,7 +223,6 @@ class _RemoteProfileEditPageState extends ConsumerState<RemoteProfileEditPage> {
         baseUrl: baseUrl,
         apiKey: _apiKeyCtrl.text.trim(),
         model: model,
-        multimodal: _multimodal,
         recipientName: _recipientCtrl.text.trim(),
         recipientPolicyUrl: _policyCtrl.text.trim(),
         recipientRegion: _region,
@@ -238,7 +233,6 @@ class _RemoteProfileEditPageState extends ConsumerState<RemoteProfileEditPage> {
         baseUrl: baseUrl,
         apiKey: _apiKeyCtrl.text.trim(),
         model: model,
-        multimodal: _multimodal,
         recipientName: _recipientCtrl.text.trim(),
         recipientPolicyUrl: _policyCtrl.text.trim(),
         recipientRegion: _region,
@@ -340,13 +334,6 @@ class _RemoteProfileEditPageState extends ConsumerState<RemoteProfileEditPage> {
                       onPressed: _fetchModels,
                     ),
             ),
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.multimodalTitle),
-            subtitle: Text(l10n.multimodalSubtitle),
-            value: _multimodal,
-            onChanged: (v) => setState(() => _multimodal = v),
           ),
           const SizedBox(height: 16),
           Text(l10n.remoteDisclosureTitle, style: theme.textTheme.titleMedium),

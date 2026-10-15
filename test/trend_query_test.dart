@@ -18,9 +18,9 @@ void main() {
     test('自定义模式：span 为首尾闭区间天数，endDate 为结束日', () {
       final from = _day(2026, 8, 1);
       final to = _day(2026, 8, 31);
-      final q = TrendQuery(days: 31, from: from, to: to);
+      final q = TrendQuery.custom(from, to);
       expect(q.isCustom, isTrue);
-      expect(q.spanDays, 31);
+      expect(q.days, 31);
       expect(q.endDate.year, 2026);
       expect(q.endDate.month, 8);
       expect(q.endDate.day, 31);
@@ -36,8 +36,8 @@ void main() {
     });
 
     test('单日区间：span=1', () {
-      final q = TrendQuery(days: 1, from: _day(2026, 8, 1), to: _day(2026, 8, 1));
-      expect(q.spanDays, 1);
+      final q = TrendQuery.custom(_day(2026, 8, 1), _day(2026, 8, 1));
+      expect(q.days, 1);
     });
   });
 

@@ -69,9 +69,6 @@ class ModelDownloadService extends ChangeNotifier {
 
   DownloadTask? task(String key) => _tasks[key];
 
-  bool hasActiveDownload() =>
-      _tasks.values.any((t) => t.status == DownloadStatus.running);
-
   /// 本地存储目录：{docs}/models/{repoIdSafe}/{fileName}
   static Future<Directory> storageDirFor(String repoId) async {
     final docs = await getApplicationDocumentsDirectory();
@@ -211,13 +208,6 @@ class ModelDownloadService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 下载完成后模型文件的最终路径（completed 任务）。
-  Future<String?> completedPath(String key) async {
-    final t = _tasks[key];
-    if (t == null || t.status != DownloadStatus.completed) return null;
-    return targetPath(t.repoId, t.filePath);
-  }
-
   void _upsertTask(DownloadTask t) => _tasks[t.key] = t;
 
   void _startNextQueued() {
@@ -245,4 +235,3 @@ class ModelDownloadService extends ChangeNotifier {
     super.dispose();
   }
 }
-

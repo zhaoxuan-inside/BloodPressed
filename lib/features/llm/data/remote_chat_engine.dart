@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
 import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/llm/domain/inference_engine.dart';
 
-/// 远端引擎：OpenAI 兼容 Chat Completions（支持 SSE 流式与多模态图片输入）。
+/// 远端引擎：OpenAI 兼容 Chat Completions（支持 SSE 流式）。
 ///
 /// 兼容：ModelScope API-Inference、DashScope 兼容模式、DeepSeek、
 /// OpenAI、Ollama(/v1)、vLLM 等一切 OpenAI 格式端点。
@@ -56,43 +55,6 @@ class RemoteChatEngine implements InferenceEngine {
       'max_tokens': maxTokens,
     };
     yield* _streamSse(body);
-  }
-
-  /// 多模态图片识别（OCR 兜底）。
-  ///
-  /// [jpegBytes] 为压缩后的图片；[prompt] 要求模型输出结构化 JSON。
-  Future<String> recognizeImage({
-    required Uint8List jpegBytes,
-    required String prompt,
-    String mimeType = 'image/jpeg',
-  }) async {
-    if (!isReady) throw const InferenceException('远端模型配置不完整');
-    final dataUrl = 'data:$mimeType;base64,${base64Encode(jpegBytes)}';
-    final body = {
-      'model': profile.remoteModel,
-      'messages': [
-        {
-          'role': 'user',
-          'content': [
-            {'type': 'text', 'text': prompt},
-            {
-              'type': 'image_url',
-              'image_url': {'url': dataUrl},
-            },
-          ],
-        }
-      ],
-      'temperature': 0.1,
-      'max_tokens': 512,
-    };
-    final resp = await _dio.post(
-      '${profile.baseUrl}/chat/completions',
-      options: Options(headers: _headers, responseType: ResponseType.json),
-      data: body,
-    );
-    final content = resp.data['choices']?[0]?['message']?['content'];
-    if (content is String) return content;
-    throw const InferenceException('远端返回格式异常');
   }
 
   /// 发起流式请求并解析 SSE。

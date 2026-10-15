@@ -7,7 +7,6 @@ class AppTheme {
   AppTheme._();
 
   static const Color seed = AppColors.seed; // 青绿（医疗健康色系）
-  static const Color dangerRed = Color(0xFFD32F2F);
 
   static ThemeData light() => _build(Brightness.light);
   static ThemeData dark() => _build(Brightness.dark);

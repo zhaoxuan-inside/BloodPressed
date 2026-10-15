@@ -511,11 +511,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String timesValue(int count) {
-    return '$count 次';
-  }
-
-  @override
   String get cardFooterStats => '规律监测，心中有数 📈';
 
   @override
@@ -685,12 +680,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String profileRemoteSubtitle(String model, String multimodal) {
-    return '远端 API · $model$multimodal';
+  String profileRemoteSubtitle(String model) {
+    return '远端 API · $model';
   }
-
-  @override
-  String get profileMultimodalSuffix => ' · 支持图片';
 
   @override
   String get engineLoading => '加载中';
@@ -772,12 +764,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get fetchModelsTooltip => '获取模型列表';
-
-  @override
-  String get multimodalTitle => '支持图片输入（多模态）';
-
-  @override
-  String get multimodalSubtitle => '开启后可用该模型识别血压计照片（OCR 兜底）';
 
   @override
   String get saveBtn => '保存';
@@ -1058,12 +1044,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get exportShareSubtitle => 'CSV 导出 · 卡片分享 · 微信';
 
   @override
-  String get cloudSync => '云同步';
-
-  @override
-  String get cloudSyncSubtitle => '未开启 · 多设备同步（预留）';
-
-  @override
   String get sectionGeneral => '通用';
 
   @override
@@ -1079,29 +1059,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get themeDark => '暗色';
 
   @override
-  String get wechatConfig => '微信分享配置';
-
-  @override
-  String get wechatNotConfigured => '未配置 AppID（未配置时使用系统分享）';
-
-  @override
-  String wechatAppIdMasked(String masked) {
-    return 'AppID：$masked';
-  }
-
-  @override
-  String get wechatDialogTitle => '微信分享配置';
-
-  @override
-  String get wechatAppIdField => '微信开放平台 AppID';
-
-  @override
-  String get wechatAppIdHint => '留空则使用系统分享';
-
-  @override
-  String get wechatUniversalLinkField => 'iOS Universal Link（可选）';
-
-  @override
   String get sectionAbout => '关于';
 
   @override
@@ -1113,55 +1070,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get disclaimerBody =>
       '本应用提供的所有内容（包括但不限于血压分级提示、AI 健康指导、健康知识文章）仅用于健康信息参考与自我管理辅助，不构成医学诊断或治疗建议。\n\nAI 生成内容可能存在错误或遗漏，请勿据此调整用药或做出医疗决策。如有健康问题，请咨询专业医疗机构。\n\n测量记录默认保存在您的设备本地。使用远端 AI 时，问题、对话上下文及相关血压摘要会发送至您配置的服务商；主动导出或分享时，相应内容会交给您选择的接收方。详情请阅读“隐私政策”，并妥善备份本地数据。';
-
-  @override
-  String get syncTitle => '云同步';
-
-  @override
-  String get syncOn => '已开启';
-
-  @override
-  String get syncOff => '未开启';
-
-  @override
-  String get syncEnabledBody => '数据将自动同步到云端。';
-
-  @override
-  String get syncDisabledBody =>
-      '云同步是增值服务，当前版本尚未接入云平台。你的所有数据仍完整保存在本机，可通过“导出与分享”随时备份 CSV。';
-
-  @override
-  String get syncReadiness => '同步能力准备情况';
-
-  @override
-  String get readyLocal => '本机数据保护（软删除 + updated_at 时间戳）';
-
-  @override
-  String get readyDeviceId => '跨设备唯一标识（UUID 主键 + 设备ID）';
-
-  @override
-  String readyOutbox(int count) {
-    return '离线变更日志（Outbox，待同步 $count 条）';
-  }
-
-  @override
-  String get readyPlatform => '云平台接入（候选：Supabase / 自建 API 等）';
-
-  @override
-  String get readyE2E => '端到端加密传输';
-
-  @override
-  String get sectionAccount => '账号（预留）';
-
-  @override
-  String get notLoggedIn => '未登录';
-
-  @override
-  String get loginAfterPlatform => '云平台接入后可在此登录账号';
-
-  @override
-  String get syncNote =>
-      '说明：确定云平台后，只需实现 SyncService 接口并替换默认实现，本地数据模型与界面无需改动即可获得多设备同步能力。';
 
   @override
   String get notifDailyTitle => '该测量血压啦 🩺';

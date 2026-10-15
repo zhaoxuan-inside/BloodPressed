@@ -86,6 +86,19 @@ void main() {
       expect(s.minPulse, isNull);
     });
 
+    test('缺少脉搏的记录不计入脉搏均值分母', () {
+      final stats = BpStats.compute([
+        rec(120, 80, pulse: 70),
+        rec(130, 85),
+        rec(140, 90, pulse: 80),
+      ]);
+      expect(stats.count, 3);
+      expect(stats.avgPulse, 75);
+      expect(stats.minPulse, 70);
+      expect(stats.maxPulse, 80);
+      expect(BpStats.compute([rec(120, 80)]).avgPulse, isNull);
+    });
+
     test('均值/最值/达标率', () {
       final s = BpStats.compute([
         rec(120, 80, pulse: 70),

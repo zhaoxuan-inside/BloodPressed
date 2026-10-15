@@ -33,15 +33,6 @@ class Fmt {
     return '${dt.month}月${dt.day}日';
   }
 
-  static String mmss(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    if (d.inHours > 0) {
-      return '${d.inHours}:$m:$s';
-    }
-    return '$m:$s';
-  }
-
   /// 文件大小（B/KB/MB/GB）。
   static String bytes(int bytes) {
     if (bytes < 1024) return '$bytes B';

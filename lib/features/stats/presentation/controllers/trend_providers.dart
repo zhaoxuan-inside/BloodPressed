@@ -39,10 +39,6 @@ class TrendQuery {
 
   bool get isCustom => from != null && to != null;
 
-  /// 首尾闭区间跨度天数。
-  int get spanDays =>
-      isCustom ? to!.difference(DateTime(from!.year, from!.month, from!.day)).inDays + 1 : days;
-
   /// 图表 x 轴锚定的末日：自定义取区间末日，预设取当前时刻。
   DateTime get endDate =>
       isCustom ? DateTime(to!.year, to!.month, to!.day) : DateTime.now();
@@ -133,6 +129,7 @@ double xOf(DateTime date, TrendQuery q) {
 /// 时段/星期/峰值分析。跟随 recordsControllerProvider 变化自动重算。
 final analysisDataProvider =
     FutureProvider.family<BpAnalysis, TrendQuery>((ref, q) async {
+  ref.watch(recordsControllerProvider);
   final repo = ref.watch(recordsRepositoryProvider);
   final now = DateTime.now();
   final from = q.isCustom ? q.from! : now.subtract(Duration(days: q.days));
@@ -145,7 +142,6 @@ final analysisDataProvider =
 class ChartBase {
   static const sysColor = Color(0xFFE53935);
   static const diaColor = Color(0xFF1E88E5);
-  static const pulseColor = Color(0xFF43A047);
 
   static double minX(int days) => 0;
   static double maxX(int days) => (days - 1).toDouble();

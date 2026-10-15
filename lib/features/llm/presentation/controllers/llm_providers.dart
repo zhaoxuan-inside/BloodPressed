@@ -41,7 +41,6 @@ class LlmProfilesController
     required String baseUrl,
     required String apiKey,
     required String model,
-    required bool multimodal,
     String recipientName = '',
     String recipientPolicyUrl = '',
     String recipientRegion = 'unknown',
@@ -54,7 +53,6 @@ class LlmProfilesController
         'baseUrl': baseUrl,
         'apiKey': apiKey,
         'model': model,
-        'multimodal': multimodal,
         'recipientName': recipientName,
         'recipientPolicyUrl': recipientPolicyUrl,
         'recipientRegion': recipientRegion,
@@ -85,18 +83,12 @@ class LlmProfilesController
     return profile;
   }
 
-  Future<void> updateLocalParams(LlmProfile profile, int contextSize) async {
-    await _store.upsert(profile.copyWithConfig({'contextSize': contextSize}));
-    await refresh();
-  }
-
   Future<void> updateRemote(
     LlmProfile profile, {
     required String name,
     required String baseUrl,
     required String apiKey,
     required String model,
-    required bool multimodal,
     String recipientName = '',
     String recipientPolicyUrl = '',
     String recipientRegion = 'unknown',
@@ -110,7 +102,6 @@ class LlmProfilesController
           'baseUrl': baseUrl,
           'apiKey': apiKey,
           'model': model,
-          'multimodal': multimodal,
           'recipientName': recipientName,
           'recipientPolicyUrl': recipientPolicyUrl,
           'recipientRegion': recipientRegion,
@@ -142,7 +133,10 @@ final llmProfilesProvider =
     StateNotifierProvider<LlmProfilesController, AsyncValue<List<LlmProfile>>>((
       ref,
     ) {
-      throw UnimplementedError('需在 main() 中覆盖');
+      return LlmProfilesController(
+        ref.watch(llmProfileStoreProvider),
+        ref.watch(appSettingsProvider),
+      );
     });
 
 /// 当前激活的 LLM 档案 id（与 AppSettings 双写保持一致）。
@@ -234,8 +228,6 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
   LocalChatEngine? _localEngine;
   InferenceEngine? _engine;
   LlmProfile? _engineProfile;
-
-  LlmProfile? activeProfile() => _ref.read(activeLlmProfileProvider);
 
   /// 实际生效档案（用户激活优先，否则内置默认）。
   LlmProfile? effectiveProfile() => _ref.read(effectiveLlmProfileProvider);
@@ -345,7 +337,7 @@ class LlmEngineController extends StateNotifier<LlmEngineState> {
 
 final llmEngineProvider =
     StateNotifierProvider<LlmEngineController, LlmEngineState>((ref) {
-      throw UnimplementedError('需在 main() 中覆盖');
+      return LlmEngineController(ref);
     });
 
 // ---------------- 模型下载 / 模型中心（双社区） ----------------

@@ -43,8 +43,6 @@ class BucketStats {
   /// sys<135 且 dia<85 的读数条数（家庭自测达标口径）。
   final int onTargetCount;
 
-  bool get onTargetAll => onTargetCount == count;
-
   /// 平均高压是否达到偏高口径（≥135 或平均低压 ≥85）。
   bool get avgElevated => avgSystolic >= 135 || avgDiastolic >= 85;
 }

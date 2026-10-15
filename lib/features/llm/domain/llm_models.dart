@@ -6,7 +6,7 @@ enum LlmKind { local, remote }
 /// 一个可用的模型配置。
 ///
 /// * [LlmKind.local]：config 含 {modelPath, contextSize, threads}
-/// * [LlmKind.remote]：config 含 {baseUrl, apiKey, model, multimodal(bool)}
+/// * [LlmKind.remote]：config 含 {baseUrl, apiKey, model}
 class LlmProfile {
   const LlmProfile({
     required this.id,
@@ -28,7 +28,6 @@ class LlmProfile {
   String get baseUrl => _trimSlash(config['baseUrl'] as String? ?? '');
   String get apiKey => config['apiKey'] as String? ?? '';
   String get remoteModel => config['model'] as String? ?? '';
-  bool get multimodal => config['multimodal'] == true;
   String get recipientName => config['recipientName'] as String? ?? '';
   String get recipientPolicyUrl =>
       config['recipientPolicyUrl'] as String? ?? '';
@@ -65,9 +64,6 @@ class LlmProfile {
     }
   }
 
-  /// 远端配置是否支持图片输入（多模态识别兜底）。
-  bool get supportsVision => kind == LlmKind.remote && multimodal;
-
   static String _trimSlash(String s) =>
       s.endsWith('/') ? s.substring(0, s.length - 1) : s;
 }
@@ -87,13 +83,6 @@ class ChatMessage {
   final ChatRole role;
   final String content;
   final DateTime createdAt;
-
-  ChatMessage copyWith({String? content}) => ChatMessage(
-    id: id,
-    role: role,
-    content: content ?? this.content,
-    createdAt: createdAt,
-  );
 
   Map<String, Object?> toMap() => {
     'id': id,

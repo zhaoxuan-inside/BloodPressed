@@ -10,6 +10,17 @@ try {
     $legacyValue = if ($Legacy) { 'true' } else { 'false' }
     & $FlutterPath --no-version-check build apk --release --target-platform android-arm64 --no-pub "--android-project-arg=bloodPressedLegacy=$legacyValue"
     if ($LASTEXITCODE -ne 0) { throw 'APK build failed.' }
+    # Keep Flutter-generated Windows paths valid for Android Lint.
+    $localPropertiesPath = Join-Path $projectRoot 'android/local.properties'
+    $localProperties = Get-Content -LiteralPath $localPropertiesPath -Raw
+    $localProperties = [regex]::Replace(
+        $localProperties,
+        '(?m)^((?:flutter\.sdk|sdk\.dir)=)([A-Za-z]):',
+        '$1$2\:'
+    )
+    [System.IO.File]::WriteAllText(
+        $localPropertiesPath, $localProperties, [System.Text.UTF8Encoding]::new($false)
+    )
     # Validate the actual output identity before naming it for distribution.
     $sdkDirectory = $env:ANDROID_SDK_ROOT
     if (-not $sdkDirectory) {

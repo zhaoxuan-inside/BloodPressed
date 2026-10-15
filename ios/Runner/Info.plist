@@ -47,20 +47,6 @@
 		<string>weixinULAPI</string>
 		<string>weixinURLParamsAPI</string>
 	</array>
-	<!-- 微信回调 URL Scheme：替换为你的微信开放平台 AppID（wx 开头） -->
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>weixin</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>wxYOUR_WECHAT_APPID</string>
-			</array>
-		</dict>
-	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

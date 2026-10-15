@@ -76,13 +76,4 @@ class ShareService {
         : '分享已取消';
   }
 
-  /// 分享文本。
-  Future<String> shareText(String text) async {
-    final result = await SharePlus.instance.share(
-      ShareParams(text: text),
-    );
-    return result.status == ShareResultStatus.success
-        ? '已分享'
-        : '分享已取消';
-  }
 }

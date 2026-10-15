@@ -9,8 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 import 'core/db/app_database.dart';
 import 'core/providers.dart';
-import 'features/assistant/data/health_context_builder.dart';
-import 'features/assistant/presentation/controllers/assistant_providers.dart';
 import 'features/export/data/wechat_share_service.dart';
 import 'features/llm/domain/builtin_model.dart';
 import 'features/llm/presentation/controllers/llm_providers.dart';
@@ -71,22 +69,7 @@ Future<Widget> _initializeBusiness(
     overrides: [
       withdrawPrivacyProvider.overrideWithValue(withdraw),
       sharedPreferencesProvider.overrideWithValue(prefs),
-      appSettingsProvider.overrideWithValue(settings),
       appDatabaseProvider.overrideWithValue(database),
-      llmProfilesProvider.overrideWith(
-        (ref) => LlmProfilesController(
-          ref.watch(llmProfileStoreProvider),
-          ref.watch(appSettingsProvider),
-        ),
-      ),
-      llmEngineProvider.overrideWith((ref) => LlmEngineController(ref)),
-      assistantProvider.overrideWith(
-        (ref) => AssistantController(
-          ref.watch(chatRepositoryProvider),
-          HealthContextBuilder(ref.watch(recordsRepositoryProvider)),
-          ref.read,
-        ),
-      ),
       activeLlmProfileIdProvider.overrideWith(
         (ref) => settings.activeLlmProfileId,
       ),

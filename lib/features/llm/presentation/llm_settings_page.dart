@@ -220,8 +220,7 @@ class _ProfileCard extends StatelessWidget {
     final subtitle = isLocal
         ? l10n.profileLocalSubtitle(
             profile.modelPath.split(Platform.pathSeparator).last)
-        : l10n.profileRemoteSubtitle(profile.remoteModel,
-            profile.multimodal ? l10n.profileMultimodalSuffix : '');
+        : l10n.profileRemoteSubtitle(profile.remoteModel);
 
     return Card(
       child: ListTile(

@@ -33,7 +33,5 @@ void main() {
       expect(c.label, isNotEmpty);
       expect(c.advice, isNotEmpty);
     }
-    expect(BpCategory.grade1.needsAttention, isTrue);
-    expect(BpCategory.normal.needsAttention, isFalse);
   });
 }

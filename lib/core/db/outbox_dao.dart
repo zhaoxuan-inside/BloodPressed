@@ -38,8 +38,6 @@ class OutboxEntry {
         createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
       );
 
-  Map<String, Object?> payloadJson() =>
-      payload.isEmpty ? {} : jsonDecode(payload) as Map<String, Object?>;
 }
 
 /// 变更日志 DAO。云同步开启前仅累积日志；开启后由 SyncService 消费。

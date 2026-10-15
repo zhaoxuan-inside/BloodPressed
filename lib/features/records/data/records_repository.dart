@@ -62,13 +62,6 @@ class RecordsRepository {
     return BpRecord.fromMap(rows.first);
   }
 
-  Future<bool> existsAny() async {
-    final r = await _db.db.rawQuery(
-      "SELECT COUNT(*) AS c FROM bp_records WHERE deleted_at IS NULL",
-    );
-    return ((r.first['c'] as int?) ?? 0) > 0;
-  }
-
   Future<BpRecord> create(BpRecord record) async {
     await _db.db.insert('bp_records', record.toMap());
     await _outbox.enqueue(
@@ -182,7 +175,7 @@ class BpStats {
       avgDiastolic: dia.reduce((a, b) => a + b) / dia.length,
       avgPulse: pulses.isEmpty
           ? null
-          : pulses.reduce((a, b) => a + b) / records.length,
+          : pulses.reduce((a, b) => a + b) / pulses.length,
       maxSystolic: sys.reduce((a, b) => a > b ? a : b),
       minSystolic: sys.reduce((a, b) => a < b ? a : b),
       maxDiastolic: dia.reduce((a, b) => a > b ? a : b),

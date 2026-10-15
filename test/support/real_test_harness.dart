@@ -19,8 +19,6 @@ import 'package:blood_pressed/core/db/outbox_dao.dart';
 import 'package:blood_pressed/core/providers.dart';
 import 'package:blood_pressed/core/router/app_router.dart';
 import 'package:blood_pressed/features/assistant/data/chat_repository.dart';
-import 'package:blood_pressed/features/assistant/data/health_context_builder.dart';
-import 'package:blood_pressed/features/assistant/presentation/controllers/assistant_providers.dart';
 import 'package:blood_pressed/features/llm/data/llm_profile_store.dart';
 import 'package:blood_pressed/features/llm/presentation/controllers/llm_providers.dart';
 import 'package:blood_pressed/features/records/data/records_repository.dart';
@@ -138,20 +136,6 @@ class RealAppHarness {
     sharedPreferencesProvider.overrideWithValue(prefs),
     appSettingsProvider.overrideWithValue(settings),
     appDatabaseProvider.overrideWithValue(db),
-    llmProfilesProvider.overrideWith(
-      (ref) => LlmProfilesController(
-        ref.watch(llmProfileStoreProvider),
-        ref.watch(appSettingsProvider),
-      ),
-    ),
-    llmEngineProvider.overrideWith((ref) => LlmEngineController(ref)),
-    assistantProvider.overrideWith(
-      (ref) => AssistantController(
-        ref.watch(chatRepositoryProvider),
-        HealthContextBuilder(ref.watch(recordsRepositoryProvider)),
-        ref.read,
-      ),
-    ),
     activeLlmProfileIdProvider.overrideWith(
       (ref) => settings.activeLlmProfileId,
     ),

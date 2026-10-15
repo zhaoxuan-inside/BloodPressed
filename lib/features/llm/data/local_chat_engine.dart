@@ -13,7 +13,6 @@ class LocalChatEngine implements InferenceEngine {
 
   LlamaEngine? _engine;
   String? _loadedPath;
-  int _loadedContext = 0;
 
   @override
   bool get isReady => _engine?.isReady ?? false;
@@ -45,7 +44,6 @@ class LocalChatEngine implements InferenceEngine {
         ),
       );
       _loadedPath = profile.modelPath;
-      _loadedContext = profile.contextSize;
     } catch (e) {
       await engine.dispose();
       _engine = null;
@@ -149,10 +147,7 @@ class LocalChatEngine implements InferenceEngine {
     }
     _engine = null;
     _loadedPath = null;
-    _loadedContext = 0;
   }
-
-  int get loadedContext => _loadedContext;
 
   @override
   Future<void> dispose() => unload();

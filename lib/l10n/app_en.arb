@@ -343,14 +343,6 @@
       }
     }
   },
-  "timesValue": "{count} times",
-  "@timesValue": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cardFooterStats": "Measure regularly, stay in control",
   "days7": "7 days",
   "days30": "30 days",
@@ -467,18 +459,14 @@
       }
     }
   },
-  "profileRemoteSubtitle": "Remote API · {model}{multimodal}",
+  "profileRemoteSubtitle": "Remote API · {model}",
   "@profileRemoteSubtitle": {
     "placeholders": {
       "model": {
         "type": "String"
-      },
-      "multimodal": {
-        "type": "String"
       }
     }
   },
-  "profileMultimodalSuffix": " · supports images",
   "engineLoading": "Loading",
   "engineActive": "Active",
   "menuActivate": "Activate",
@@ -506,8 +494,6 @@
   "fieldModel": "Model name (model)",
   "modelHint": "e.g. Qwen/Qwen3-32B or deepseek-chat",
   "fetchModelsTooltip": "Fetch model list",
-  "multimodalTitle": "Support image input (multimodal)",
-  "multimodalSubtitle": "When on, this model can read blood pressure monitor photos (OCR fallback).",
   "saveBtn": "Save",
   "addActivateBtn": "Add & Activate",
   "needBaseUrl": "Enter the API base URL first",
@@ -660,53 +646,15 @@
   "sectionData": "Data",
   "exportShare": "Export & Share",
   "exportShareSubtitle": "CSV export · Card sharing · WeChat",
-  "cloudSync": "Cloud Sync",
-  "cloudSyncSubtitle": "Off · Multi-device sync (planned)",
   "sectionGeneral": "General",
   "appearance": "Appearance",
   "themeSystem": "System",
   "themeLight": "Light",
   "themeDark": "Dark",
-  "wechatConfig": "WeChat Sharing Setup",
-  "wechatNotConfigured": "AppID not set (system share is used until configured)",
-  "wechatAppIdMasked": "AppID: {masked}",
-  "@wechatAppIdMasked": {
-    "placeholders": {
-      "masked": {
-        "type": "String"
-      }
-    }
-  },
-  "wechatDialogTitle": "WeChat Sharing Setup",
-  "wechatAppIdField": "WeChat Open Platform AppID",
-  "wechatAppIdHint": "Leave empty to use system sharing",
-  "wechatUniversalLinkField": "iOS Universal Link (optional)",
   "sectionAbout": "About",
   "appVersionSubtitle": "Cross-platform blood pressure companion",
   "disclaimer": "Disclaimer",
   "disclaimerBody": "All content in this app (blood pressure classification hints, AI health guidance, knowledge articles) is for health information reference and self-management only, and is not medical diagnosis or treatment advice.\n\nAI-generated content may contain errors or omissions. Do not adjust medication or make medical decisions based on it. Consult a professional medical institution for any health concern.\n\nMeasurement records are stored on your device by default. Remote AI sends your questions, conversation context and relevant blood pressure summaries to the provider you configure. Exporting or sharing hands the selected content to your chosen recipient. Read the privacy policy for details and back up local data.",
-  "syncTitle": "Cloud Sync",
-  "syncOn": "On",
-  "syncOff": "Off",
-  "syncEnabledBody": "Data will sync to the cloud automatically.",
-  "syncDisabledBody": "Cloud sync is a premium feature and is not available yet. All data stays on this device; back it up as CSV anytime via “Export & Share”.",
-  "syncReadiness": "Sync Readiness",
-  "readyLocal": "Local data protection (soft delete + updated_at timestamps)",
-  "readyDeviceId": "Cross-device identity (UUID primary keys + device ID)",
-  "readyOutbox": "Offline change log (outbox, {count} pending)",
-  "@readyOutbox": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "readyPlatform": "Cloud platform integration (candidates: Supabase / self-hosted API)",
-  "readyE2E": "End-to-end encrypted transport",
-  "sectionAccount": "Account (planned)",
-  "notLoggedIn": "Not signed in",
-  "loginAfterPlatform": "Sign in here once the cloud platform is available",
-  "syncNote": "Note: once a cloud platform is chosen, only a SyncService implementation is needed to enable multi-device sync — local data models and UI stay unchanged.",
   "notifDailyTitle": "Time to measure your blood pressure 🩺",
   "notifDailyBody": "Keep logging — your blood pressure trend matters.",
   "channelDailyName": "Daily measurement reminder",

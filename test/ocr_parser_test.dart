@@ -136,36 +136,4 @@ PUL
     });
   });
 
-  group('LLM 提取解析（多模态兜底）', () {
-    test('纯 JSON', () {
-      final c = parseLlmExtraction(
-          '{"systolic": 118, "diastolic": 76, "pulse": 71}');
-      expect(c, isNotNull);
-      expect(c!.systolic, 118);
-      expect(c.pulse, 71);
-    });
-
-    test('markdown 代码块包裹', () {
-      final c = parseLlmExtraction('识别结果如下：\n```json\n'
-          '{"systolic": 132, "diastolic": 88, "pulse": null}\n```');
-      expect(c, isNotNull);
-      expect(c!.systolic, 132);
-      expect(c.diastolic, 88);
-    });
-
-    test('夹带说明文字', () {
-      final c = parseLlmExtraction(
-          '好的，我识别到的高压是145低压是95。结果：{"systolic":"145","diastolic":"95"}');
-      expect(c, isNotNull);
-      expect(c!.systolic, 145);
-    });
-
-    test('不合理数值返回 null', () {
-      expect(
-        parseLlmExtraction('{"systolic": 500, "diastolic": 80}'),
-        isNull,
-      );
-      expect(parseLlmExtraction('我看不到任何数字'), isNull);
-    });
-  });
 }

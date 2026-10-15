@@ -120,10 +120,6 @@ class PpOcrService {
     return image;
   }
 
-  /// 识别图片，返回带位置的文本行（按阅读顺序）。
-  Future<List<PpTextLine>> recognizeLines(String imagePath) async =>
-      recognizeImage(await decodeImage(imagePath));
-
   /// 识别已解码图片（供 ocr_flow 复用七段码路径的解码结果）。
   Future<List<PpTextLine>> recognizeImage(RgbaImage image) async {
     await _ensureLoaded();
@@ -189,8 +185,9 @@ class PpOcrService {
       final indices =
           _argmaxPerSteps(recRun![0]!.value, _dict!.length + 2);
       final text = decodeCtc(indices, _dict!).trim();
-      // ignore: avoid_print
-      print('PpOCR rec "$text" @ ${quad.score.toStringAsFixed(2)}');
+      if (kDebugMode) {
+        debugPrint('PpOCR rec "$text" @ ${quad.score.toStringAsFixed(2)}');
+      }
       if (text.isEmpty) continue;
       lines.add(PpTextLine(
         text: text,

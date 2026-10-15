@@ -107,8 +107,6 @@ class AppSettings {
 
   /// 旧版布尔开关（仅作迁移读取，新代码使用 [reminderMode]）。
   bool get reminderEnabled => _prefs.getBool(_kReminderEnabled) ?? false;
-  Future<void> setReminderEnabled(bool v) =>
-      _prefs.setBool(_kReminderEnabled, v);
 
   int get reminderHour => _prefs.getInt(_kReminderHour) ?? 8;
   int get reminderMinute => _prefs.getInt(_kReminderMinute) ?? 0;
@@ -174,11 +172,8 @@ class AppSettings {
 
   // ---- 微信开放平台（分享） ----
   String get wechatAppId => _prefs.getString(_kWechatAppId) ?? '';
-  Future<void> setWechatAppId(String v) => _prefs.setString(_kWechatAppId, v);
   String get wechatUniversalLink =>
       _prefs.getString(_kWechatUniversalLink) ?? '';
-  Future<void> setWechatUniversalLink(String v) =>
-      _prefs.setString(_kWechatUniversalLink, v);
 
   // ---- 知识阅读字号 ----
   double get knowledgeFontScale =>

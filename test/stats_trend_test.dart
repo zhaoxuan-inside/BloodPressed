@@ -84,7 +84,10 @@ void main() {
       );
 
       final container = ProviderContainer(
-        overrides: [appDatabaseProvider.overrideWithValue(db)],
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          sharedPreferencesProvider.overrideWithValue(await SharedPreferences.getInstance()),
+        ],
       );
       addTearDown(container.dispose);
 
@@ -93,6 +96,8 @@ void main() {
         DateTime(2026, 10, 5),
         arm: MeasureArm.left,
       );
+      final subscription = container.listen(analysisDataProvider(query), (_, _) {});
+      addTearDown(subscription.close);
       final analysis = await container.read(analysisDataProvider(query).future);
 
       expect(analysis.totalCount, 2);
@@ -102,13 +107,18 @@ void main() {
 
     test('无数据时 isEmpty', () async {
       final container = ProviderContainer(
-        overrides: [appDatabaseProvider.overrideWithValue(db)],
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          sharedPreferencesProvider.overrideWithValue(await SharedPreferences.getInstance()),
+        ],
       );
       addTearDown(container.dispose);
       final query = TrendQuery.custom(
         DateTime(2026, 10, 5),
         DateTime(2026, 10, 5),
       );
+      final subscription = container.listen(analysisDataProvider(query), (_, _) {});
+      addTearDown(subscription.close);
       final analysis = await container.read(analysisDataProvider(query).future);
       expect(analysis.isEmpty, isTrue);
     });

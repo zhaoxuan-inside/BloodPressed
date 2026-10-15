@@ -27,7 +27,6 @@ import 'package:blood_pressed/features/records/data/records_repository.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
-import 'package:blood_pressed/features/sync/data/local_only_sync_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -165,7 +164,7 @@ void main() {
     });
   });
 
-  group('设置、同步占位、格式化、图片压缩', () {
+  group('设置、变更日志、格式化、图片压缩', () {
     test('AppSettings 真实键值读写', () async {
       SharedPreferences.setMockInitialValues({});
       final settings = AppSettings(await SharedPreferences.getInstance());
@@ -177,9 +176,9 @@ void main() {
       expect(settings.defaultArm, MeasureArm.right);
       await settings.setThemeMode('dark');
       expect(settings.themeMode, 'dark');
-      await settings.setReminderEnabled(true);
+      await settings.setReminderMode(ReminderMode.daily);
       await settings.setReminderTime(7, 30);
-      expect(settings.reminderEnabled, isTrue);
+      expect(settings.reminderMode, ReminderMode.daily);
       expect(settings.reminderHour, 7);
       expect(settings.reminderMinute, 30);
       await settings.toggleFavorite('measure-guide');
@@ -188,14 +187,6 @@ void main() {
       expect(settings.isFavorite('measure-guide'), isFalse);
       await settings.setKnowledgeFontScale(1.25);
       expect(settings.knowledgeFontScale, closeTo(1.25, 0.001));
-    });
-
-    test('LocalOnlySyncService 未开启且 push/pull 拒绝', () async {
-      const sync = LocalOnlySyncService();
-      expect(sync.enabled, isFalse);
-      expect(sync.syncing, isFalse);
-      await expectLater(sync.push(const []), throwsUnsupportedError);
-      await expectLater(sync.pull(null), throwsUnsupportedError);
     });
 
     test('Outbox 取出后可按 id 删除', () async {
@@ -214,19 +205,18 @@ void main() {
       expect(Fmt.bytes(2048), contains('KB'));
     });
 
-    test('ImageUtils 压缩真实 JPEG 像素', () async {
+    test('ImageUtils 持久化原始照片并保持字节完整', () async {
       final dir = await Directory.systemTemp.createTemp('bp_img');
       addTearDown(() => dir.delete(recursive: true));
       final image = img.Image(width: 1600, height: 1200);
       img.fill(image, color: img.ColorRgb8(40, 80, 120));
       final src = File('${dir.path}/bp.jpg')
         ..writeAsBytesSync(img.encodeJpg(image, quality: 95));
-      final compressed = await ImageUtils.compressForAi(src.path, maxSide: 640);
-      final decoded = img.decodeJpg(compressed);
-      expect(decoded, isNotNull);
-      expect(decoded!.width, 640);
-      expect(decoded.height, 480);
-      expect(compressed.length, lessThan(src.lengthSync()));
+      PathProviderPlatform.instance = _TempPathProvider(dir.path);
+      final persisted = File(await ImageUtils.persistImage(src.path));
+      expect(persisted.path, contains('photos'));
+      expect(persisted.path, isNot(src.path));
+      expect(await persisted.readAsBytes(), await src.readAsBytes());
     });
 
     test('CSV exportToFile 写入临时目录真实文件', () async {

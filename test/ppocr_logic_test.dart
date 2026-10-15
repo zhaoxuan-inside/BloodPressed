@@ -27,19 +27,19 @@ Float32List _prob(int w, int h, List<Rect> hot, {double v = 0.9}) {
 void main() {
   group('DBNet 检测后处理', () {
     test('单个高亮区域 → 一个框，位置接近原区域', () {
-      final boxes = boxesFromProbMap(
+      final boxes = quadsFromProbMap(
         prob: _prob(96, 32, [const Rect.fromLTWH(20, 8, 40, 12)]),
         width: 96,
         height: 32,
       );
       expect(boxes, hasLength(1));
-      expect(boxes.first.left, lessThanOrEqualTo(20));
-      expect(boxes.first.right, greaterThanOrEqualTo(60));
+      expect(boxes.first.bounds.left, lessThanOrEqualTo(20));
+      expect(boxes.first.bounds.right, greaterThanOrEqualTo(60));
       expect(boxes.first.score, greaterThan(0.8));
     });
 
     test('两个分离区域 → 两个框，按行排序', () {
-      final boxes = boxesFromProbMap(
+      final boxes = quadsFromProbMap(
         prob: _prob(96, 48, [
           const Rect.fromLTWH(10, 30, 30, 10),
           const Rect.fromLTWH(50, 4, 30, 10),
@@ -48,11 +48,11 @@ void main() {
         height: 48,
       );
       expect(boxes, hasLength(2));
-      expect(boxes.first.top, lessThan(boxes.last.top));
+      expect(boxes.first.bounds.top, lessThan(boxes.last.bounds.top));
     });
 
     test('微小噪点被过滤', () {
-      final boxes = boxesFromProbMap(
+      final boxes = quadsFromProbMap(
         prob: _prob(64, 32, [
           const Rect.fromLTWH(30, 15, 3, 2), // 6 像素 < minArea
           const Rect.fromLTWH(10, 5, 30, 10),
@@ -64,7 +64,7 @@ void main() {
     });
 
     test('低分区域（boxThresh 以下）被过滤', () {
-      final boxes = boxesFromProbMap(
+      final boxes = quadsFromProbMap(
         prob: _prob(64, 32, [const Rect.fromLTWH(10, 5, 30, 10)],
             v: 0.35),
         width: 64,

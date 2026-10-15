@@ -1008,12 +1008,6 @@ abstract class AppLocalizations {
   /// **'Sys {smin}~{smax} · Dia {dmin}~{dmax}'**
   String bpRangeValue(int smin, int smax, int dmin, int dmax);
 
-  /// No description provided for @timesValue.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} times'**
-  String timesValue(int count);
-
   /// No description provided for @cardFooterStats.
   ///
   /// In en, this message translates to:
@@ -1317,14 +1311,8 @@ abstract class AppLocalizations {
   /// No description provided for @profileRemoteSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Remote API · {model}{multimodal}'**
-  String profileRemoteSubtitle(String model, String multimodal);
-
-  /// No description provided for @profileMultimodalSuffix.
-  ///
-  /// In en, this message translates to:
-  /// **' · supports images'**
-  String get profileMultimodalSuffix;
+  /// **'Remote API · {model}'**
+  String profileRemoteSubtitle(String model);
 
   /// No description provided for @engineLoading.
   ///
@@ -1487,18 +1475,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fetch model list'**
   String get fetchModelsTooltip;
-
-  /// No description provided for @multimodalTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Support image input (multimodal)'**
-  String get multimodalTitle;
-
-  /// No description provided for @multimodalSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'When on, this model can read blood pressure monitor photos (OCR fallback).'**
-  String get multimodalSubtitle;
 
   /// No description provided for @saveBtn.
   ///
@@ -2016,18 +1992,6 @@ abstract class AppLocalizations {
   /// **'CSV export · Card sharing · WeChat'**
   String get exportShareSubtitle;
 
-  /// No description provided for @cloudSync.
-  ///
-  /// In en, this message translates to:
-  /// **'Cloud Sync'**
-  String get cloudSync;
-
-  /// No description provided for @cloudSyncSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Off · Multi-device sync (planned)'**
-  String get cloudSyncSubtitle;
-
   /// No description provided for @sectionGeneral.
   ///
   /// In en, this message translates to:
@@ -2058,48 +2022,6 @@ abstract class AppLocalizations {
   /// **'Dark'**
   String get themeDark;
 
-  /// No description provided for @wechatConfig.
-  ///
-  /// In en, this message translates to:
-  /// **'WeChat Sharing Setup'**
-  String get wechatConfig;
-
-  /// No description provided for @wechatNotConfigured.
-  ///
-  /// In en, this message translates to:
-  /// **'AppID not set (system share is used until configured)'**
-  String get wechatNotConfigured;
-
-  /// No description provided for @wechatAppIdMasked.
-  ///
-  /// In en, this message translates to:
-  /// **'AppID: {masked}'**
-  String wechatAppIdMasked(String masked);
-
-  /// No description provided for @wechatDialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'WeChat Sharing Setup'**
-  String get wechatDialogTitle;
-
-  /// No description provided for @wechatAppIdField.
-  ///
-  /// In en, this message translates to:
-  /// **'WeChat Open Platform AppID'**
-  String get wechatAppIdField;
-
-  /// No description provided for @wechatAppIdHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Leave empty to use system sharing'**
-  String get wechatAppIdHint;
-
-  /// No description provided for @wechatUniversalLinkField.
-  ///
-  /// In en, this message translates to:
-  /// **'iOS Universal Link (optional)'**
-  String get wechatUniversalLinkField;
-
   /// No description provided for @sectionAbout.
   ///
   /// In en, this message translates to:
@@ -2123,96 +2045,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All content in this app (blood pressure classification hints, AI health guidance, knowledge articles) is for health information reference and self-management only, and is not medical diagnosis or treatment advice.\n\nAI-generated content may contain errors or omissions. Do not adjust medication or make medical decisions based on it. Consult a professional medical institution for any health concern.\n\nMeasurement records are stored on your device by default. Remote AI sends your questions, conversation context and relevant blood pressure summaries to the provider you configure. Exporting or sharing hands the selected content to your chosen recipient. Read the privacy policy for details and back up local data.'**
   String get disclaimerBody;
-
-  /// No description provided for @syncTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Cloud Sync'**
-  String get syncTitle;
-
-  /// No description provided for @syncOn.
-  ///
-  /// In en, this message translates to:
-  /// **'On'**
-  String get syncOn;
-
-  /// No description provided for @syncOff.
-  ///
-  /// In en, this message translates to:
-  /// **'Off'**
-  String get syncOff;
-
-  /// No description provided for @syncEnabledBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Data will sync to the cloud automatically.'**
-  String get syncEnabledBody;
-
-  /// No description provided for @syncDisabledBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Cloud sync is a premium feature and is not available yet. All data stays on this device; back it up as CSV anytime via “Export & Share”.'**
-  String get syncDisabledBody;
-
-  /// No description provided for @syncReadiness.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync Readiness'**
-  String get syncReadiness;
-
-  /// No description provided for @readyLocal.
-  ///
-  /// In en, this message translates to:
-  /// **'Local data protection (soft delete + updated_at timestamps)'**
-  String get readyLocal;
-
-  /// No description provided for @readyDeviceId.
-  ///
-  /// In en, this message translates to:
-  /// **'Cross-device identity (UUID primary keys + device ID)'**
-  String get readyDeviceId;
-
-  /// No description provided for @readyOutbox.
-  ///
-  /// In en, this message translates to:
-  /// **'Offline change log (outbox, {count} pending)'**
-  String readyOutbox(int count);
-
-  /// No description provided for @readyPlatform.
-  ///
-  /// In en, this message translates to:
-  /// **'Cloud platform integration (candidates: Supabase / self-hosted API)'**
-  String get readyPlatform;
-
-  /// No description provided for @readyE2E.
-  ///
-  /// In en, this message translates to:
-  /// **'End-to-end encrypted transport'**
-  String get readyE2E;
-
-  /// No description provided for @sectionAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'Account (planned)'**
-  String get sectionAccount;
-
-  /// No description provided for @notLoggedIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Not signed in'**
-  String get notLoggedIn;
-
-  /// No description provided for @loginAfterPlatform.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in here once the cloud platform is available'**
-  String get loginAfterPlatform;
-
-  /// No description provided for @syncNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Note: once a cloud platform is chosen, only a SyncService implementation is needed to enable multi-device sync — local data models and UI stay unchanged.'**
-  String get syncNote;
 
   /// No description provided for @notifDailyTitle.
   ///

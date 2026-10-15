@@ -531,11 +531,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String timesValue(int count) {
-    return '$count times';
-  }
-
-  @override
   String get cardFooterStats => 'Measure regularly, stay in control';
 
   @override
@@ -711,12 +706,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String profileRemoteSubtitle(String model, String multimodal) {
-    return 'Remote API · $model$multimodal';
+  String profileRemoteSubtitle(String model) {
+    return 'Remote API · $model';
   }
-
-  @override
-  String get profileMultimodalSuffix => ' · supports images';
 
   @override
   String get engineLoading => 'Loading';
@@ -803,13 +795,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fetchModelsTooltip => 'Fetch model list';
-
-  @override
-  String get multimodalTitle => 'Support image input (multimodal)';
-
-  @override
-  String get multimodalSubtitle =>
-      'When on, this model can read blood pressure monitor photos (OCR fallback).';
 
   @override
   String get saveBtn => 'Save';
@@ -1105,12 +1090,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportShareSubtitle => 'CSV export · Card sharing · WeChat';
 
   @override
-  String get cloudSync => 'Cloud Sync';
-
-  @override
-  String get cloudSyncSubtitle => 'Off · Multi-device sync (planned)';
-
-  @override
   String get sectionGeneral => 'General';
 
   @override
@@ -1126,30 +1105,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeDark => 'Dark';
 
   @override
-  String get wechatConfig => 'WeChat Sharing Setup';
-
-  @override
-  String get wechatNotConfigured =>
-      'AppID not set (system share is used until configured)';
-
-  @override
-  String wechatAppIdMasked(String masked) {
-    return 'AppID: $masked';
-  }
-
-  @override
-  String get wechatDialogTitle => 'WeChat Sharing Setup';
-
-  @override
-  String get wechatAppIdField => 'WeChat Open Platform AppID';
-
-  @override
-  String get wechatAppIdHint => 'Leave empty to use system sharing';
-
-  @override
-  String get wechatUniversalLinkField => 'iOS Universal Link (optional)';
-
-  @override
   String get sectionAbout => 'About';
 
   @override
@@ -1161,59 +1116,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get disclaimerBody =>
       'All content in this app (blood pressure classification hints, AI health guidance, knowledge articles) is for health information reference and self-management only, and is not medical diagnosis or treatment advice.\n\nAI-generated content may contain errors or omissions. Do not adjust medication or make medical decisions based on it. Consult a professional medical institution for any health concern.\n\nMeasurement records are stored on your device by default. Remote AI sends your questions, conversation context and relevant blood pressure summaries to the provider you configure. Exporting or sharing hands the selected content to your chosen recipient. Read the privacy policy for details and back up local data.';
-
-  @override
-  String get syncTitle => 'Cloud Sync';
-
-  @override
-  String get syncOn => 'On';
-
-  @override
-  String get syncOff => 'Off';
-
-  @override
-  String get syncEnabledBody => 'Data will sync to the cloud automatically.';
-
-  @override
-  String get syncDisabledBody =>
-      'Cloud sync is a premium feature and is not available yet. All data stays on this device; back it up as CSV anytime via “Export & Share”.';
-
-  @override
-  String get syncReadiness => 'Sync Readiness';
-
-  @override
-  String get readyLocal =>
-      'Local data protection (soft delete + updated_at timestamps)';
-
-  @override
-  String get readyDeviceId =>
-      'Cross-device identity (UUID primary keys + device ID)';
-
-  @override
-  String readyOutbox(int count) {
-    return 'Offline change log (outbox, $count pending)';
-  }
-
-  @override
-  String get readyPlatform =>
-      'Cloud platform integration (candidates: Supabase / self-hosted API)';
-
-  @override
-  String get readyE2E => 'End-to-end encrypted transport';
-
-  @override
-  String get sectionAccount => 'Account (planned)';
-
-  @override
-  String get notLoggedIn => 'Not signed in';
-
-  @override
-  String get loginAfterPlatform =>
-      'Sign in here once the cloud platform is available';
-
-  @override
-  String get syncNote =>
-      'Note: once a cloud platform is chosen, only a SyncService implementation is needed to enable multi-device sync — local data models and UI stay unchanged.';
 
   @override
   String get notifDailyTitle => 'Time to measure your blood pressure 🩺';

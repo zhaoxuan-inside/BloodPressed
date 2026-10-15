@@ -1,12 +1,18 @@
-import Flutter
-import UIKit
+import Foundation
 import XCTest
 
 class RunnerTests: XCTestCase {
 
-  func testExample() {
-    // If you add code to the Runner application, consider adding tests here.
-    // See https://developer.apple.com/documentation/xctest for more information about using XCTest.
+  func testCapturePermissionsHaveUsageDescriptions() throws {
+    for key in [
+      "NSCameraUsageDescription",
+      "NSPhotoLibraryUsageDescription",
+      "NSMicrophoneUsageDescription",
+      "NSSpeechRecognitionUsageDescription",
+    ] {
+      let description = try XCTUnwrap(Bundle.main.object(forInfoDictionaryKey: key) as? String, key)
+      XCTAssertFalse(description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, key)
+    }
   }
 
 }

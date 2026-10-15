@@ -12,6 +12,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  # Material 的自适应控件会间接使用 Cupertino 图标字体。
   cupertino_icons: ^1.0.8
 
   # 状态管理 / 路由
@@ -48,7 +49,7 @@ dependencies:
   llamadart: ^0.10.0
 
   # 分享 / 导出
-  share_plus: ">=9.0.0 <13.0.0"
+  share_plus: ^13.3.1
   fluwx: ^6.0.4
 
   # 健康知识阅读
@@ -56,15 +57,14 @@ dependencies:
 
   # 每日测量提醒
   flutter_local_notifications: ">=18.0.0 <20.0.0"
-  flutter_timezone: ">=3.0.0 <5.0.0"
+  flutter_timezone: ^5.1.1
   timezone: ">=0.10.0 <0.12.0"
 
   # 图片处理（多模态识别前压缩）
   image: ^4.3.0
-  package_info_plus: ^9.0.1
+  package_info_plus: ^10.2.2
   sherpa_onnx: ^1.13.8
   record: ^7.1.2
-  archive: ^4.5.0
 
 dev_dependencies:
   flutter_test:

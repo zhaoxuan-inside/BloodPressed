@@ -15,13 +15,6 @@ class PpTextLine {
   final Rect rect;
   final double score;
 
-  /// 行内首个整数（如 "75 03" → 75，"120" → 120）。
-  int? get leadingNumber {
-    final m = RegExp(r'\d{1,4}').firstMatch(text);
-    return m == null ? null : int.tryParse(m.group(0)!);
-  }
-
-  bool get hasNumber => leadingNumber != null;
 }
 
 /// CTC 贪心解码：blank=0，跳过重复与空白，映射到字典。

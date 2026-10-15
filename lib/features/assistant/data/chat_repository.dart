@@ -30,15 +30,6 @@ class ChatRepository {
     return msg;
   }
 
-  Future<void> updateContent(String id, String content) async {
-    await _db.db.update(
-      'chat_messages',
-      {'content': content},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
   Future<void> clear() async {
     await _db.db.delete('chat_messages');
   }
