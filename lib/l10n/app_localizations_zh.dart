@@ -1112,7 +1112,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      '本应用提供的所有内容（包括但不限于血压分级提示、AI 健康指导、健康知识文章）仅用于健康信息参考与自我管理辅助，不构成医学诊断或治疗建议。\n\nAI 生成内容可能存在错误或遗漏，请勿据此调整用药或做出医疗决策。如有健康问题，请咨询专业医疗机构。\n\n本应用数据仅保存在您的设备本地（云同步开启前不上传任何数据），请自行通过导出功能妥善备份。';
+      '本应用提供的所有内容（包括但不限于血压分级提示、AI 健康指导、健康知识文章）仅用于健康信息参考与自我管理辅助，不构成医学诊断或治疗建议。\n\nAI 生成内容可能存在错误或遗漏，请勿据此调整用药或做出医疗决策。如有健康问题，请咨询专业医疗机构。\n\n测量记录默认保存在您的设备本地。使用远端 AI 时，问题、对话上下文及相关血压摘要会发送至您配置的服务商；主动导出或分享时，相应内容会交给您选择的接收方。详情请阅读“隐私政策”，并妥善备份本地数据。';
 
   @override
   String get syncTitle => '云同步';
@@ -1223,4 +1223,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navMe => '我的';
+
+  @override
+  String get privacyPolicy => '隐私政策';
+
+  @override
+  String get privacyPolicyLoadError => '隐私政策暂时无法加载，请重新进入。';
 }

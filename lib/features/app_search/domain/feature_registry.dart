@@ -55,7 +55,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     title: (l10n) => l10n.sectionEntry,
     keywords: ['录入', '手动录入', '记血压', '测量', '添加记录', 'entry', 'manual'],
     pinyin: ['luru', 'jixueya', 'banya'],
-    rootNavigator: true
+    rootNavigator: true,
   ),
   AppFeatureEntry(
     id: 'stats',
@@ -88,16 +88,25 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     title: (l10n) => l10n.aiModelConfig,
     keywords: ['模型', '大模型', 'llm', '本地模型', '远端', 'api', '配置'],
     pinyin: ['moxing', 'peizhi', 'damoxing'],
-    rootNavigator: true
+    rootNavigator: true,
   ),
   AppFeatureEntry(
     id: 'market',
     route: '/market',
     icon: Icons.cloud_download_outlined,
     title: (l10n) => l10n.marketTitle,
-    keywords: ['模型中心', '模型市场', '搜索模型', '下载模型', 'gguf', 'qwen', 'market', 'center'],
+    keywords: [
+      '模型中心',
+      '模型市场',
+      '搜索模型',
+      '下载模型',
+      'gguf',
+      'qwen',
+      'market',
+      'center',
+    ],
     pinyin: ['moxingshichang', 'xiazai', 'moda'],
-    rootNavigator: true
+    rootNavigator: true,
   ),
   AppFeatureEntry(
     id: 'settings',
@@ -122,7 +131,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     title: (l10n) => l10n.exportShare,
     keywords: ['导出', '分享', 'csv', 'excel', '微信', '卡片', 'export'],
     pinyin: ['daochu', 'fenxiang', 'daoru'],
-    rootNavigator: true
+    rootNavigator: true,
   ),
   AppFeatureEntry(
     id: 'sync',
@@ -131,7 +140,7 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     title: (l10n) => l10n.cloudSync,
     keywords: ['同步', '云同步', '备份', '多设备', 'sync', 'cloud'],
     pinyin: ['tongbu', 'beifen', 'yunkongbu'],
-    rootNavigator: true
+    rootNavigator: true,
   ),
   AppFeatureEntry(
     id: 'appearance',
@@ -150,19 +159,19 @@ final List<AppFeatureEntry> kAppFeatureRegistry = [
     pinyin: ['yuyan', 'zhongwen', 'yingwen'],
   ),
   AppFeatureEntry(
-    id: 'wechat',
-    route: '/settings',
-    icon: Icons.chat_bubble_outline,
-    title: (l10n) => l10n.wechatConfig,
-    keywords: ['微信', 'appid', '分享配置', 'wechat'],
-    pinyin: ['weixin', 'fenxiangpeizhi'],
-  ),
-  AppFeatureEntry(
     id: 'disclaimer',
     route: '/settings',
     icon: Icons.info_outline,
     title: (l10n) => l10n.disclaimer,
     keywords: ['免责', '免责声明', '声明', 'disclaimer'],
     pinyin: ['mianze', 'mianzeshengming', 'shengming'],
+  ),
+  AppFeatureEntry(
+    id: 'privacy',
+    route: '/settings',
+    icon: Icons.privacy_tip_outlined,
+    title: (l10n) => l10n.privacyPolicy,
+    keywords: ['隐私', '隐私政策', '个人信息', 'privacy', 'policy'],
+    pinyin: ['yinsi', 'yinsizhengce'],
   ),
 ];

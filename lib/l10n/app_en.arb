@@ -167,24 +167,40 @@
   "analysisOnTargetShort": "{count}/{total} on target",
   "@analysisOnTargetShort": {
     "placeholders": {
-      "count": {"type": "int"},
-      "total": {"type": "int"}
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "analysisPeakLine": "Peak {sys}/{dia} · {time}",
   "@analysisPeakLine": {
     "placeholders": {
-      "sys": {"type": "int"},
-      "dia": {"type": "int"},
-      "time": {"type": "String"}
+      "sys": {
+        "type": "int"
+      },
+      "dia": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
     }
   },
   "analysisConclusionElevated": "Average BP elevated in the {bucket} window ({avgSys}/{avgDia})",
   "@analysisConclusionElevated": {
     "placeholders": {
-      "bucket": {"type": "String"},
-      "avgSys": {"type": "String"},
-      "avgDia": {"type": "String"}
+      "bucket": {
+        "type": "String"
+      },
+      "avgSys": {
+        "type": "String"
+      },
+      "avgDia": {
+        "type": "String"
+      }
     }
   },
   "analysisConclusionIdeal": "Average BP is within the ideal range across all windows",
@@ -192,8 +208,12 @@
   "aiAnalysisPrompt": "Please analyze my blood pressure data for {range}: {summary}. Point out time-of-day patterns, weekday differences and trends worth attention, and give suggestions.",
   "@aiAnalysisPrompt": {
     "placeholders": {
-      "range": {"type": "String"},
-      "summary": {"type": "String"}
+      "range": {
+        "type": "String"
+      },
+      "summary": {
+        "type": "String"
+      }
     }
   },
   "shareCardTrendHeader": "BloodPressed · BP Trend",
@@ -664,7 +684,7 @@
   "sectionAbout": "About",
   "appVersionSubtitle": "Cross-platform blood pressure companion",
   "disclaimer": "Disclaimer",
-  "disclaimerBody": "All content in this app (blood pressure classification hints, AI health guidance, knowledge articles) is for health information reference and self-management only, and is not medical diagnosis or treatment advice.\n\nAI-generated content may contain errors or omissions. Do not adjust medication or make medical decisions based on it. Consult a professional medical institution for any health concern.\n\nAll data is stored locally on your device (nothing is uploaded before cloud sync is enabled). Please back it up via the export feature.",
+  "disclaimerBody": "All content in this app (blood pressure classification hints, AI health guidance, knowledge articles) is for health information reference and self-management only, and is not medical diagnosis or treatment advice.\n\nAI-generated content may contain errors or omissions. Do not adjust medication or make medical decisions based on it. Consult a professional medical institution for any health concern.\n\nMeasurement records are stored on your device by default. Remote AI sends your questions, conversation context and relevant blood pressure summaries to the provider you configure. Exporting or sharing hands the selected content to your chosen recipient. Read the privacy policy for details and back up local data.",
   "syncTitle": "Cloud Sync",
   "syncOn": "On",
   "syncOff": "Off",
@@ -722,5 +742,7 @@
   "navStats": "Trends",
   "navAssistant": "AI",
   "navKnowledge": "Knowledge",
-  "navMe": "Me"
+  "navMe": "Me",
+  "privacyPolicy": "Privacy policy (Chinese)",
+  "privacyPolicyLoadError": "Unable to load the privacy policy. Please reopen this page."
 }

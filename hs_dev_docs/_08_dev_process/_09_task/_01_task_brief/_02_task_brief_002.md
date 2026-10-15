@@ -36,3 +36,15 @@
 - **更新时间**：`2026-10-15T07:09:43Z`
 ---
 
+### 任务简述：settings-privacy-004
+- **标题**：隐藏微信开发者配置并准备无服务器隐私政策草案
+- **change_size**：`S`
+- **状态**：`COMPLETED`
+- **优先级**：P1
+- **负责人**：agent
+- **核心目标**：移除我的及搜索中的微信AppID配置入口，保留分享；按实际数据流形成静态隐私政策草案与托管指南
+- **详情索引**：`_02_task_detail/_01_settings-privacy-004/_00_task_detail.md`
+- **上下文包**：`_03_task_context_pack/_01_settings-privacy-004/_00_context_pack.md`
+- **更新时间**：`2026-10-15T11:55:40Z`
+---
+

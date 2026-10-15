@@ -19,6 +19,7 @@ import 'package:blood_pressed/features/records/presentation/record_edit_page.dar
 import 'package:blood_pressed/features/settings/presentation/settings_page.dart';
 import 'package:blood_pressed/features/sync/presentation/sync_page.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
+
 import 'support/real_test_harness.dart';
 
 void main() {
@@ -27,6 +28,15 @@ void main() {
 
   group('确定性匹配', () {
     final service = FeatureSearchService();
+
+    test('搜索不再引导用户配置微信AppID，仍能找到分享功能', () {
+      expect(kAppFeatureRegistry.any((entry) => entry.id == 'wechat'), isFalse);
+      expect(
+        service.match('微信').map((entry) => entry.id),
+        isNot(contains('wechat')),
+      );
+      expect(service.match('分享').map((entry) => entry.id), contains('export'));
+    });
 
     test('空查询返回空表', () {
       expect(service.match(''), isEmpty);
@@ -91,12 +101,24 @@ void main() {
 
     test('注册表条目的路由均已注册（静态检查）', () {
       const registered = {
-        '/home', '/record/new', '/stats', '/assistant', '/knowledge',
-        '/llm', '/market', '/settings', '/export', '/sync', '/search',
+        '/home',
+        '/record/new',
+        '/stats',
+        '/assistant',
+        '/knowledge',
+        '/llm',
+        '/market',
+        '/settings',
+        '/export',
+        '/sync',
+        '/search',
       };
       for (final entry in kAppFeatureRegistry) {
-        expect(registered, contains(entry.route),
-            reason: '条目 ${entry.id} 的路由 ${entry.route} 未注册');
+        expect(
+          registered,
+          contains(entry.route),
+          reason: '条目 ${entry.id} 的路由 ${entry.route} 未注册',
+        );
       }
     });
   });
@@ -120,35 +142,41 @@ void main() {
 
     test('输出不可解析/为空 → 返回空表', () async {
       expect(
-        await service.semanticMatch('q',
-            chatJson: (m, t) async => null),
+        await service.semanticMatch('q', chatJson: (m, t) async => null),
         isEmpty,
       );
       expect(
-        await service.semanticMatch('q',
-            chatJson: (m, t) async => {'matches': '不是数组'}),
+        await service.semanticMatch(
+          'q',
+          chatJson: (m, t) async => {'matches': '不是数组'},
+        ),
         isEmpty,
       );
     });
 
     test('模型抛错 → 静默返回空表', () async {
       expect(
-        await service.semanticMatch('q',
-            chatJson: (m, t) => throw Exception('模型未就绪')),
+        await service.semanticMatch(
+          'q',
+          chatJson: (m, t) => throw Exception('模型未就绪'),
+        ),
         isEmpty,
       );
     });
 
     test('系统提示包含功能目录与用户查询', () async {
       List<ChatMessage>? captured;
-      await service.semanticMatch('设置提醒', chatJson: (messages, maxTokens) {
-        captured = messages;
-        return Future.value(const {
-          'matches': [
-            {'id': 'reminder', 'score': 90}
-          ],
-        });
-      });
+      await service.semanticMatch(
+        '设置提醒',
+        chatJson: (messages, maxTokens) {
+          captured = messages;
+          return Future.value(const {
+            'matches': [
+              {'id': 'reminder', 'score': 90},
+            ],
+          });
+        },
+      );
       expect(captured, isNotNull);
       expect(captured!.first.content, contains('测量提醒'));
       expect(captured!.first.content, contains('设置提醒'));
@@ -163,15 +191,17 @@ void main() {
 
       final router = buildAppRouter();
       addTearDown(router.dispose);
-      await tester.pumpWidget(ProviderScope(
-        overrides: app.overrides,
-        child: MaterialApp.router(
-        routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('zh'),
-      ),
-      ));
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: app.overrides,
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('zh'),
+          ),
+        ),
+      );
       await tester.pump(const Duration(milliseconds: 300));
 
       // go_router 的 push Future 在 pop 时才完成，连续 unawaited push
@@ -207,15 +237,17 @@ void main() {
 
       final router = buildAppRouter();
       addTearDown(router.dispose);
-      await tester.pumpWidget(ProviderScope(
-        overrides: app.overrides,
-        child: MaterialApp.router(
-        routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('zh'),
-      ),
-      ));
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: app.overrides,
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('zh'),
+          ),
+        ),
+      );
       await tester.pump(const Duration(milliseconds: 300));
       unawaited(router.push('/search'));
       await tester.pump(const Duration(milliseconds: 300));
@@ -235,12 +267,13 @@ void main() {
       await app.setUp();
       addTearDown(app.tearDown);
 
-      await tester.pumpWidget(ProviderScope(
-        overrides: app.overrides,
-        child: BloodPressedApp(router: buildAppRouter()),
-      ));
-      await pumpUntilReal(
-          tester, () => tester.any(find.byType(NavigationBar)));
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: app.overrides,
+          child: BloodPressedApp(router: buildAppRouter()),
+        ),
+      );
+      await pumpUntilReal(tester, () => tester.any(find.byType(NavigationBar)));
 
       expect(find.byIcon(Icons.search), findsOneWidget);
       await tester.tap(find.byIcon(Icons.search));

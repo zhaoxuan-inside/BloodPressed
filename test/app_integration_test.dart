@@ -66,13 +66,11 @@ void main() {
     await tester.tap(saveBtn);
     await pumpUntilReal(
       tester,
-      () => !tester.any(find.text('保存记录')) &&
-          !tester.any(find.text('保存修改')),
+      () => !tester.any(find.text('保存记录')) && !tester.any(find.text('保存修改')),
     );
   }
 
-  testWidgets('完整链路：欢迎页 → 手动录入 → 首页展示与分级 → 编辑 → SQLite 落盘',
-      (tester) async {
+  testWidgets('完整链路：欢迎页 → 手动录入 → 首页展示与分级 → 编辑 → SQLite 落盘', (tester) async {
     await app.pumpApp(tester);
 
     expect(find.text('👋 欢迎使用血压了么'), findsOneWidget);
@@ -121,8 +119,7 @@ void main() {
     expect(await tester.runAsync(() => app.outbox.count()), 2);
   });
 
-  testWidgets('删除记录：左滑后确认，SQLite 软删除 + outbox delete',
-      (tester) async {
+  testWidgets('删除记录：左滑后确认，SQLite 软删除 + outbox delete', (tester) async {
     await app.pumpApp(tester);
 
     await tester.tap(find.text('手动录入').first);
@@ -133,16 +130,14 @@ void main() {
     await tester.drag(find.text('120/80'), const Offset(-600, 0));
     await pumpUntilReal(tester, () => tester.any(find.text('删除记录')));
     await tester.tap(find.widgetWithText(FilledButton, '删除'));
-    await pumpUntilReal(
-      tester,
-      () => tester.any(find.text('还没有血压记录')),
-    );
+    await pumpUntilReal(tester, () => tester.any(find.text('还没有血压记录')));
 
     expect(find.text('120/80'), findsNothing);
     final visible = await tester.runAsync(() => app.records.list());
     expect(visible, isEmpty);
     final all = await tester.runAsync(
-        () => app.records.list(includeDeleted: true));
+      () => app.records.list(includeDeleted: true),
+    );
     expect(all, hasLength(1));
     expect(all!.first.isDeleted, isTrue);
     final entries = await tester.runAsync(() => app.outbox.take(10));
@@ -186,8 +181,7 @@ void main() {
     expect(find.textContaining('仅左臂'), findsOneWidget);
   });
 
-  testWidgets('知识阅读：13 篇真实 assets、分类筛选、详情收藏与字号',
-      (tester) async {
+  testWidgets('知识阅读：13 篇真实 assets、分类筛选、详情收藏与字号', (tester) async {
     await app.pumpApp(tester);
 
     await tester.tap(find.byIcon(Icons.menu_book_outlined));
@@ -246,10 +240,7 @@ void main() {
       'deepseek-chat',
     );
     await tester.tap(find.text('添加并启用'));
-    await pumpUntilReal(
-      tester,
-      () => tester.any(find.text('从模型中心安装模型')),
-    );
+    await pumpUntilReal(tester, () => tester.any(find.text('从模型中心安装模型')));
 
     final list = await tester.runAsync(() => app.profiles.list());
     expect(list, hasLength(1));
@@ -271,8 +262,7 @@ void main() {
     expect(find.text('帮我分析一下最近的血压情况'), findsOneWidget);
   });
 
-  testWidgets('我的页：设置落盘、云同步占位、模型中心入口、免责声明',
-      (tester) async {
+  testWidgets('我的页：设置落盘、云同步占位、模型中心入口、免责声明', (tester) async {
     await app.pumpApp(tester);
 
     await tester.tap(find.byIcon(Icons.person_outline));
@@ -308,17 +298,16 @@ void main() {
     await tester.tap(find.byTooltip('返回'));
     await tester.pumpAndSettle();
     // 列表此前滚动到下方（懒加载），顶部行未构建，向上拖回 AI 模型配置行
-    for (var i = 0;
-        i < 6 && !tester.any(find.text('AI 模型配置'));
-        i++) {
+    for (var i = 0; i < 6 && !tester.any(find.text('AI 模型配置')); i++) {
       await tester.dragFrom(const Offset(180, 400), const Offset(0, 400));
       await tester.pumpAndSettle();
     }
     // 该行可能停在 AppBar 底下（点击会被 AppBar 拦截），继续下拖直至完全露出
-    for (var i = 0;
-        i < 6 &&
-            tester.getTopLeft(find.text('AI 模型配置')).dy < 100;
-        i++) {
+    for (
+      var i = 0;
+      i < 6 && tester.getTopLeft(find.text('AI 模型配置')).dy < 100;
+      i++
+    ) {
       await tester.dragFrom(const Offset(180, 400), const Offset(0, 200));
       await tester.pumpAndSettle();
     }
@@ -353,23 +342,16 @@ void main() {
     await tester.tap(find.text('知道了'));
     await tester.pumpAndSettle();
 
-    // 微信分享配置同样可能被推到视口边缘，滚动到可见后再点
-    await tester.scrollUntilVisible(
-      find.text('微信分享配置'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.drag(find.byType(Scrollable).first, const Offset(0, -120));
-    await tester.pump();
-    await tester.tap(find.text('微信分享配置'));
+    // 普通用户无需填写微信开放平台参数，设置列表不再提供该入口。
+    expect(find.text('微信分享配置'), findsNothing);
+    expect(find.widgetWithText(TextField, '微信开放平台 AppID'), findsNothing);
+    expect(app.settings.wechatAppId, isEmpty);
+    await tester.ensureVisible(find.text('隐私政策'));
     await tester.pumpAndSettle();
-    await tester.enterText(
-      find.widgetWithText(TextField, '微信开放平台 AppID'),
-      'wx1234567890abcd',
-    );
-    await tester.tap(find.text('保存'));
-    await tester.pumpAndSettle();
-    expect(app.settings.wechatAppId, 'wx1234567890abcd');
+    await tester.tap(find.text('隐私政策'));
+    await pumpUntilReal(tester, () => tester.any(find.text('运营者：赵宣')));
+    expect(find.text('zhaoxuanmail@163.com'), findsOneWidget);
+    expect(find.text('血压了么隐私政策'), findsOneWidget);
   });
 
   testWidgets('导出与分享页：真实记录卡与统计卡', (tester) async {
@@ -387,14 +369,10 @@ void main() {
     expect(find.text('导出全部记录为 CSV（Excel 可打开）'), findsOneWidget);
 
     await tester.tap(find.text('统计摘要卡'));
-    await pumpUntilReal(
-      tester,
-      () => tester.any(find.text('血压了么 · 血压周报')),
-    );
+    await pumpUntilReal(tester, () => tester.any(find.text('血压了么 · 血压周报')));
   });
 
-  testWidgets('OCR 确认表单：预填结果写入真实 SQLite 且来源为拍照识别',
-      (tester) async {
+  testWidgets('OCR 确认表单：预填结果写入真实 SQLite 且来源为拍照识别', (tester) async {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.resetPhysicalSize);
@@ -464,10 +442,7 @@ void main() {
       '120',
     );
     await tester.tap(find.text('保存记录'));
-    await pumpUntilReal(
-      tester,
-      () => tester.any(find.text('高压应大于低压')),
-    );
+    await pumpUntilReal(tester, () => tester.any(find.text('高压应大于低压')));
     expect(await tester.runAsync(() => app.records.list()), isEmpty);
   });
 
@@ -520,10 +495,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('这些情况请立即就医'), findsOneWidget);
     await tester.tap(find.text('这些情况请立即就医'));
-    await pumpUntilReal(
-      tester,
-      () => tester.any(find.textContaining('立即就医')),
-    );
+    await pumpUntilReal(tester, () => tester.any(find.textContaining('立即就医')));
   });
 
   testWidgets('默认测量臂写入新记录表单', (tester) async {
@@ -558,14 +530,12 @@ void main() {
       tester,
       () => tester.any(find.text('👋 你好，我是你的血压健康助手')),
     );
-    await tester.enterText(
-      find.byType(TextField),
-      '最近血压偏高要注意什么？',
-    );
+    await tester.enterText(find.byType(TextField), '最近血压偏高要注意什么？');
     await tester.tap(find.byIcon(Icons.send));
     await pumpUntilReal(
       tester,
-      () => tester.any(find.byType(ErrorBanner)) ||
+      () =>
+          tester.any(find.byType(ErrorBanner)) ||
           tester.any(find.textContaining('最近血压偏高要注意什么')),
       timeout: const Duration(seconds: 45),
     );

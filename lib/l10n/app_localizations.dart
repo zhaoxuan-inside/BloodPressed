@@ -2121,7 +2121,7 @@ abstract class AppLocalizations {
   /// No description provided for @disclaimerBody.
   ///
   /// In en, this message translates to:
-  /// **'All content in this app (blood pressure classification hints, AI health guidance, knowledge articles) is for health information reference and self-management only, and is not medical diagnosis or treatment advice.\n\nAI-generated content may contain errors or omissions. Do not adjust medication or make medical decisions based on it. Consult a professional medical institution for any health concern.\n\nAll data is stored locally on your device (nothing is uploaded before cloud sync is enabled). Please back it up via the export feature.'**
+  /// **'All content in this app (blood pressure classification hints, AI health guidance, knowledge articles) is for health information reference and self-management only, and is not medical diagnosis or treatment advice.\n\nAI-generated content may contain errors or omissions. Do not adjust medication or make medical decisions based on it. Consult a professional medical institution for any health concern.\n\nMeasurement records are stored on your device by default. Remote AI sends your questions, conversation context and relevant blood pressure summaries to the provider you configure. Exporting or sharing hands the selected content to your chosen recipient. Read the privacy policy for details and back up local data.'**
   String get disclaimerBody;
 
   /// No description provided for @syncTitle.
@@ -2327,6 +2327,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Me'**
   String get navMe;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy (Chinese)'**
+  String get privacyPolicy;
+
+  /// No description provided for @privacyPolicyLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the privacy policy. Please reopen this page.'**
+  String get privacyPolicyLoadError;
 }
 
 class _AppLocalizationsDelegate

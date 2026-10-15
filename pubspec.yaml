@@ -2,7 +2,7 @@ name: blood_pressed
 description: "BloodPressed —— 跨 Android/iOS 的血压监控应用：记录血压脉搏、趋势图表、拍照识别、本地/远端大模型健康指导、数据导出与分享、健康知识阅读。"
 publish_to: 'none'
 
-version: 1.2.2+4
+version: 1.2.3+5
 
 environment:
   sdk: ^3.13.5
@@ -85,6 +85,7 @@ flutter:
     - assets/knowledge/en/
     - assets/models/ppocr/
     - assets/models/voice/
+    - assets/legal/
 
 
 # sqlite3 包的构建钩子默认从 github.com 下载 Android/iOS 预编译库，

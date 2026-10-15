@@ -57,6 +57,15 @@ curl -F "file=@build/app/outputs/flutter-apk/app-release.apk" \
 
 ## 5. 发布记录
 
+2026-10-15：**1.2.3+5 ARM64（设置优化与隐私政策）**，219,968,959 字节（209.78 MiB）。
+产物 `build/app/outputs/flutter-apk/BloodPressed-1.2.3+5-arm64-v8a.apk`。
+SHA256：`e884ac09c5858c56b2b48eb00c161db996eba48a4f76ac86103aa893e3097e1a`。
+versionName 1.2.3、versionCode 5、minSdk 24、targetSdk 36，仅 arm64-v8a，v2 签名验证通过；证书与 1.2.2 一致，仍为调试证书。
+隐藏“微信分享配置”设置及搜索入口，保留分享链路；增加离线隐私政策，APP 与网页同源。
+公开页面 <https://zhaoxuan-inside.github.io/BloodPressed/privacy-policy/> 已验证 HTTP 200，运营者赵宣、邮箱 zhaoxuanmail@163.com。
+全量 277 项测试通过、静态分析无问题；APK 中四个语音模型 SHA256 与源文件一致，ORT 1.28.2 保留。
+未进行真机安装与麦克风验证；完整上架前仍需首启同意、健康数据单独授权、SDK 初始化时机及正式签名改造，详见 `docs/privacy-policy/README.md`。
+
 2026-10-15：**1.2.2+4 ARM64（内置离线语音模型）**，219,963,720 字节（209.77 MiB）。
 产物 `build/app/outputs/flutter-apk/BloodPressed-1.2.2+4-arm64-v8a.apk`。
 SHA256：`2e9a0af033fb26bfecebdbf3bf46d4b7dee926ab7ee3818cdb93ceb3f3a9d908`。
@@ -78,11 +87,10 @@ aapt 与 ZIP 检查均确认仅 `arm64-v8a`，minSdk 24，versionCode 3；apksig
 ## 6. 更新日志模板（发布时填入）
 
 ```
-本次更新（1.2.2）：
-1. 离线语音模型随安装包内置，首次使用从包内准备，无需联网下载。
-2. 修复语音模型类型及原生推理运行库不匹配导致的初始化不可用。
-3. 语音初始化异常可重试并复制错误报告；修复重新进入录入页时的服务生命周期。
-4. 发布包仅支持 ARM64。
+本次更新（1.2.3）：
+1. 移除普通用户不需要的“微信分享配置”入口，保留分享功能。
+2. 增加可离线查看的隐私政策，网页与 APP 正文同步。
+3. 保留内置离线语音模型及 ARM64 支持。
 ```
 
 ## 7. 发布检查单

@@ -10,6 +10,7 @@ import 'package:blood_pressed/features/llm/presentation/controllers/llm_provider
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
 import 'package:blood_pressed/features/settings/data/reminder_service.dart';
+import 'package:blood_pressed/features/settings/presentation/privacy_policy_page.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// "我的"设置页。
@@ -21,9 +22,6 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _mask(String id) =>
-      id.length <= 8 ? id : '${id.substring(0, 4)}****${id.substring(id.length - 4)}';
-
   /// 真实应用版本（pubspec versionName），About 卡展示；测试环境取不到时退化为纯标语。
   Future<PackageInfo>? _packageInfo;
 
@@ -47,13 +45,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ListTile(
                   leading: const Icon(Icons.smart_toy_outlined),
                   title: Text(l10n.aiModelConfig),
-                  subtitle: Text(activeProfile == null
-                      ? l10n.aiModelNotConfigured
-                      : l10n.aiModelCurrent(
-                          activeProfile.name,
-                          activeProfile.kind == LlmKind.local
-                              ? l10n.kindLocal
-                              : l10n.kindRemote)),
+                  subtitle: Text(
+                    activeProfile == null
+                        ? l10n.aiModelNotConfigured
+                        : l10n.aiModelCurrent(
+                            activeProfile.name,
+                            activeProfile.kind == LlmKind.local
+                                ? l10n.kindLocal
+                                : l10n.kindRemote,
+                          ),
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/llm'),
                 ),
@@ -61,12 +62,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     engineState.status == LlmEngineStatus.error)
                   ListTile(
                     dense: true,
-                    leading: Icon(Icons.error_outline,
-                        color: theme.colorScheme.error, size: 20),
+                    leading: Icon(
+                      Icons.error_outline,
+                      color: theme.colorScheme.error,
+                      size: 20,
+                    ),
                     title: Text(
                       l10n.llmLoadError(engineState.error ?? ''),
                       style: TextStyle(
-                          fontSize: 12, color: theme.colorScheme.error),
+                        fontSize: 12,
+                        color: theme.colorScheme.error,
+                      ),
                     ),
                   ),
               ],
@@ -88,11 +94,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     child: SegmentedButton<MeasureArm>(
                       segments: [
                         ButtonSegment(
-                            value: MeasureArm.left,
-                            label: Text(l10n.armLeft)),
+                          value: MeasureArm.left,
+                          label: Text(l10n.armLeft),
+                        ),
                         ButtonSegment(
-                            value: MeasureArm.right,
-                            label: Text(l10n.armRight)),
+                          value: MeasureArm.right,
+                          label: Text(l10n.armRight),
+                        ),
                       ],
                       selected: {settings.defaultArm},
                       onSelectionChanged: (s) {
@@ -100,7 +108,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         setState(() {});
                       },
                       style: const ButtonStyle(
-                          visualDensity: VisualDensity.compact),
+                        visualDensity: VisualDensity.compact,
+                      ),
                     ),
                   ),
                 ),
@@ -138,8 +147,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                   child: Row(
                     children: [
-                      Icon(Icons.palette_outlined,
-                          size: 22, color: theme.colorScheme.primary),
+                      Icon(
+                        Icons.palette_outlined,
+                        size: 22,
+                        color: theme.colorScheme.primary,
+                      ),
                       const SizedBox(width: 16),
                       Text(l10n.appearance, style: theme.textTheme.titleMedium),
                     ],
@@ -152,11 +164,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     child: SegmentedButton<String>(
                       segments: [
                         ButtonSegment(
-                            value: 'system', label: Text(l10n.themeSystem)),
+                          value: 'system',
+                          label: Text(l10n.themeSystem),
+                        ),
                         ButtonSegment(
-                            value: 'light', label: Text(l10n.themeLight)),
+                          value: 'light',
+                          label: Text(l10n.themeLight),
+                        ),
                         ButtonSegment(
-                            value: 'dark', label: Text(l10n.themeDark)),
+                          value: 'dark',
+                          label: Text(l10n.themeDark),
+                        ),
                       ],
                       selected: {settings.themeMode},
                       onSelectionChanged: (s) {
@@ -172,8 +190,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                   child: Row(
                     children: [
-                      Icon(Icons.language_outlined,
-                          size: 22, color: theme.colorScheme.primary),
+                      Icon(
+                        Icons.language_outlined,
+                        size: 22,
+                        color: theme.colorScheme.primary,
+                      ),
                       const SizedBox(width: 16),
                       Text(l10n.langTitle, style: theme.textTheme.titleMedium),
                     ],
@@ -189,12 +210,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         child: SegmentedButton<String>(
                           segments: [
                             ButtonSegment(
-                                value: 'system',
-                                label: Text(l10n.langSystem)),
+                              value: 'system',
+                              label: Text(l10n.langSystem),
+                            ),
                             ButtonSegment(
-                                value: 'zh', label: Text(l10n.langChinese)),
+                              value: 'zh',
+                              label: Text(l10n.langChinese),
+                            ),
                             ButtonSegment(
-                                value: 'en', label: Text(l10n.langEnglish)),
+                              value: 'en',
+                              label: Text(l10n.langEnglish),
+                            ),
                           ],
                           selected: {settings.localePref},
                           onSelectionChanged: (s) async {
@@ -204,26 +230,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             setState(() {});
                             // 已排程的提醒通知按新语言重排
                             await ReminderService.scheduleFromSettings(
-                                settings);
+                              settings,
+                            );
                           },
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         l10n.langSubtitle,
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: theme.colorScheme.outline),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
                       ),
                     ],
                   ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.chat_outlined),
-                  title: Text(l10n.wechatConfig),
-                  subtitle: Text(settings.wechatAppId.isEmpty
-                      ? l10n.wechatNotConfigured
-                      : l10n.wechatAppIdMasked(_mask(settings.wechatAppId))),
-                  onTap: () => _editWechat(settings),
                 ),
               ],
             ),
@@ -240,9 +260,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     future: _packageInfo ??= PackageInfo.fromPlatform(),
                     builder: (context, snap) {
                       final version = snap.data?.version;
-                      return Text(version == null || version.isEmpty
-                          ? l10n.appVersionSubtitle
-                          : 'v$version · ${l10n.appVersionSubtitle}');
+                      return Text(
+                        version == null || version.isEmpty
+                            ? l10n.appVersionSubtitle
+                            : 'v$version · ${l10n.appVersionSubtitle}',
+                      );
                     },
                   ),
                 ),
@@ -250,6 +272,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   leading: const Icon(Icons.info_outline),
                   title: Text(l10n.disclaimer),
                   onTap: () => _showDisclaimer(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.privacy_tip_outlined),
+                  title: Text(l10n.privacyPolicy),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PrivacyPolicyPage(),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -259,60 +291,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Future<void> _editWechat(AppSettings settings) async {
-    final l10n = AppLocalizations.of(context);
-    final appIdCtrl = TextEditingController(text: settings.wechatAppId);
-    final linkCtrl = TextEditingController(text: settings.wechatUniversalLink);
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.wechatDialogTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: appIdCtrl,
-              decoration: InputDecoration(
-                labelText: l10n.wechatAppIdField,
-                hintText: l10n.wechatAppIdHint,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: linkCtrl,
-              decoration: InputDecoration(
-                labelText: l10n.wechatUniversalLinkField,
-                hintText: 'https://your-domain/appendix/',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text(l10n.cancel)),
-          FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: Text(l10n.saveBtn)),
-        ],
-      ),
-    );
-    if (ok == true) {
-      await settings.setWechatAppId(appIdCtrl.text.trim());
-      await settings.setWechatUniversalLink(linkCtrl.text.trim());
-      setState(() {});
-    }
-  }
-
   void _showDisclaimer(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.disclaimer),
-        content: SingleChildScrollView(
-          child: Text(l10n.disclaimerBody),
-        ),
+        content: SingleChildScrollView(child: Text(l10n.disclaimerBody)),
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(),
@@ -323,7 +308,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 }
-
 
 /// 测量提醒：提醒方式（关闭/定时/周期）+ 各方式参数编辑。
 class _ReminderSection extends ConsumerStatefulWidget {
@@ -350,7 +334,8 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
       final granted = await ReminderService.requestExactAlarmPermission();
       if (!granted) {
         messenger.showSnackBar(
-            SnackBar(content: Text(l10n.notificationDenied)));
+          SnackBar(content: Text(l10n.notificationDenied)),
+        );
       }
     }
     await ReminderService.scheduleFromSettings(settings);
@@ -365,8 +350,10 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
   Future<void> _pickDailyTime() async {
     final time = await showTimePicker(
       context: context,
-      initialTime:
-          TimeOfDay(hour: settings.reminderHour, minute: settings.reminderMinute),
+      initialTime: TimeOfDay(
+        hour: settings.reminderHour,
+        minute: settings.reminderMinute,
+      ),
     );
     if (time == null) return;
     await settings.setReminderTime(time.hour, time.minute);
@@ -376,10 +363,12 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
   Future<void> _pickWindowTime({required bool isStart}) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = AppLocalizations.of(context);
-    final initialHour =
-        isStart ? settings.intervalStartHour : settings.intervalEndHour;
-    final initialMinute =
-        isStart ? settings.intervalStartMinute : settings.intervalEndMinute;
+    final initialHour = isStart
+        ? settings.intervalStartHour
+        : settings.intervalEndHour;
+    final initialMinute = isStart
+        ? settings.intervalStartMinute
+        : settings.intervalEndMinute;
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: initialHour, minute: initialMinute),
@@ -390,11 +379,15 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
     final endHour = isStart ? settings.intervalEndHour : time.hour;
     final endMinute = isStart ? settings.intervalEndMinute : time.minute;
     if (startHour * 60 + startMinute >= endHour * 60 + endMinute) {
-      messenger.showSnackBar(
-          SnackBar(content: Text(l10n.windowEndAfterStart)));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.windowEndAfterStart)));
       return;
     }
-    await settings.setIntervalWindow(startHour, startMinute, endHour, endMinute);
+    await settings.setIntervalWindow(
+      startHour,
+      startMinute,
+      endHour,
+      endMinute,
+    );
     await _apply();
   }
 
@@ -422,17 +415,20 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
             child: SegmentedButton<ReminderMode>(
               segments: [
                 ButtonSegment(
-                    value: ReminderMode.off, label: Text(l10n.reminderOff)),
+                  value: ReminderMode.off,
+                  label: Text(l10n.reminderOff),
+                ),
                 ButtonSegment(
-                    value: ReminderMode.daily,
-                    label: Text(l10n.reminderDaily)),
+                  value: ReminderMode.daily,
+                  label: Text(l10n.reminderDaily),
+                ),
                 ButtonSegment(
-                    value: ReminderMode.interval,
-                    label: Text(l10n.reminderInterval)),
+                  value: ReminderMode.interval,
+                  label: Text(l10n.reminderInterval),
+                ),
               ],
               selected: {mode},
-              onSelectionChanged: (selection) =>
-                  _changeMode(selection.first),
+              onSelectionChanged: (selection) => _changeMode(selection.first),
             ),
           ),
         ),
@@ -443,7 +439,9 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
             subtitle: Text(l10n.reminderDailySubtitle),
             trailing: TextButton(
               onPressed: _pickDailyTime,
-              child: Text(_clock(settings.reminderHour, settings.reminderMinute)),
+              child: Text(
+                _clock(settings.reminderHour, settings.reminderMinute),
+              ),
             ),
           ),
         if (mode == ReminderMode.interval) ...[
@@ -456,14 +454,22 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
               children: [
                 TextButton(
                   onPressed: () => _pickWindowTime(isStart: true),
-                  child: Text(_clock(
-                      settings.intervalStartHour, settings.intervalStartMinute)),
+                  child: Text(
+                    _clock(
+                      settings.intervalStartHour,
+                      settings.intervalStartMinute,
+                    ),
+                  ),
                 ),
                 Text('–', style: theme.textTheme.bodyLarge),
                 TextButton(
                   onPressed: () => _pickWindowTime(isStart: false),
-                  child: Text(_clock(
-                      settings.intervalEndHour, settings.intervalEndMinute)),
+                  child: Text(
+                    _clock(
+                      settings.intervalEndHour,
+                      settings.intervalEndMinute,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -475,8 +481,12 @@ class _ReminderSectionState extends ConsumerState<_ReminderSection> {
             trailing: DropdownButton<int>(
               value: settings.intervalMinutes,
               items: _intervalChoices
-                  .map((m) => DropdownMenuItem(
-                      value: m, child: Text(l10n.intervalMinutes(m))))
+                  .map(
+                    (m) => DropdownMenuItem(
+                      value: m,
+                      child: Text(l10n.intervalMinutes(m)),
+                    ),
+                  )
                   .toList(),
               onChanged: (m) {
                 if (m != null) _pickInterval(m);
