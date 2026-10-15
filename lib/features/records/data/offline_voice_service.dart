@@ -11,7 +11,6 @@
 library;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:record/record.dart';
@@ -20,6 +19,7 @@ import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
 
 import 'package:blood_pressed/features/records/data/voice_input_service.dart';
 import 'package:blood_pressed/features/records/data/voice_model_manager.dart';
+import 'package:blood_pressed/features/records/data/offline_voice_config.dart';
 
 /// 离线识别采样率（模型训练采样率，固定 16kHz）。
 const int kOfflineSampleRate = 16000;
@@ -42,10 +42,10 @@ class SherpaOfflineInputService implements VoiceInputService {
     Future<PermissionStatus> Function()? requestMicPermission,
     Future<PermissionStatus> Function()? micStatus,
     Future<void> Function()? openSettings,
-  })  : _requestMicPermission =
-            requestMicPermission ?? Permission.microphone.request,
-        _micStatus = micStatus ?? _defaultMicStatus,
-        _openSettings = openSettings ?? _defaultOpenSettings;
+  }) : _requestMicPermission =
+           requestMicPermission ?? Permission.microphone.request,
+       _micStatus = micStatus ?? _defaultMicStatus,
+       _openSettings = openSettings ?? _defaultOpenSettings;
 
   final VoiceModelStore _modelStore;
   final Future<PermissionStatus> Function() _requestMicPermission;
@@ -72,6 +72,7 @@ class SherpaOfflineInputService implements VoiceInputService {
   String _lastEmitted = '';
 
   bool _available = false;
+  bool _disposed = false;
 
   /// 已完成分段的累积文本（端点检测切分段落后逐段累加）。
   final List<String> _segments = [];
@@ -87,40 +88,29 @@ class SherpaOfflineInputService implements VoiceInputService {
 
   @override
   Future<bool> initialize() async {
+    if (_disposed) return false;
     if (_available) return true;
     try {
+      // The production store copies bundled assets, without HTTP or consent UI.
+      if (!await _modelStore.isDownloaded()) await _modelStore.download();
+      if (!await _modelStore.isDownloaded()) {
+        throw StateError('Bundled voice model could not be prepared');
+      }
       if (!_bindingsReady) {
         // recognizer 工厂要求绑定已初始化（否则抛
         // "Please initialize sherpa-onnx first"）
         sherpa.initBindings();
         _bindingsReady = true;
       }
-      if (!await _modelStore.isDownloaded()) return false;
       final dir = await _modelStore.modelDir();
-      final sep = Platform.pathSeparator;
-      String inDir(String name) => '$dir$sep$name';
-      final recognizer = sherpa.OnlineRecognizer(sherpa.OnlineRecognizerConfig(
-        model: sherpa.OnlineModelConfig(
-          transducer: sherpa.OnlineTransducerModelConfig(
-            encoder: inDir('encoder.int8.onnx'),
-            decoder: inDir('decoder.onnx'),
-            joiner: inDir('joiner.int8.onnx'),
-          ),
-          tokens: inDir('tokens.txt'),
-          modelType: 'zipformer2',
-          numThreads: 2,
-          debug: false,
-        ),
-        enableEndpoint: true,
-        // 比默认略灵敏：短语句（报数值）尽快切段累积
-        rule1MinTrailingSilence: 1.8,
-        rule2MinTrailingSilence: 1.2,
-      ));
+      if (_disposed) return false;
+      final recognizer = sherpa.OnlineRecognizer(offlineVoiceConfig(dir));
       _recognizer?.free();
       _recognizer = recognizer;
       _available = true;
-    } catch (_) {
+    } catch (error) {
       _available = false;
+      throw VoiceInitializationException(error.toString());
     }
     return _available;
   }
@@ -163,14 +153,16 @@ class SherpaOfflineInputService implements VoiceInputService {
     final recorder = AudioRecorder();
     _recorder = recorder;
     try {
-      final stream = await recorder.startStream(const RecordConfig(
-        encoder: AudioEncoder.pcm16bits,
-        sampleRate: kOfflineSampleRate,
-        numChannels: 1,
-        androidConfig: AndroidRecordConfig(
-          audioSource: AndroidAudioSource.voiceRecognition,
+      final stream = await recorder.startStream(
+        const RecordConfig(
+          encoder: AudioEncoder.pcm16bits,
+          sampleRate: kOfflineSampleRate,
+          numChannels: 1,
+          androidConfig: AndroidRecordConfig(
+            audioSource: AndroidAudioSource.voiceRecognition,
+          ),
         ),
-      ));
+      );
       _micSub = stream.listen(
         _onAudioChunk,
         onError: (Object e) => _fail(VoiceInputError.unknown),
@@ -178,6 +170,8 @@ class SherpaOfflineInputService implements VoiceInputService {
       );
     } catch (_) {
       await _teardownRecorder();
+      _stream?.free();
+      _stream = null;
       onError?.call(VoiceInputError.unknown);
     }
   }
@@ -190,7 +184,9 @@ class SherpaOfflineInputService implements VoiceInputService {
     if (chunk.isEmpty) return;
     try {
       stream.acceptWaveform(
-          samples: pcm16ToFloat32(chunk), sampleRate: kOfflineSampleRate);
+        samples: pcm16ToFloat32(chunk),
+        sampleRate: kOfflineSampleRate,
+      );
       _decodeCurrent(stream);
       if (recognizer.isEndpoint(stream)) {
         // 分段落定：累积文本后重置解码器，继续聆听下一段
@@ -234,12 +230,18 @@ class SherpaOfflineInputService implements VoiceInputService {
     if (recognizer != null && stream != null && _micSub != null) {
       // 冲刷残余解码并累积最后一个分段
       try {
+        stream.acceptWaveform(
+          samples: Float32List(kOfflineSampleRate),
+          sampleRate: kOfflineSampleRate,
+        );
+        stream.inputFinished();
         _decodeCurrent(stream);
         final text = recognizer.getResult(stream).text.trim();
         if (text.isNotEmpty) _segments.add(text);
       } catch (_) {}
     }
     await _teardownRecorder();
+    _stream?.free();
     _stream = null;
     final text = _joinedText();
     _segments.clear();
@@ -255,6 +257,7 @@ class SherpaOfflineInputService implements VoiceInputService {
   @override
   Future<void> cancelListening() async {
     await _teardownRecorder();
+    _stream?.free();
     _stream = null;
     _segments.clear();
     _onStatus?.call('done');
@@ -276,6 +279,7 @@ class SherpaOfflineInputService implements VoiceInputService {
 
   void _fail(String code) {
     _teardownRecorder();
+    _stream?.free();
     _stream = null;
     _segments.clear();
     _onError?.call(code);
@@ -284,9 +288,9 @@ class SherpaOfflineInputService implements VoiceInputService {
 
   @override
   void dispose() {
-    _micSub?.cancel();
-    _micSub = null;
-    _recorder = null;
+    _disposed = true;
+    _teardownRecorder();
+    _stream?.free();
     _stream = null;
     _recognizer?.free();
     _recognizer = null;

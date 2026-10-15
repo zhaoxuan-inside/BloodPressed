@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:blood_pressed/features/records/data/voice_input_service.dart';
@@ -19,9 +20,11 @@ class FakeVoiceInputService implements VoiceInputService {
     this.initThrows = false,
     this.micGranted = true,
     this.availableGate,
+    this.initException,
   });
 
   bool available;
+  Exception? initException;
   final bool initThrows;
   final bool micGranted;
 
@@ -32,6 +35,7 @@ class FakeVoiceInputService implements VoiceInputService {
   int stopCalls = 0;
   int requestPermissionCalls = 0;
   int openSettingsCalls = 0;
+  int disposeCalls = 0;
 
   /// requestMicPermission 的返回值（默认由 [micGranted] 推导）。
   PermissionStatus? requestResult;
@@ -48,6 +52,7 @@ class FakeVoiceInputService implements VoiceInputService {
 
   @override
   Future<bool> initialize() async {
+    if (initException != null) throw initException!;
     if (initThrows) throw StateError('init boom');
     if (availableGate != null && !availableGate!()) return false;
     return available;
@@ -94,7 +99,9 @@ class FakeVoiceInputService implements VoiceInputService {
   }
 
   @override
-  void dispose() {}
+  void dispose() {
+    disposeCalls++;
+  }
 }
 
 VoiceInputResult _final(String text) =>
@@ -171,15 +178,76 @@ VoiceInputNotifier _mkNotifier(
   FakeVoiceInputService system, {
   FakeVoiceInputService? offline,
   FakeVoiceModelStore? store,
-}) =>
-    VoiceInputNotifier(
-      system,
-      offline ?? FakeVoiceInputService(available: false),
-      store ?? FakeVoiceModelStore(downloaded: true),
-    );
+}) => VoiceInputNotifier(
+  system,
+  offline ?? FakeVoiceInputService(available: false),
+  store ?? FakeVoiceModelStore(downloaded: true),
+);
 
 void main() {
   group('VoiceInputNotifier', () {
+    test('离开录入页释放两种服务，重新进入创建新服务', () async {
+      final systems = <FakeVoiceInputService>[];
+      final offlines = <FakeVoiceInputService>[];
+      final container = ProviderContainer(
+        overrides: [
+          voiceInputServiceImplProvider.overrideWith((ref) {
+            final service = FakeVoiceInputService();
+            systems.add(service);
+            return service;
+          }),
+          offlineVoiceServiceProvider.overrideWith((ref) {
+            final service = FakeVoiceInputService();
+            offlines.add(service);
+            return service;
+          }),
+        ],
+      );
+      final first = container.listen(voiceInputProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      first.close();
+      await Future<void>.delayed(Duration.zero);
+      expect(systems.single.disposeCalls, 1);
+      expect(offlines.single.disposeCalls, 1);
+      final second = container.listen(voiceInputProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      expect(systems.length, 2);
+      expect(offlines.length, 2);
+      expect(container.read(voiceInputProvider).status, VoiceInputStatus.idle);
+      second.close();
+      container.dispose();
+    });
+
+    test('离线初始化异常保留诊断，消费错误不伪装就绪，点击可重新初始化', () {
+      fakeAsync((async) {
+        final offline = FakeVoiceInputService(
+          initException: const VoiceInitializationException(
+            'native model load failed',
+          ),
+        );
+        final notifier = VoiceInputNotifier(
+          FakeVoiceInputService(available: false),
+          offline,
+          FakeVoiceModelStore(downloaded: true),
+        );
+        async.flushMicrotasks();
+        expect(notifier.state.status, VoiceInputStatus.error);
+        expect(notifier.state.errorCode, VoiceInputError.initializationFailed);
+        expect(
+          notifier.state.errorMessage,
+          contains('native model load failed'),
+        );
+        notifier.consumeResult();
+        expect(notifier.state.status, VoiceInputStatus.error);
+        offline.initException = null;
+        notifier.startListening();
+        async.flushMicrotasks();
+        expect(notifier.state.status, VoiceInputStatus.listening);
+        expect(offline.listening, isTrue);
+        notifier.dispose();
+      });
+    });
+
     test('初始化成功 → idle', () {
       fakeAsync((async) {
         final notifier = _mkNotifier(FakeVoiceInputService());
@@ -206,7 +274,8 @@ void main() {
     test('初始化失败且权限未授予 → permissionBlocked（可引导授权）', () {
       fakeAsync((async) {
         final notifier = _mkNotifier(
-            FakeVoiceInputService(available: false, micGranted: false));
+          FakeVoiceInputService(available: false, micGranted: false),
+        );
         async.flushMicrotasks();
         expect(notifier.state.status, VoiceInputStatus.permissionBlocked);
         notifier.dispose();
@@ -215,8 +284,7 @@ void main() {
 
     test('requestMicAccess 授权成功 → 重新初始化恢复 idle', () {
       fakeAsync((async) {
-        final svc =
-            FakeVoiceInputService(available: false, micGranted: false);
+        final svc = FakeVoiceInputService(available: false, micGranted: false);
         final notifier = _mkNotifier(svc);
         async.flushMicrotasks();
         expect(notifier.state.status, VoiceInputStatus.permissionBlocked);
@@ -235,8 +303,7 @@ void main() {
 
     test('requestMicAccess 永久拒绝 → 跳转系统设置并维持引导态', () {
       fakeAsync((async) {
-        final svc =
-            FakeVoiceInputService(available: false, micGranted: false);
+        final svc = FakeVoiceInputService(available: false, micGranted: false);
         final notifier = _mkNotifier(svc);
         async.flushMicrotasks();
 
@@ -252,8 +319,7 @@ void main() {
 
     test('requestMicAccess 申请后仍未授予 → 跳转系统设置并维持引导态', () {
       fakeAsync((async) {
-        final svc =
-            FakeVoiceInputService(available: false, micGranted: false);
+        final svc = FakeVoiceInputService(available: false, micGranted: false);
         final notifier = _mkNotifier(svc);
         async.flushMicrotasks();
 
@@ -271,8 +337,7 @@ void main() {
 
     test('recheckAfterSettings 用户授权后 → 重新初始化恢复 idle', () {
       fakeAsync((async) {
-        final svc =
-            FakeVoiceInputService(available: false, micGranted: false);
+        final svc = FakeVoiceInputService(available: false, micGranted: false);
         final notifier = _mkNotifier(svc);
         async.flushMicrotasks();
         expect(notifier.state.status, VoiceInputStatus.permissionBlocked);
@@ -643,12 +708,14 @@ void main() {
   group('SpeechToTextInputService', () {
     TestWidgetsFlutterBinding.ensureInitialized();
 
-    Future<void> mockSttChannel(Future<Object?>? Function(String) handler) async {
+    Future<void> mockSttChannel(
+      Future<Object?>? Function(String) handler,
+    ) async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('plugin.csdcorp.com/speech_to_text'),
-        (call) async => handler(call.method),
-      );
+            const MethodChannel('plugin.csdcorp.com/speech_to_text'),
+            (call) async => handler(call.method),
+          );
     }
 
     test('initialize 平台异常 → 不可用，listen 前 not_available', () async {

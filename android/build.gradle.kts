@@ -22,8 +22,13 @@ subprojects {
     if (project.name == "onnxruntime") {
         afterEvaluate {
             project.extensions
-                .findByType(com.android.build.gradle.LibraryExtension::class.java)
-                ?.apply { compileSdk = 34 }
+                .findByType(com.android.build.api.dsl.LibraryExtension::class.java)
+                ?.apply {
+                    compileSdk = 34
+                    // OCR requests ORT API 15, supported by sherpa's newer runtime.
+                    // Ship a single ORT from sherpa instead of the OCR copy (1.15).
+                    sourceSets.getByName("main").jniLibs.setSrcDirs(emptyList<String>())
+                }
         }
     }
 }

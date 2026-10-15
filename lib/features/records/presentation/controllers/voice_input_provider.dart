@@ -16,6 +16,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:blood_pressed/features/records/data/offline_voice_service.dart';
 import 'package:blood_pressed/features/records/data/voice_input_service.dart';
 import 'package:blood_pressed/features/records/data/voice_model_manager.dart';
+import 'package:blood_pressed/features/records/data/bundled_voice_model_store.dart';
 import 'package:blood_pressed/features/records/domain/bp_voice_parser.dart';
 
 /// 强制走离线引擎（调试/模拟器验证用，release 默认 false）。
@@ -64,15 +65,14 @@ class VoiceInputState {
     String? errorMessage,
     String? errorCode,
     int? downloadPercent,
-  }) =>
-      VoiceInputState(
-        status: status ?? this.status,
-        partialText: partialText ?? this.partialText,
-        result: result ?? this.result,
-        errorMessage: errorMessage ?? this.errorMessage,
-        errorCode: errorCode ?? this.errorCode,
-        downloadPercent: downloadPercent ?? this.downloadPercent,
-      );
+  }) => VoiceInputState(
+    status: status ?? this.status,
+    partialText: partialText ?? this.partialText,
+    result: result ?? this.result,
+    errorMessage: errorMessage ?? this.errorMessage,
+    errorCode: errorCode ?? this.errorCode,
+    downloadPercent: downloadPercent ?? this.downloadPercent,
+  );
 }
 
 // ── Notifier ──────────────────────────────────────────────────────────────────
@@ -132,6 +132,14 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
         _switchTo(_offlineService);
         try {
           available = await _offlineService.initialize();
+        } on VoiceInitializationException catch (error) {
+          if (!mounted) return;
+          state = VoiceInputState(
+            status: VoiceInputStatus.error,
+            errorCode: VoiceInputError.initializationFailed,
+            errorMessage: '离线语音初始化失败，请点击麦克风重试。\n${error.details}',
+          );
+          return;
         } catch (_) {
           available = false;
         }
@@ -243,6 +251,14 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
 
   /// 开始语音识别。
   Future<void> startListening() async {
+    if (!_service.isAvailable ||
+        state.errorCode == VoiceInputError.initializationFailed ||
+        state.status == VoiceInputStatus.initializing) {
+      if (state.status == VoiceInputStatus.initializing) return;
+      state = const VoiceInputState(status: VoiceInputStatus.initializing);
+      await _init();
+      if (!mounted || state.status != VoiceInputStatus.idle) return;
+    }
     if (state.status == VoiceInputStatus.notAvailable ||
         state.status == VoiceInputStatus.permissionBlocked ||
         state.status == VoiceInputStatus.modelMissing ||
@@ -306,7 +322,10 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
         : BpVoiceParser.parse(partial);
     state = parsed.hasAny
         ? VoiceInputState(
-            status: VoiceInputStatus.done, result: parsed, partialText: partial)
+            status: VoiceInputStatus.done,
+            result: parsed,
+            partialText: partial,
+          )
         : state.copyWith(
             status: VoiceInputStatus.error,
             errorMessage: _messageFor(VoiceInputError.noSpeech),
@@ -335,6 +354,7 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
   /// 消费 result（UI 读取后清空，防止重复填充）。
   void consumeResult() {
     if (!mounted) return;
+    if (state.errorCode == VoiceInputError.initializationFailed) return;
     state = VoiceInputState(status: VoiceInputStatus.idle);
   }
 
@@ -351,7 +371,8 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
           ? VoiceInputState(
               status: VoiceInputStatus.done,
               result: parsed,
-              partialText: partial)
+              partialText: partial,
+            )
           : state.copyWith(
               status: VoiceInputStatus.error,
               errorMessage: _messageFor(VoiceInputError.watchdogTimeout),
@@ -386,7 +407,8 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
   void dispose() {
     _cancelWatchdog();
     _unlistenDownloadProgress();
-    _service.dispose();
+    _systemService.dispose();
+    if (!identical(_systemService, _offlineService)) _offlineService.dispose();
     super.dispose();
   }
 }
@@ -394,23 +416,26 @@ class VoiceInputNotifier extends StateNotifier<VoiceInputState> {
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 /// 平台实现注入点：测试中 override 为 Fake。
-final voiceInputServiceImplProvider =
-    Provider<VoiceInputService>((ref) => SpeechToTextInputService());
+final voiceInputServiceImplProvider = Provider.autoDispose<VoiceInputService>(
+  (ref) => SpeechToTextInputService(),
+);
 
 /// 离线引擎实现注入点：测试中 override 为 Fake。
-final offlineVoiceServiceProvider = Provider<VoiceInputService>(
-    (ref) => SherpaOfflineInputService(ref.watch(voiceModelStoreProvider)));
+final offlineVoiceServiceProvider = Provider.autoDispose<VoiceInputService>(
+  (ref) => SherpaOfflineInputService(ref.watch(voiceModelStoreProvider)),
+);
 
 /// 模型存储（app 级存活：下载不随录入页关闭中断）。
-final voiceModelStoreProvider =
-    Provider<VoiceModelStore>((ref) => VoiceModelManager());
+final voiceModelStoreProvider = Provider<VoiceModelStore>(
+  (ref) => BundledVoiceModelStore(),
+);
 
 /// 每个 RecordEditPage 实例持有独立的语音识别会话（autoDispose）。
 final voiceInputProvider =
     StateNotifierProvider.autoDispose<VoiceInputNotifier, VoiceInputState>(
-  (ref) => VoiceInputNotifier(
-    ref.watch(voiceInputServiceImplProvider),
-    ref.watch(offlineVoiceServiceProvider),
-    ref.watch(voiceModelStoreProvider),
-  ),
-);
+      (ref) => VoiceInputNotifier(
+        ref.watch(voiceInputServiceImplProvider),
+        ref.watch(offlineVoiceServiceProvider),
+        ref.watch(voiceModelStoreProvider),
+      ),
+    );

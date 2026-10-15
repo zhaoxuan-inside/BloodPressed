@@ -6,7 +6,7 @@
 ## 1. 版本号
 
 `pubspec.yaml` → `version: x.y.z+build`（versionName+versionCode，每次发布 build 至少 +1）。
-本次记录：**1.2.1+3**（2026-10-15，前一版 1.2.0+2）。
+本次记录：**1.2.2+4**（2026-10-15，前一版 1.2.1+3）。
 
 ## 2. 门禁（发布前必须全绿）
 
@@ -57,6 +57,14 @@ curl -F "file=@build/app/outputs/flutter-apk/app-release.apk" \
 
 ## 5. 发布记录
 
+2026-10-15：**1.2.2+4 ARM64（内置离线语音模型）**，219,963,720 字节（209.77 MiB）。
+产物 `build/app/outputs/flutter-apk/BloodPressed-1.2.2+4-arm64-v8a.apk`。
+SHA256：`2e9a0af033fb26bfecebdbf3bf46d4b7dee926ab7ee3818cdb93ceb3f3a9d908`。
+版本及 ABI 验证：versionName 1.2.2、versionCode 4、仅 arm64-v8a、minSdk 24；v2 签名验证通过，签名证书与 1.2.1 相同。
+四个语音模型资源在 APK 内逐个核对 SHA256，ORT 确认为 1.28.2，旧 1.17.1 已排除。
+全量 276 项测试与静态分析通过，真实双语音频识别通过，OCR det/rec 在新 ORT 推理通过。
+未上传分发平台，未连接手机做麦克风验证。
+
 2026-10-15：**1.2.1+3 ARM64** 构建成功，170,668,649 字节（162.76 MiB），
 产物 `build/app/outputs/flutter-apk/BloodPressed-1.2.1+3-arm64-v8a.apk`。
 SHA256：`1cb46adf70dc0ef962c7691769b7b33dd77a13997dfad96a0214a9dda3323f60`。
@@ -70,10 +78,11 @@ aapt 与 ZIP 检查均确认仅 `arm64-v8a`，minSdk 24，versionCode 3；apksig
 ## 6. 更新日志模板（发布时填入）
 
 ```
-本次更新（1.2.1）：
-1. 增加离线语音识别兜底，系统语音不可用时可下载离线模型。
-2. 修复语音模型下载：正确断点续传、中断重试、文件大小校验与进度累计。
-3. 发布包仅保留 ARM64，不再兼容 32 位系统。
+本次更新（1.2.2）：
+1. 离线语音模型随安装包内置，首次使用从包内准备，无需联网下载。
+2. 修复语音模型类型及原生推理运行库不匹配导致的初始化不可用。
+3. 语音初始化异常可重试并复制错误报告；修复重新进入录入页时的服务生命周期。
+4. 发布包仅支持 ARM64。
 ```
 
 ## 7. 发布检查单
@@ -84,3 +93,18 @@ aapt 与 ZIP 检查均确认仅 `arm64-v8a`，minSdk 24，versionCode 3；apksig
 - [ ] 更新日志已填写
 - [ ] 上传后用分发短链真机安装验证版本号与核心功能（拍照识别/内置模型问答/趋势全屏）
 - [ ] 版本提交已 commit（含 pubspec 与本文档的发布记录）
+
+## 8. 语音原生库回归检查
+
+Android app 的本地 jniLibs 与 onnxruntime 插件旧运行库不参与打包；统一使用
+sherpa_onnx 的 ORT。不要手工复制旧 libonnxruntime.so 到 app 的源码目录。
+
+宿主真实语音验证（无需麦克风，使用固定官方音频与生产同一模型配置）：
+
+```powershell
+& 'E:\HardStone.Flutter\flutter\bin\cache\dart-sdk\bin\dart.exe' --packages=.dart_tool/package_config.json scripts/verify_voice_model.dart
+```
+
+包内须有 assets/flutter_assets/assets/models/voice/ 下的 encoder.int8.onnx、
+decoder.onnx、joiner.int8.onnx、tokens.txt，字节与 assets/models/voice 相同。
+`lib/arm64-v8a/libonnxruntime.so` 本次要求 1.28.2；原库 1.17.1 无法满足语音引擎 API 28。

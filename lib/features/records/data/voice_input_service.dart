@@ -76,8 +76,19 @@ abstract final class VoiceInputError {
   /// 离线语音模型下载失败。
   static const modelDownloadFailed = 'model_download_failed';
 
+  static const initializationFailed = 'voice_initialization_failed';
+
   /// 其他未知错误。
   static const unknown = 'unknown';
+}
+
+/// Keeps initialization failures visible to the UI's copyable diagnostic report.
+class VoiceInitializationException implements Exception {
+  const VoiceInitializationException(this.details);
+  final String details;
+
+  @override
+  String toString() => 'VoiceInitializationException: $details';
 }
 
 /// 语音输入服务接口（测试 seam）。
@@ -132,10 +143,10 @@ class SpeechToTextInputService implements VoiceInputService {
     Future<PermissionStatus> Function()? requestMicPermission,
     Future<PermissionStatus> Function()? micStatus,
     Future<void> Function()? openSettings,
-  })  : _requestMicPermission =
-            requestMicPermission ?? Permission.microphone.request,
-        _micStatus = micStatus ?? _defaultMicStatus,
-        _openSettings = openSettings ?? _defaultOpenSettings;
+  }) : _requestMicPermission =
+           requestMicPermission ?? Permission.microphone.request,
+       _micStatus = micStatus ?? _defaultMicStatus,
+       _openSettings = openSettings ?? _defaultOpenSettings;
 
   /// openAppSettings 返回 `Future<bool>`，统一适配为无值 Future。
   static Future<void> _defaultOpenSettings() async {

@@ -1,0 +1,2 @@
+# Model integrity checks require the exact upstream bytes on every platform.
+assets/models/voice/tokens.txt -text

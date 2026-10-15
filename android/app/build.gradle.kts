@@ -9,6 +9,9 @@ android {
     // onnxruntime AAR 要求 compileSdk 34+（PP-OCR 端侧推理）
     compileSdk = maxOf(34, flutter.compileSdkVersion)
     ndkVersion = flutter.ndkVersion
+    // Local ignored jniLibs may contain old ORT copies. Use the matching runtime
+    // provided by sherpa_onnx; old copies cannot serve its newer C API.
+    sourceSets.getByName("main").jniLibs.setSrcDirs(emptyList<String>())
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

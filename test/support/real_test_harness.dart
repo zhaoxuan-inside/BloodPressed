@@ -83,25 +83,32 @@ class RealAppHarness {
     SharedPreferences.setMockInitialValues({});
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugin.csdcorp.com/speech_to_text'),
-      (call) async => call.method == 'initialize' ? false : null,
-    );
+          const MethodChannel('plugin.csdcorp.com/speech_to_text'),
+          (call) async => call.method == 'initialize' ? false : null,
+        );
+    // Widget hosts have no microphone or native recording plugins. Keep that
+    // boundary explicit; real bundled-model inference is verified separately.
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('flutter.baseflow.com/permissions/methods'),
+          (call) async => call.method == 'checkPermissionStatus' ? 0 : null,
+        );
     // 设置页 About 卡通过 package_info_plus 读取真实版本号；
     // 测试宿主无平台实现，mock 为与 pubspec 一致的固定版本。
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('dev.fluttercommunity.plus/package_info'),
-      (call) async => call.method == 'getAll'
-          ? <String, Object?>{
-              'appName': 'BloodPressed',
-              'packageName': 'com.example.blood_pressed',
-              'version': '1.2.0',
-              'buildNumber': '2',
-              'buildSignature': '',
-              'installerStore': null,
-            }
-          : null,
-    );
+          const MethodChannel('dev.fluttercommunity.plus/package_info'),
+          (call) async => call.method == 'getAll'
+              ? <String, Object?>{
+                  'appName': 'BloodPressed',
+                  'packageName': 'com.example.blood_pressed',
+                  'version': '1.2.0',
+                  'buildNumber': '2',
+                  'buildSignature': '',
+                  'installerStore': null,
+                }
+              : null,
+        );
     prefs = await SharedPreferences.getInstance();
     settings = AppSettings(prefs);
     await settings.deviceId();
@@ -111,7 +118,8 @@ class RealAppHarness {
 
     AppDatabase.resetInstanceForTest();
     db = await AppDatabase.openForTest(
-        await databaseFactory.openDatabase(inMemoryDatabasePath));
+      await databaseFactory.openDatabase(inMemoryDatabasePath),
+    );
     outbox = OutboxDao(db);
     records = RecordsRepository(db, outbox);
     profiles = LlmProfileStore(db);
@@ -124,26 +132,31 @@ class RealAppHarness {
   }
 
   List<Override> get overrides => [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        appSettingsProvider.overrideWithValue(settings),
-        appDatabaseProvider.overrideWithValue(db),
-        llmProfilesProvider.overrideWith((ref) => LlmProfilesController(
-              ref.watch(llmProfileStoreProvider),
-              ref.watch(appSettingsProvider),
-            )),
-        llmEngineProvider.overrideWith((ref) => LlmEngineController(ref)),
-        assistantProvider.overrideWith((ref) => AssistantController(
-              ref.watch(chatRepositoryProvider),
-              HealthContextBuilder(ref.watch(recordsRepositoryProvider)),
-              ref.read,
-            )),
-        activeLlmProfileIdProvider
-            .overrideWith((ref) => settings.activeLlmProfileId),
-        builtinModelPathProvider.overrideWith((ref) => builtinModelPath),
-        builtinModelReadyProvider.overrideWith((ref) => builtinModelReady),
-        themeModeNameProvider.overrideWith((ref) => settings.themeMode),
-        localePrefProvider.overrideWith((ref) => settings.localePref),
-      ];
+    sharedPreferencesProvider.overrideWithValue(prefs),
+    appSettingsProvider.overrideWithValue(settings),
+    appDatabaseProvider.overrideWithValue(db),
+    llmProfilesProvider.overrideWith(
+      (ref) => LlmProfilesController(
+        ref.watch(llmProfileStoreProvider),
+        ref.watch(appSettingsProvider),
+      ),
+    ),
+    llmEngineProvider.overrideWith((ref) => LlmEngineController(ref)),
+    assistantProvider.overrideWith(
+      (ref) => AssistantController(
+        ref.watch(chatRepositoryProvider),
+        HealthContextBuilder(ref.watch(recordsRepositoryProvider)),
+        ref.read,
+      ),
+    ),
+    activeLlmProfileIdProvider.overrideWith(
+      (ref) => settings.activeLlmProfileId,
+    ),
+    builtinModelPathProvider.overrideWith((ref) => builtinModelPath),
+    builtinModelReadyProvider.overrideWith((ref) => builtinModelReady),
+    themeModeNameProvider.overrideWith((ref) => settings.themeMode),
+    localePrefProvider.overrideWith((ref) => settings.localePref),
+  ];
 
   Future<void> pumpApp(WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2340);
@@ -157,10 +170,7 @@ class RealAppHarness {
         child: BloodPressedApp(router: buildAppRouter()),
       ),
     );
-    await pumpUntilReal(
-      tester,
-      () => tester.any(find.byType(NavigationBar)),
-    );
+    await pumpUntilReal(tester, () => tester.any(find.byType(NavigationBar)));
   }
 
   Future<BpRecord> insertRecord({
@@ -174,19 +184,21 @@ class RealAppHarness {
     RecordSource source = RecordSource.manual,
   }) {
     final now = DateTime.now();
-    return records.create(BpRecord(
-      id: 'r-$sys-$dia-${now.microsecondsSinceEpoch}',
-      systolic: sys,
-      diastolic: dia,
-      pulse: pulse,
-      measuredAt: at ?? now,
-      arm: arm,
-      posture: posture,
-      note: note,
-      source: source,
-      deviceId: 'test-device',
-      createdAt: now,
-      updatedAt: now,
-    ));
+    return records.create(
+      BpRecord(
+        id: 'r-$sys-$dia-${now.microsecondsSinceEpoch}',
+        systolic: sys,
+        diastolic: dia,
+        pulse: pulse,
+        measuredAt: at ?? now,
+        arm: arm,
+        posture: posture,
+        note: note,
+        source: source,
+        deviceId: 'test-device',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
   }
 }
