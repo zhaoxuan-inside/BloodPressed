@@ -6,7 +6,7 @@
 ## 1. 版本号
 
 `pubspec.yaml` → `version: x.y.z+build`（versionName+versionCode，每次发布 build 至少 +1）。
-本次记录：**1.2.0+2**（2026-10-11，前一版 1.0.0+1）。
+本次记录：**1.2.1+3**（2026-10-15，前一版 1.2.0+2）。
 
 ## 2. 门禁（发布前必须全绿）
 
@@ -19,9 +19,26 @@ flutter test             # 全绿
 
 ```bash
 export JAVA_HOME='D:\HardStone.开发环境\JDK\jdk-21.0.12.1+1'   # Gradle 需 JDK 17+，shell 默认 JVM 8 会失败
-flutter build apk --release
+flutter build apk --release --target-platform android-arm64
 # 产物：build/app/outputs/flutter-apk/app-release.apk
 ```
+
+发布仅支持 ARM64（arm64-v8a）手机；release 构建配置排除 32 位原生库。
+实际过滤位于 app defaultConfig.ndk，配合 gradle.properties 的
+`disable-abi-filtering=true` 防止 Flutter 自动重新加入其他 ABI；不使用 --split-per-abi。
+当前 release 沿用 debug 签名；尚未配置正式发布证书。
+
+Windows PowerShell 本机命令（Flutter SDK 不在 PATH）：
+
+```powershell
+$env:JAVA_HOME = 'D:\HardStone.开发环境\JDK\jdk-21.0.12.1+1'
+New-Item -ItemType Directory -Force -Path "$PWD\build\java-tmp" | Out-Null
+$env:JAVA_TOOL_OPTIONS = "-Djdk.net.unixdomain.tmpdir=$PWD\build\java-tmp"
+& 'E:\HardStone.Flutter\flutter\bin\flutter.bat' --no-version-check build apk --release --target-platform android-arm64 --no-pub
+```
+
+此 Java 临时目录参数仅在当前 PowerShell 进程生效，用于规避本机默认临时目录下
+Java NIO `Unable to establish loopback connection` / `UnixDomainSockets.connect0` 错误。
 
 ## 4. 上传蒲公英
 
@@ -40,6 +57,12 @@ curl -F "file=@build/app/outputs/flutter-apk/app-release.apk" \
 
 ## 5. 发布记录
 
+2026-10-15：**1.2.1+3 ARM64** 构建成功，170,668,649 字节（162.76 MiB），
+产物 `build/app/outputs/flutter-apk/BloodPressed-1.2.1+3-arm64-v8a.apk`。
+SHA256：`1cb46adf70dc0ef962c7691769b7b33dd77a13997dfad96a0214a9dda3323f60`。
+aapt 与 ZIP 检查均确认仅 `arm64-v8a`，minSdk 24，versionCode 3；apksigner v2 验证通过。
+包含 7027013 的离线语音模型下载修复。未上传蒲公英，未进行真机安装冒烟。
+
 | 版本 | 日期 | 产物 | SHA1 | 状态 |
 |---|---|---|---|---|
 | 1.2.0+2 | 2026-10-11 | build/app/outputs/flutter-apk/app-release.apk（328.7MB，minSdk 24） | d8557587f239492ffaa258d699888a3b7ce26f42 | 已构建，待上传蒲公英（Key 由开发者手动提供） |
@@ -47,12 +70,10 @@ curl -F "file=@build/app/outputs/flutter-apk/app-release.apk" \
 ## 6. 更新日志模板（发布时填入）
 
 ```
-本次更新（1.2.0）：
-1. 内置默认模型：首次使用引导下载 Qwen3-1.7B，AI 功能开箱即用（低置信问题自动拒答）
-2. 模型中心：搜索/下载/安装一站式，同时接入多个模型社区
-3. 功能搜索：首页搜索直达全部功能与设置项
-4. 趋势页：全屏横屏图表、血压规律分析（时段/星期/峰值）、一键 AI 分析、图表与规律分享
-5. 修复与优化：APK 减重约 30MB、OCR 反光场景识别更稳、语音录入文案国际化
+本次更新（1.2.1）：
+1. 增加离线语音识别兜底，系统语音不可用时可下载离线模型。
+2. 修复语音模型下载：正确断点续传、中断重试、文件大小校验与进度累计。
+3. 发布包仅保留 ARM64，不再兼容 32 位系统。
 ```
 
 ## 7. 发布检查单

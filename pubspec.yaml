@@ -2,7 +2,7 @@ name: blood_pressed
 description: "BloodPressed —— 跨 Android/iOS 的血压监控应用：记录血压脉搏、趋势图表、拍照识别、本地/远端大模型健康指导、数据导出与分享、健康知识阅读。"
 publish_to: 'none'
 
-version: 1.2.0+2
+version: 1.2.1+3
 
 environment:
   sdk: ^3.13.5

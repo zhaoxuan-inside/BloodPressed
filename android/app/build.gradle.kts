@@ -29,6 +29,12 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // 仅保留 ARM64，包括依赖 AAR 中附带的原生库。
+        // gradle.properties 关闭 Flutter 自动 ABI 列表，避免重加 32 位库。
+        ndk {
+            abiFilters.clear()
+            abiFilters.add("arm64-v8a")
+        }
     }
 
     buildTypes {
