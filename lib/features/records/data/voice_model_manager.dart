@@ -64,9 +64,11 @@ abstract interface class VoiceModelStore {
 /// 基于 ModelScope 的默认实现。
 class VoiceModelManager implements VoiceModelStore {
   VoiceModelManager({Dio? dio, VoiceModelFetcher? fetcher, String? docsPath})
-      : _fetcher = fetcher ??
-            _dioFetcher,
-        _docsPathOverride = docsPath;
+    : _fetcher =
+          fetcher ??
+          ((url, target, startFrom, onReceived) =>
+              _dioFetcher(url, target, startFrom, onReceived, dio: dio)),
+      _docsPathOverride = docsPath;
 
   final VoiceModelFetcher _fetcher;
   final String? _docsPathOverride;
@@ -84,10 +86,16 @@ class VoiceModelManager implements VoiceModelStore {
   /// int8 joiner + 词表，总计约 50MB）。
   static const List<VoiceModelFile> files = [
     VoiceModelFile(
-        'encoder-epoch-99-avg-1.int8.onnx', 'encoder.int8.onnx', 32631819),
+      'encoder-epoch-99-avg-1.int8.onnx',
+      'encoder.int8.onnx',
+      32631819,
+    ),
     VoiceModelFile('decoder-epoch-99-avg-1.onnx', 'decoder.onnx', 13877276),
     VoiceModelFile(
-        'joiner-epoch-99-avg-1.int8.onnx', 'joiner.int8.onnx', 3228485),
+      'joiner-epoch-99-avg-1.int8.onnx',
+      'joiner.int8.onnx',
+      3228485,
+    ),
     VoiceModelFile('tokens.txt', 'tokens.txt', 56317),
   ];
 
@@ -148,21 +156,32 @@ class VoiceModelManager implements VoiceModelStore {
           completedBytes += f.size;
         }
       }
+      _reportProgress(completedBytes / totalBytes);
 
       for (final f in files) {
         final target = File('$dir${Platform.pathSeparator}${f.localName}');
         if (target.existsSync() && target.lengthSync() == f.size) continue;
         final part = File('${target.path}.part');
+        // A corrupt oversized prefix can never be resumed into a valid file.
+        if (part.existsSync() && part.lengthSync() > f.size) {
+          part.deleteSync();
+        }
         final startFrom = part.existsSync() ? part.lengthSync() : 0;
-        await _fetcher(downloadUrl(f.remotePath), part, startFrom, (r) {
-          _progress = (completedBytes + startFrom + r) / totalBytes;
-          _progressController.add(_progress);
-        });
+        if (startFrom < f.size) {
+          await _fetcher(downloadUrl(f.remotePath), part, startFrom, (r) {
+            _reportProgress((completedBytes + r) / totalBytes);
+          });
+        }
         // 完整性校验后转正
-        if (part.lengthSync() < f.size) {
+        final size = part.existsSync() ? part.lengthSync() : 0;
+        if (size != f.size) {
+          if (size > f.size) part.deleteSync();
           throw Exception('模型文件不完整: ${f.localName}');
         }
+        if (target.existsSync()) target.deleteSync();
         part.renameSync(target.path);
+        completedBytes += f.size;
+        _reportProgress(completedBytes / totalBytes);
       }
       _progress = 1;
       _progressController.add(1);
@@ -171,33 +190,71 @@ class VoiceModelManager implements VoiceModelStore {
     }
   }
 
+  void _reportProgress(double value) {
+    _progress = value.clamp(0.0, 1.0);
+    _progressController.add(_progress);
+  }
+
   /// 默认 HTTP 实现：Range 续传 + 流式落盘。
   static Future<void> _dioFetcher(
     String url,
     File target,
     int startFrom,
-    VoiceModelFileProgress onReceived,
-  ) async {
-    final dio = Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 20),
-      // receiveTimeout 是两次读包间隔，不限制整体传输时长
-      receiveTimeout: const Duration(seconds: 60),
-      followRedirects: true,
-      maxRedirects: 5,
-    ));
-    final sink = target.openSync(mode: FileMode.append);
+    VoiceModelFileProgress onReceived, {
+    Dio? dio,
+  }) async {
+    final client =
+        dio ??
+        Dio(
+          BaseOptions(
+            connectTimeout: const Duration(seconds: 20),
+            // receiveTimeout 是两次读包间隔，不限制整体传输时长
+            receiveTimeout: const Duration(seconds: 60),
+            followRedirects: true,
+            maxRedirects: 5,
+          ),
+        );
     try {
-      await dio.download(
+      final response = await client.get<ResponseBody>(
         url,
-        target.path,
         options: Options(
+          responseType: ResponseType.stream,
           headers: startFrom > 0 ? {'range': 'bytes=$startFrom-'} : null,
         ),
-        onReceiveProgress: (count, _) => onReceived(count),
       );
+      final body = response.data!;
+      var offset = 0;
+      if (response.statusCode == 206) {
+        final range = RegExp(r'^bytes (\d+)-(\d+)/(\d+)$')
+            .firstMatch(response.headers.value('content-range') ?? '');
+        if (range == null ||
+            int.parse(range[1]!) != startFrom ||
+            int.parse(range[2]!) < startFrom ||
+            int.parse(range[3]!) <= int.parse(range[2]!)) {
+          await body.stream.listen(null).cancel();
+          throw Exception('模型续传响应范围不匹配');
+        }
+        offset = startFrom;
+      } else if (response.statusCode != 200) {
+        await body.stream.listen(null).cancel();
+        throw Exception('模型下载响应异常: ${response.statusCode}');
+      }
+      // A 200 response means Range was ignored: replace, never append.
+      final sink = await target.open(
+        mode: offset > 0 ? FileMode.append : FileMode.write,
+      );
+      try {
+        onReceived(offset);
+        await for (final chunk in body.stream) {
+          await sink.writeFrom(chunk);
+          offset += chunk.length;
+          onReceived(offset);
+        }
+      } finally {
+        await sink.close();
+      }
     } finally {
-      await sink.flush();
-      sink.closeSync();
+      if (dio == null) client.close();
     }
   }
 }
