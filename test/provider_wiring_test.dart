@@ -11,6 +11,8 @@ import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
 
+import 'daily_candle_test.dart' show reading;
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
@@ -58,6 +60,79 @@ void main() {
     final assistant = container.read(assistantProvider.notifier);
     await assistant.clearConversation();
     expect(container.read(assistantProvider).messages, isEmpty);
+  });
+
+  test('每日蜡烛图按自然日筛选，不混入前一天的测量', () async {
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day);
+    final repo = container.read(recordsRepositoryProvider);
+    await repo.create(
+      reading(8, 150, 95, id: 'previous').copyWith(
+        measuredAt: midnight.subtract(const Duration(milliseconds: 1)),
+      ),
+    );
+    await repo.create(
+      reading(8, 120, 80, id: 'today').copyWith(measuredAt: midnight),
+    );
+    await container.read(recordsControllerProvider.notifier).refresh();
+    const query = TrendQuery(days: 1);
+    final subscription = container.listen(trendDataProvider(query), (_, _) {});
+    addTearDown(subscription.close);
+    final candles = await container.read(trendDataProvider(query).future);
+    expect(candles, hasLength(1));
+    expect(candles.single.date, midnight);
+    expect(candles.single.count, 1);
+    expect(candles.single.systolic.maximum, 120);
+    expect(
+      (await container.read(statsProvider(const StatsRange(1, '')).future))
+          .count,
+      1,
+    );
+    expect(
+      (await container.read(analysisDataProvider(query).future)).totalCount,
+      1,
+    );
+  });
+
+  test('自定义日期包含当天最后一毫秒，不包含翌日', () async {
+    final end = DateTime(2026, 10, 16);
+    final repo = container.read(recordsRepositoryProvider);
+    await repo.create(reading(8, 120, 80, id: 'morning'));
+    await repo.create(
+      reading(
+        20,
+        145,
+        90,
+        id: 'last',
+      ).copyWith(measuredAt: end.subtract(const Duration(milliseconds: 1))),
+    );
+    await repo.create(
+      reading(8, 180, 110, id: 'next').copyWith(measuredAt: end),
+    );
+    await container.read(recordsControllerProvider.notifier).refresh();
+    final query = TrendQuery.custom(
+      DateTime(2026, 10, 15),
+      DateTime(2026, 10, 15),
+    );
+    final subscription = container.listen(trendDataProvider(query), (_, _) {});
+    addTearDown(subscription.close);
+    final candles = await container.read(trendDataProvider(query).future);
+    expect(candles.single.count, 2);
+    expect(candles.single.systolic.first, 120);
+    expect(candles.single.systolic.last, 145);
+    expect(candles.single.systolic.maximum, 145);
+    expect(
+      (await container.read(
+        statsProvider(
+          StatsRange.custom(DateTime(2026, 10, 15), DateTime(2026, 10, 15)),
+        ).future,
+      )).count,
+      2,
+    );
+    expect(
+      (await container.read(analysisDataProvider(query).future)).totalCount,
+      2,
+    );
   });
 
   test('分析随记录新增、编辑和删除自动刷新', () async {

@@ -22,6 +22,7 @@ import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/stats/domain/bp_analyzer.dart';
 import 'package:blood_pressed/features/stats/presentation/analysis_text.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
+import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
 import 'package:blood_pressed/features/stats/presentation/fullscreen_trend_page.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/analysis_card.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
@@ -134,7 +135,7 @@ void main() {
   });
 
   group('分享卡渲染', () {
-    testWidgets('趋势卡：标题/均值/次数可见', (tester) async {
+    testWidgets('趋势卡：标题/实际范围/次数可见', (tester) async {
       final query = TrendQuery.custom(
         DateTime(2026, 10, 5),
         DateTime(2026, 10, 6),
@@ -148,24 +149,16 @@ void main() {
             body: Center(
               child: TrendShareCard(
                 title: '10月5日-10月6日',
-                points: [
-                  DayPoint(
-                    date: DateTime(2026, 10, 5),
-                    avgSystolic: 138,
-                    avgDiastolic: 88,
-                    count: 2,
-                  ),
-                  DayPoint(
-                    date: DateTime(2026, 10, 6),
-                    avgSystolic: 126,
-                    avgDiastolic: 80,
-                    count: 1,
-                  ),
-                ],
+                points: DayCandle.aggregate([
+                  rec(8, 138, 88),
+                  rec(20, 142, 92),
+                  rec(
+                    8,
+                    126,
+                    80,
+                  ).copyWith(measuredAt: DateTime(2026, 10, 6, 8)),
+                ]),
                 query: query,
-                avgSystolic: 132,
-                avgDiastolic: 84,
-                count: 3,
               ),
             ),
           ),
@@ -173,8 +166,10 @@ void main() {
       );
       expect(find.text('血压了么 · 血压趋势'), findsOneWidget);
       expect(find.text('10月5日-10月6日'), findsOneWidget);
-      expect(find.text('132 / 84'), findsOneWidget);
-      expect(find.byType(TrendLineChart), findsOneWidget);
+      expect(find.text('126–142'), findsOneWidget);
+      expect(find.text('80–92'), findsOneWidget);
+      expect(find.text('测量次数: 3'), findsOneWidget);
+      expect(find.byType(TrendCandleChart), findsOneWidget);
     });
 
     testWidgets('分析卡：结论/时段/星期/峰值可见', (tester) async {
@@ -233,7 +228,7 @@ void main() {
       return container;
     }
 
-    testWidgets('渲染折线 + 系列切换 + AI 流程（清 pending/回竖屏/进助手）', (tester) async {
+    testWidgets('渲染蜡烛图 + 系列切换 + AI 流程（清 pending/回竖屏/进助手）', (tester) async {
       final app = RealAppHarness();
       await app.setUp();
       addTearDown(app.tearDown);
@@ -273,7 +268,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(FullscreenTrendPage), findsOneWidget);
-      expect(find.byType(TrendLineChart), findsOneWidget);
+      expect(find.byType(TrendCandleChart), findsOneWidget);
 
       // 切脉搏：无脉搏数据显示空态文案
       await tester.tap(find.text('脉搏'));

@@ -26,7 +26,7 @@ import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/records/data/records_repository.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
-import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
+import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +40,8 @@ void main() {
   setUp(() async {
     AppDatabase.resetInstanceForTest();
     db = await AppDatabase.openForTest(
-        await databaseFactory.openDatabase(inMemoryDatabasePath));
+      await databaseFactory.openDatabase(inMemoryDatabasePath),
+    );
     outbox = OutboxDao(db);
     records = RecordsRepository(db, outbox);
   });
@@ -58,18 +59,20 @@ void main() {
     MeasureArm arm = MeasureArm.left,
   }) {
     final now = DateTime.now();
-    return records.create(BpRecord(
-      id: 'r-$sys-$dia-${now.microsecondsSinceEpoch}',
-      systolic: sys,
-      diastolic: dia,
-      pulse: pulse,
-      measuredAt: at ?? now,
-      arm: arm,
-      source: RecordSource.manual,
-      deviceId: 'svc-test',
-      createdAt: now,
-      updatedAt: now,
-    ));
+    return records.create(
+      BpRecord(
+        id: 'r-$sys-$dia-${now.microsecondsSinceEpoch}',
+        systolic: sys,
+        diastolic: dia,
+        pulse: pulse,
+        measuredAt: at ?? now,
+        arm: arm,
+        source: RecordSource.manual,
+        deviceId: 'svc-test',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
   }
 
   group('健康知识真实 assets', () {
@@ -125,8 +128,7 @@ void main() {
     test('近 30 天摘要包含均值、达标率与双臂对比', () async {
       final now = DateTime.now();
       await add(sys: 120, dia: 78, pulse: 70, at: now, arm: MeasureArm.left);
-      await add(
-          sys: 138, dia: 88, pulse: 76, at: now, arm: MeasureArm.right);
+      await add(sys: 138, dia: 88, pulse: 76, at: now, arm: MeasureArm.right);
       final prompt = await HealthContextBuilder(records).buildSystemPrompt();
       expect(prompt, contains('测量次数：2 次'));
       expect(prompt, contains('家庭自测达标率'));
@@ -152,9 +154,9 @@ void main() {
         pulse: 74,
         at: now.subtract(const Duration(days: 1)),
       );
-      final points = DayPoint.aggregate(await records.list(), 7);
+      final points = DayCandle.aggregate(await records.list());
       expect(points, hasLength(2));
-      expect(points.last.avgSystolic, 120);
+      expect(points.last.systolic.first, 120);
     });
 
     test('无记录时健康上下文引导先测量', () async {
@@ -236,16 +238,18 @@ void main() {
 
   group('远端推理真实 HTTP', () {
     test('魔搭推理 GET /models 对无效 Token 返回真实错误', () async {
-      final engine = RemoteChatEngine(const LlmProfile(
-        id: 'live',
-        kind: LlmKind.remote,
-        name: 'modelscope',
-        config: {
-          'baseUrl': 'https://api-inference.modelscope.cn/v1',
-          'apiKey': 'invalid-token-bloodpressed-test',
-          'model': 'Qwen/Qwen3-32B',
-        },
-      ));
+      final engine = RemoteChatEngine(
+        const LlmProfile(
+          id: 'live',
+          kind: LlmKind.remote,
+          name: 'modelscope',
+          config: {
+            'baseUrl': 'https://api-inference.modelscope.cn/v1',
+            'apiKey': 'invalid-token-bloodpressed-test',
+            'model': 'Qwen/Qwen3-32B',
+          },
+        ),
+      );
       addTearDown(engine.dispose);
       await expectLater(
         engine.listModels(),
@@ -254,60 +258,35 @@ void main() {
     }, timeout: const Timeout(Duration(minutes: 1)));
 
     test('无效 Token 流式对话返回真实服务端错误', () async {
-      final engine = RemoteChatEngine(const LlmProfile(
-        id: 'live-chat',
-        kind: LlmKind.remote,
-        name: 'modelscope',
-        config: {
-          'baseUrl': 'https://api-inference.modelscope.cn/v1',
-          'apiKey': 'invalid-token-bloodpressed-test',
-          'model': 'Qwen/Qwen3-32B',
-        },
-      ));
+      final engine = RemoteChatEngine(
+        const LlmProfile(
+          id: 'live-chat',
+          kind: LlmKind.remote,
+          name: 'modelscope',
+          config: {
+            'baseUrl': 'https://api-inference.modelscope.cn/v1',
+            'apiKey': 'invalid-token-bloodpressed-test',
+            'model': 'Qwen/Qwen3-32B',
+          },
+        ),
+      );
       addTearDown(engine.dispose);
       await expectLater(
-        engine
-            .chatStream([
-              ChatMessage(
-                id: 'u1',
-                role: ChatRole.user,
-                content: '用一句话说明家庭自测血压达标标准',
-                createdAt: DateTime.now(),
-              ),
-            ])
-            .toList(),
+        engine.chatStream([
+          ChatMessage(
+            id: 'u1',
+            role: ChatRole.user,
+            content: '用一句话说明家庭自测血压达标标准',
+            createdAt: DateTime.now(),
+          ),
+        ]).toList(),
         throwsA(isA<InferenceException>()),
       );
     }, timeout: const Timeout(Duration(minutes: 1)));
 
     test('配置了真实 Token 时可拉取模型列表', () async {
-      final token = Platform.environment['MODELSCOPE_SDK_TOKEN'] ??
-          Platform.environment['DASHSCOPE_API_KEY'] ??
-          '';
-      if (token.isEmpty) {
-        return;
-      }
-      final isDash = Platform.environment['DASHSCOPE_API_KEY']?.isNotEmpty ==
-          true;
-      final engine = RemoteChatEngine(LlmProfile(
-        id: 'env',
-        kind: LlmKind.remote,
-        name: 'env',
-        config: {
-          'baseUrl': isDash
-              ? 'https://dashscope.aliyuncs.com/compatible-mode/v1'
-              : 'https://api-inference.modelscope.cn/v1',
-          'apiKey': token,
-          'model': isDash ? 'qwen-plus' : 'Qwen/Qwen3-32B',
-        },
-      ));
-      addTearDown(engine.dispose);
-      final models = await engine.listModels();
-      expect(models, isNotEmpty);
-    }, timeout: const Timeout(Duration(minutes: 2)));
-
-    test('配置了真实 Token 时可完成一轮健康指导对话', () async {
-      final token = Platform.environment['MODELSCOPE_SDK_TOKEN'] ??
+      final token =
+          Platform.environment['MODELSCOPE_SDK_TOKEN'] ??
           Platform.environment['DASHSCOPE_API_KEY'] ??
           '';
       if (token.isEmpty) {
@@ -315,35 +294,64 @@ void main() {
       }
       final isDash =
           Platform.environment['DASHSCOPE_API_KEY']?.isNotEmpty == true;
-      final engine = RemoteChatEngine(LlmProfile(
-        id: 'env-chat',
-        kind: LlmKind.remote,
-        name: 'env',
-        config: {
-          'baseUrl': isDash
-              ? 'https://dashscope.aliyuncs.com/compatible-mode/v1'
-              : 'https://api-inference.modelscope.cn/v1',
-          'apiKey': token,
-          'model': isDash ? 'qwen-plus' : 'Qwen/Qwen3-32B',
-        },
-      ));
+      final engine = RemoteChatEngine(
+        LlmProfile(
+          id: 'env',
+          kind: LlmKind.remote,
+          name: 'env',
+          config: {
+            'baseUrl': isDash
+                ? 'https://dashscope.aliyuncs.com/compatible-mode/v1'
+                : 'https://api-inference.modelscope.cn/v1',
+            'apiKey': token,
+            'model': isDash ? 'qwen-plus' : 'Qwen/Qwen3-32B',
+          },
+        ),
+      );
       addTearDown(engine.dispose);
-      final chunks = await engine
-          .chatStream([
-            ChatMessage(
-              id: 'sys',
-              role: ChatRole.system,
-              content: '你是血压健康助手，用中文简短回答。',
-              createdAt: DateTime.now(),
-            ),
-            ChatMessage(
-              id: 'u',
-              role: ChatRole.user,
-              content: '家庭自测血压低于多少算达标？只回答数字阈值。',
-              createdAt: DateTime.now(),
-            ),
-          ], maxTokens: 128)
-          .toList();
+      final models = await engine.listModels();
+      expect(models, isNotEmpty);
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('配置了真实 Token 时可完成一轮健康指导对话', () async {
+      final token =
+          Platform.environment['MODELSCOPE_SDK_TOKEN'] ??
+          Platform.environment['DASHSCOPE_API_KEY'] ??
+          '';
+      if (token.isEmpty) {
+        return;
+      }
+      final isDash =
+          Platform.environment['DASHSCOPE_API_KEY']?.isNotEmpty == true;
+      final engine = RemoteChatEngine(
+        LlmProfile(
+          id: 'env-chat',
+          kind: LlmKind.remote,
+          name: 'env',
+          config: {
+            'baseUrl': isDash
+                ? 'https://dashscope.aliyuncs.com/compatible-mode/v1'
+                : 'https://api-inference.modelscope.cn/v1',
+            'apiKey': token,
+            'model': isDash ? 'qwen-plus' : 'Qwen/Qwen3-32B',
+          },
+        ),
+      );
+      addTearDown(engine.dispose);
+      final chunks = await engine.chatStream([
+        ChatMessage(
+          id: 'sys',
+          role: ChatRole.system,
+          content: '你是血压健康助手，用中文简短回答。',
+          createdAt: DateTime.now(),
+        ),
+        ChatMessage(
+          id: 'u',
+          role: ChatRole.user,
+          content: '家庭自测血压低于多少算达标？只回答数字阈值。',
+          createdAt: DateTime.now(),
+        ),
+      ], maxTokens: 128).toList();
       final text = chunks.join();
       expect(text.trim(), isNotEmpty);
     }, timeout: const Timeout(Duration(minutes: 2)));

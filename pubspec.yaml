@@ -36,7 +36,7 @@ dependencies:
   onnxruntime: ^1.4.1
 
   # 图表
-  fl_chart: ">=0.70.0 <2.0.0"
+  fl_chart: ^1.2.0
 
   # 相机 / 相册 / 权限
   image_picker: ^1.1.0

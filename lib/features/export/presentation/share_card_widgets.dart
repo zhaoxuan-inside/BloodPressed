@@ -13,6 +13,7 @@ import 'package:blood_pressed/features/records/data/records_repository.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/core/utils/formatters.dart';
 import 'package:blood_pressed/features/stats/domain/bp_analyzer.dart';
+import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
@@ -21,10 +22,12 @@ import 'package:blood_pressed/l10n/app_localizations.dart';
 class CardCapturer {
   CardCapturer._();
 
-  static Future<Uint8List> capture(GlobalKey key,
-      {double pixelRatio = 3}) async {
-    final boundary = key.currentContext?.findRenderObject()
-        as RenderRepaintBoundary?;
+  static Future<Uint8List> capture(
+    GlobalKey key, {
+    double pixelRatio = 3,
+  }) async {
+    final boundary =
+        key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     if (boundary == null) {
       throw StateError(AppLocaleService.auto.cardNotReady);
     }
@@ -83,12 +86,15 @@ class RecordShareCard extends StatelessWidget {
                 Text('${record.systolic}', style: _heroStyle),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text('/',
-                      style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.45),
-                          fontSize: 34,
-                          height: 1.05,
-                          fontWeight: FontWeight.w200)),
+                  child: Text(
+                    '/',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.45),
+                      fontSize: 34,
+                      height: 1.05,
+                      fontWeight: FontWeight.w200,
+                    ),
+                  ),
                 ),
                 Text('${record.diastolic}', style: _heroStyle),
                 const SizedBox(width: 10),
@@ -131,11 +137,16 @@ class RecordShareCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.favorite_border,
-                          color: Colors.white70, size: 13),
+                      const Icon(
+                        Icons.favorite_border,
+                        color: Colors.white70,
+                        size: 13,
+                      ),
                       const SizedBox(width: 5),
-                      Text('${record.pulse} ${l10n.pulseUnit}',
-                          style: _pillStyle),
+                      Text(
+                        '${record.pulse} ${l10n.pulseUnit}',
+                        style: _pillStyle,
+                      ),
                     ],
                   ),
                 ),
@@ -144,7 +155,9 @@ class RecordShareCard extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             l10n.cardMeasuredAt(
-                Fmt.full(record.measuredAt), armLabel(l10n, record.arm)),
+              Fmt.full(record.measuredAt),
+              armLabel(l10n, record.arm),
+            ),
             style: _metaStyle,
           ),
           const SizedBox(height: 14),
@@ -186,11 +199,12 @@ class StatsShareCard extends StatelessWidget {
           Text(
             l10n.statsOverviewTitle(_daysLabel(l10n, days)),
             style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                height: 1.2,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.3),
+              color: Colors.white,
+              fontSize: 22,
+              height: 1.2,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+            ),
           ),
           const SizedBox(height: 16),
           Row(
@@ -226,8 +240,7 @@ class StatsShareCard extends StatelessWidget {
               Expanded(
                 child: _MetricTile(
                   label: l10n.onTargetRateLabel,
-                  value:
-                      '${(stats.normalRate * 100).toStringAsFixed(0)}%',
+                  value: '${(stats.normalRate * 100).toStringAsFixed(0)}%',
                 ),
               ),
             ],
@@ -235,8 +248,12 @@ class StatsShareCard extends StatelessWidget {
           const SizedBox(height: 10),
           _MetricTile(
             label: l10n.bpRangeLabel,
-            value: l10n.bpRangeValue(stats.minSystolic, stats.maxSystolic,
-                stats.minDiastolic, stats.maxDiastolic),
+            value: l10n.bpRangeValue(
+              stats.minSystolic,
+              stats.maxSystolic,
+              stats.minDiastolic,
+              stats.maxDiastolic,
+            ),
             small: true,
           ),
           const SizedBox(height: 14),
@@ -260,24 +277,20 @@ class StatsShareCard extends StatelessWidget {
 // 趋势 / 分析分享卡（趋势页分享入口，stats-trend-001）
 // ---------------------------------------------------------------------------
 
-/// 血压趋势分享卡：折线图嵌入品牌外壳。
+/// 每日蜡烛图分享卡，范围与次数均来自实际测量值。
 class TrendShareCard extends StatelessWidget {
   const TrendShareCard({
     super.key,
     required this.title,
     required this.points,
     required this.query,
-    required this.avgSystolic,
-    required this.avgDiastolic,
-    required this.count,
+    this.pulse = false,
   });
 
   final String title;
-  final List<DayPoint> points;
+  final List<DayCandle> points;
   final TrendQuery query;
-  final double avgSystolic;
-  final double avgDiastolic;
-  final int count;
+  final bool pulse;
 
   static const List<Color> _gradient = [
     Color(0xFF07253F),
@@ -288,48 +301,95 @@ class TrendShareCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    String range(MeasurementCandle? Function(DayCandle) metric) {
+      final values = points.map(metric).whereType<MeasurementCandle>().toList();
+      if (values.isEmpty) return '—';
+      final low = values.map((c) => c.minimum).reduce((a, b) => a < b ? a : b);
+      final high = values.map((c) => c.maximum).reduce((a, b) => a > b ? a : b);
+      return '$low–$high';
+    }
+
+    final count = points.fold<int>(
+      0,
+      (sum, p) => sum + (pulse ? p.pulse?.count ?? 0 : p.count),
+    );
     return _CardShell(
       gradient: _gradient,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _BrandBadge(icon: Icons.show_chart),
+          const _BrandBadge(icon: Icons.candlestick_chart),
           const SizedBox(height: 18),
-          Text(l10n.shareCardTrendHeader, style: _brandLabelStyle),
+          Text(
+            pulse ? l10n.shareCardPulseTrendHeader : l10n.shareCardTrendHeader,
+            style: _brandLabelStyle,
+          ),
           const SizedBox(height: 8),
-          Text(title,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  height: 1.2,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3)),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              height: 1.2,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+            ),
+          ),
           const SizedBox(height: 14),
-          // 折线：定宽卡内固定尺寸，关闭触摸
-          SizedBox(
+          Container(
             width: double.infinity,
-            height: 170,
+            height: 250,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: IgnorePointer(
-              child: TrendLineChart(points: points, query: query),
+              child: pulse
+                  ? PulseCandleChart(
+                      points: points,
+                      query: query,
+                      interactive: false,
+                    )
+                  : TrendCandleChart(
+                      points: points,
+                      query: query,
+                      interactive: false,
+                    ),
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _MetricTile(
-                  label: l10n.avgBpLabel,
-                  value:
-                      '${avgSystolic.toStringAsFixed(0)} / ${avgDiastolic.toStringAsFixed(0)}',
-                  unit: 'mmHg',
+          if (pulse)
+            _MetricTile(
+              label: l10n.seriesPulse,
+              value: range((d) => d.pulse),
+              unit: l10n.pulseUnit,
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: _MetricTile(
+                    label: l10n.candleSystolicRange,
+                    value: range((d) => d.systolic),
+                    unit: 'mmHg',
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _MetricTile(label: l10n.countLabel, value: '$count'),
-              ),
-            ],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _MetricTile(
+                    label: l10n.candleDiastolicRange,
+                    value: range((d) => d.diastolic),
+                    unit: 'mmHg',
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(height: 10),
+          Text(
+            '${l10n.countLabel}: $count',
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
           ),
           const SizedBox(height: 14),
           const _HairlineDivider(),
@@ -378,8 +438,8 @@ class AnalysisShareCard extends StatelessWidget {
     final maxSys = analysis.buckets.isEmpty
         ? 1.0
         : analysis.buckets
-            .map((b) => b.avgSystolic)
-            .reduce((a, b) => a > b ? a : b);
+              .map((b) => b.avgSystolic)
+              .reduce((a, b) => a > b ? a : b);
 
     return _CardShell(
       gradient: _gradient,
@@ -391,13 +451,16 @@ class AnalysisShareCard extends StatelessWidget {
           const SizedBox(height: 18),
           Text(l10n.shareCardAnalysisHeader, style: _brandLabelStyle),
           const SizedBox(height: 8),
-          Text(title,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  height: 1.2,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3)),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              height: 1.2,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+            ),
+          ),
           const SizedBox(height: 12),
           // 结论
           Container(
@@ -408,12 +471,15 @@ class AnalysisShareCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
             ),
-            child: Text(conclusion,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13.5,
-                    height: 1.5,
-                    fontWeight: FontWeight.w600)),
+            child: Text(
+              conclusion,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13.5,
+                height: 1.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           const SizedBox(height: 12),
           // 时段条形
@@ -421,17 +487,23 @@ class AnalysisShareCard extends StatelessWidget {
             Row(
               children: [
                 SizedBox(
-                    width: 34,
-                    child: Text(_bucketLabel(l10n, b.bucket),
-                        style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 12))),
+                  width: 34,
+                  child: Text(
+                    _bucketLabel(l10n, b.bucket),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
                 Expanded(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
-                      value: (b.avgSystolic / (maxSys <= 0 ? 1 : maxSys))
-                          .clamp(0.0, 1.0),
+                      value: (b.avgSystolic / (maxSys <= 0 ? 1 : maxSys)).clamp(
+                        0.0,
+                        1.0,
+                      ),
                       minHeight: 8,
                       backgroundColor: Colors.white.withValues(alpha: 0.10),
                       valueColor: AlwaysStoppedAnimation(
@@ -449,9 +521,10 @@ class AnalysisShareCard extends StatelessWidget {
                     '${b.avgSystolic.toStringAsFixed(0)}/${b.avgDiastolic.toStringAsFixed(0)}',
                     textAlign: TextAlign.right,
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700),
+                      color: Colors.white,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -481,8 +554,9 @@ class AnalysisShareCard extends StatelessWidget {
                         Text(
                           weekChars[w.weekday - 1],
                           style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.55),
-                              fontSize: 10),
+                            color: Colors.white.withValues(alpha: 0.55),
+                            fontSize: 10,
+                          ),
                         ),
                       ],
                     ),
@@ -493,8 +567,11 @@ class AnalysisShareCard extends StatelessWidget {
           if (peak != null) ...[
             const SizedBox(height: 12),
             Text(
-              l10n.analysisPeakLine(peak.systolic, peak.diastolic,
-                  Fmt.full(peak.measuredAt)),
+              l10n.analysisPeakLine(
+                peak.systolic,
+                peak.diastolic,
+                Fmt.full(peak.measuredAt),
+              ),
               style: _metaStyle,
             ),
           ],
@@ -574,10 +651,7 @@ class _CardDecor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: CustomPaint(
-        size: Size.infinite,
-        painter: _CardDecorPainter(),
-      ),
+      child: CustomPaint(size: Size.infinite, painter: _CardDecorPainter()),
     );
   }
 }
@@ -838,8 +912,11 @@ class _CardFooter extends StatelessWidget {
             ),
           ),
         ),
-        Icon(Icons.monitor_heart_outlined,
-            size: 13, color: Colors.white.withValues(alpha: 0.45)),
+        Icon(
+          Icons.monitor_heart_outlined,
+          size: 13,
+          color: Colors.white.withValues(alpha: 0.45),
+        ),
       ],
     );
   }
@@ -855,19 +932,19 @@ const _brandLabelStyle = TextStyle(
 );
 
 TextStyle get _heroStyle => TextStyle(
-      color: Colors.white,
-      fontSize: 62,
-      height: 1.0,
-      fontWeight: FontWeight.w800,
-      letterSpacing: -1.5,
-      shadows: [
-        Shadow(
-          color: Colors.black.withValues(alpha: 0.25),
-          blurRadius: 14,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    );
+  color: Colors.white,
+  fontSize: 62,
+  height: 1.0,
+  fontWeight: FontWeight.w800,
+  letterSpacing: -1.5,
+  shadows: [
+    Shadow(
+      color: Colors.black.withValues(alpha: 0.25),
+      blurRadius: 14,
+      offset: const Offset(0, 3),
+    ),
+  ],
+);
 
 const _pillStyle = TextStyle(
   color: Colors.white,
@@ -875,8 +952,4 @@ const _pillStyle = TextStyle(
   fontWeight: FontWeight.w700,
 );
 
-const _metaStyle = TextStyle(
-  color: Colors.white70,
-  fontSize: 12,
-  height: 1.4,
-);
+const _metaStyle = TextStyle(color: Colors.white70, fontSize: 12, height: 1.4);

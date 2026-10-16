@@ -16,6 +16,7 @@ import 'package:blood_pressed/features/export/data/wechat_share_service.dart';
 import 'package:blood_pressed/features/export/presentation/card_capture_dialog.dart';
 import 'package:blood_pressed/features/export/presentation/share_card_widgets.dart';
 import 'package:blood_pressed/features/stats/domain/bp_analyzer.dart';
+import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
@@ -23,21 +24,17 @@ import 'package:blood_pressed/l10n/app_localizations.dart';
 Future<void> shareTrendChart(
   BuildContext context,
   WidgetRef ref, {
-  required List<DayPoint> points,
+  required List<DayCandle> points,
   required TrendQuery query,
   required String title,
-  required double avgSystolic,
-  required double avgDiastolic,
-  required int count,
+  bool pulse = false,
 }) {
   final l10n = AppLocalizations.of(context);
   final card = TrendShareCard(
     title: title,
     points: points,
     query: query,
-    avgSystolic: avgSystolic,
-    avgDiastolic: avgDiastolic,
-    count: count,
+    pulse: pulse,
   );
   return _shareCard(context, ref, card, text: l10n.shareText);
 }
@@ -71,12 +68,14 @@ Future<void> _shareCard(
     if (!context.mounted) return;
     if (bytes == null) {
       messenger.showSnackBar(
-          SnackBar(content: Text(AppLocaleService.auto.cardCaptureFailed)));
+        SnackBar(content: Text(AppLocaleService.auto.cardCaptureFailed)),
+      );
       return;
     }
     final dir = await getTemporaryDirectory();
     final file = File(
-        '${dir.path}${Platform.pathSeparator}bp_card_${DateTime.now().millisecondsSinceEpoch}.png');
+      '${dir.path}${Platform.pathSeparator}bp_card_${DateTime.now().millisecondsSinceEpoch}.png',
+    );
     await file.writeAsBytes(bytes);
     if (!context.mounted) return;
 
@@ -114,13 +113,18 @@ Future<void> _shareCard(
     );
     final result = switch (choice) {
       'wechat' => await service.shareImage(file, text: text),
-      'timeline' => await service.shareImage(file, text: text, toTimeline: true),
+      'timeline' => await service.shareImage(
+        file,
+        text: text,
+        toTimeline: true,
+      ),
       _ => await service.shareFile(file, text: text),
     };
     messenger.showSnackBar(SnackBar(content: Text(result)));
   } catch (e) {
     messenger.showSnackBar(
-        SnackBar(content: Text(AppLocaleService.auto.shareFailed(e.toString()))));
+      SnackBar(content: Text(AppLocaleService.auto.shareFailed(e.toString()))),
+    );
   }
 }
 
@@ -134,8 +138,8 @@ Future<bool> guardAndSendAnalysis(
 }) async {
   final l10n = AppLocalizations.of(context);
   if (ref.read(effectiveLlmProfileProvider) == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.llmNotConfigured)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.llmNotConfigured)));
     return false;
   }
   ref.read(pendingAssistantPromptProvider.notifier).state = prompt;

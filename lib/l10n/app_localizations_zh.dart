@@ -383,17 +383,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get chartReferenceHint =>
-      '水平虚线为家庭自测参考线（高压 135 / 低压 85，超过即为升高）。同日多次测量取平均值。';
-
-  @override
-  String refSystolic(int value) {
-    return '高压$value';
-  }
-
-  @override
-  String refDiastolic(int value) {
-    return '低压$value';
-  }
+      '水平虚线为家庭自测参考线（高压 135 / 低压 85）。每天分别展示高压和低压的首次、末次、最高及最低测量值。';
 
   @override
   String get range7 => '近7天';
@@ -1215,4 +1205,31 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get remoteDisclosureMissing =>
       '请先在 AI 模型配置中补充服务实际运营者、隐私政策 HTTPS 链接和经核实的数据处理地域。当前仅支持 HTTPS、无地址内嵌凭证且确认在中国大陆处理的服务发送健康信息；其他情况请使用本地模型。';
+
+  @override
+  String get candleFirst => '首次';
+
+  @override
+  String get candleLast => '末次';
+
+  @override
+  String get candleHigh => '最高';
+
+  @override
+  String get candleLow => '最低';
+
+  @override
+  String get candleHint => '影线：最低—最高；实体：首次—末次。空心：末次更高；实心：末次更低；横线：首末相同。';
+
+  @override
+  String get candleSystolicRange => '高压范围';
+
+  @override
+  String get candleDiastolicRange => '低压范围';
+
+  @override
+  String get candleInteractionHint => '点击查看读数，双指缩放可展开日期。';
+
+  @override
+  String get shareCardPulseTrendHeader => '血压了么 · 脉搏趋势';
 }

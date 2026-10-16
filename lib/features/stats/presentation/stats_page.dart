@@ -16,7 +16,9 @@ import 'package:blood_pressed/features/stats/presentation/analysis_text.dart';
 import 'package:blood_pressed/features/stats/presentation/stats_share.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/analysis_card.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
+
 import 'controllers/trend_providers.dart';
+
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
 enum _Series { bp, pulse }
@@ -48,9 +50,8 @@ class _StatsPageState extends ConsumerState<StatsPage> {
   String get _customLabel {
     final s = _custom!.start;
     final e = _custom!.end;
-    String fmt(DateTime d) => AppLocaleService.isEn
-        ? '${d.month}/${d.day}'
-        : '${d.month}月${d.day}日';
+    String fmt(DateTime d) =>
+        AppLocaleService.isEn ? '${d.month}/${d.day}' : '${d.month}月${d.day}日';
     return '${fmt(s)}-${fmt(e)}';
   }
 
@@ -60,7 +61,8 @@ class _StatsPageState extends ConsumerState<StatsPage> {
       context: context,
       firstDate: DateTime(now.year - 5),
       lastDate: now,
-      initialDateRange: _custom ??
+      initialDateRange:
+          _custom ??
           DateTimeRange(
             start: now.subtract(const Duration(days: 29)),
             end: now,
@@ -95,14 +97,16 @@ class _StatsPageState extends ConsumerState<StatsPage> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                ...kStatsRanges.map((r) => ChoiceChip(
-                      label: Text(statsRangeLabel(l10n, r.days)),
-                      selected: !_isCustom && _days == r.days,
-                      onSelected: (_) => setState(() {
-                        _days = r.days;
-                        _custom = null;
-                      }),
-                    )),
+                ...kStatsRanges.map(
+                  (r) => ChoiceChip(
+                    label: Text(statsRangeLabel(l10n, r.days)),
+                    selected: !_isCustom && _days == r.days,
+                    onSelected: (_) => setState(() {
+                      _days = r.days;
+                      _custom = null;
+                    }),
+                  ),
+                ),
                 ChoiceChip(
                   label: Text(_isCustom ? _customLabel : l10n.statsCustom),
                   selected: _isCustom,
@@ -110,18 +114,18 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                 ),
                 const SizedBox(width: 4),
                 FilterChip(
-                  label: Text(_arm == null
-                      ? l10n.armBoth
-                      : (_arm == MeasureArm.left
-                          ? l10n.onlyLeftArm
-                          : l10n.onlyRightArm)),
+                  label: Text(
+                    _arm == null
+                        ? l10n.armBoth
+                        : (_arm == MeasureArm.left
+                              ? l10n.onlyLeftArm
+                              : l10n.onlyRightArm),
+                  ),
                   selected: _arm != null,
                   onSelected: (_) => setState(() {
                     _arm = _arm == null
                         ? MeasureArm.left
-                        : (_arm == MeasureArm.left
-                            ? MeasureArm.right
-                            : null);
+                        : (_arm == MeasureArm.left ? MeasureArm.right : null);
                   }),
                 ),
               ],
@@ -165,31 +169,23 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                               tooltip: l10n.shareMore,
                               icon: const Icon(Icons.ios_share, size: 20),
                               onPressed: () {
-                                final avgSys = points
-                                        .map((p) => p.avgSystolic)
-                                        .reduce((a, b) => a + b) /
-                                    points.length;
-                                final avgDia = points
-                                        .map((p) => p.avgDiastolic)
-                                        .reduce((a, b) => a + b) /
-                                    points.length;
-                                final count =
-                                    points.fold<int>(0, (s, p) => s + p.count);
-                                shareTrendChart(context, ref,
-                                    points: points,
-                                    query: query,
-                                    title: trendRangeLabel(query, l10n),
-                                    avgSystolic: avgSys,
-                                    avgDiastolic: avgDia,
-                                    count: count);
+                                shareTrendChart(
+                                  context,
+                                  ref,
+                                  pulse: _series == _Series.pulse,
+                                  points: points,
+                                  query: query,
+                                  title: trendRangeLabel(query, l10n),
+                                );
                               },
                             ),
                             IconButton(
                               tooltip: l10n.fullscreenTrendHint,
                               icon: const Icon(Icons.fullscreen, size: 22),
-                              onPressed: () =>
-                                  context.push('/stats/fullscreen',
-                                      extra: query),
+                              onPressed: () => context.push(
+                                '/stats/fullscreen',
+                                extra: query,
+                              ),
                             ),
                           ],
                         ),
@@ -199,9 +195,13 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                             SegmentedButton<_Series>(
                               segments: [
                                 ButtonSegment(
-                                    value: _Series.bp, label: Text(l10n.seriesBp)),
+                                  value: _Series.bp,
+                                  label: Text(l10n.seriesBp),
+                                ),
                                 ButtonSegment(
-                                    value: _Series.pulse, label: Text(l10n.seriesPulse)),
+                                  value: _Series.pulse,
+                                  label: Text(l10n.seriesPulse),
+                                ),
                               ],
                               selected: {_series},
                               onSelectionChanged: (s) =>
@@ -216,8 +216,8 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                         SizedBox(
                           height: chartHeight,
                           child: _series == _Series.bp
-                              ? TrendLineChart(points: points, query: query)
-                              : PulseLineChart(points: points, query: query),
+                              ? TrendCandleChart(points: points, query: query)
+                              : PulseCandleChart(points: points, query: query),
                         ),
                       ],
                     ),
@@ -233,8 +233,10 @@ class _StatsPageState extends ConsumerState<StatsPage> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text(
                 l10n.chartReferenceHint,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.outline, height: 1.5),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                  height: 1.5,
+                ),
               ),
             ),
           // 规律分析（时段/星期/峰值 + AI 分析 + 分享）
@@ -267,12 +269,16 @@ class _StatsPageState extends ConsumerState<StatsPage> {
   /// AI 分析请求：守卫后写入 pending prompt，跳转助手页自动发送。
   Future<void> _aiAnalyze(BpAnalysis a) async {
     final l10n = AppLocalizations.of(context);
-    final ok = await guardAndSendAnalysis(context, ref,
-        prompt: l10n.aiAnalysisPrompt(
-            trendRangeLabel(_query, l10n), analysisSummaryZh(a)));
+    final ok = await guardAndSendAnalysis(
+      context,
+      ref,
+      prompt: l10n.aiAnalysisPrompt(
+        trendRangeLabel(_query, l10n),
+        analysisSummaryZh(a),
+      ),
+    );
     if (ok && mounted) context.push('/assistant');
   }
-
 
   /// 小屏/横屏自适应图表高度：屏高的 1/3（竖屏下限 220、上限 300；
   /// 横屏等比放大以利用宽度）。
@@ -306,13 +312,19 @@ class _StatsCards extends StatelessWidget {
             label: l10n.avgSystolicCard,
             value: stats.avgSystolic.toStringAsFixed(0),
             color: sysColor,
-            sub: l10n.minMaxHint('${stats.maxSystolic}', '${stats.minSystolic}'),
+            sub: l10n.minMaxHint(
+              '${stats.maxSystolic}',
+              '${stats.minSystolic}',
+            ),
           ),
           StatCard(
             label: l10n.avgDiastolicCard,
             value: stats.avgDiastolic.toStringAsFixed(0),
             color: diaColor,
-            sub: l10n.minMaxHint('${stats.maxDiastolic}', '${stats.minDiastolic}'),
+            sub: l10n.minMaxHint(
+              '${stats.maxDiastolic}',
+              '${stats.minDiastolic}',
+            ),
           ),
           StatCard(
             label: l10n.avgPulseCard,

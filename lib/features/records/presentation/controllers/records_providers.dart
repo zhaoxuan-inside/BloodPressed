@@ -40,7 +40,26 @@ class RecordsController extends StateNotifier<AsyncValue<List<BpRecord>>> {
     if (editId != null) {
       final existing = await _repo.byId(editId);
       if (existing != null) {
-        await _repo.update(existing.copyWith(
+        await _repo.update(
+          existing.copyWith(
+            systolic: systolic,
+            diastolic: diastolic,
+            pulse: pulse,
+            measuredAt: measuredAt,
+            arm: arm,
+            posture: posture,
+            note: note,
+            updatedAt: DateTime.now(),
+          ),
+        );
+      }
+    } else {
+      final now = DateTime.now();
+      await _repo.create(
+        BpRecord(
+          id:
+              DateTime.now().microsecondsSinceEpoch.toString() +
+              deviceId.substring(0, 8),
           systolic: systolic,
           diastolic: diastolic,
           pulse: pulse,
@@ -48,27 +67,13 @@ class RecordsController extends StateNotifier<AsyncValue<List<BpRecord>>> {
           arm: arm,
           posture: posture,
           note: note,
-          updatedAt: DateTime.now(),
-        ));
-      }
-    } else {
-      final now = DateTime.now();
-      await _repo.create(BpRecord(
-        id: DateTime.now().microsecondsSinceEpoch.toString() +
-            deviceId.substring(0, 8),
-        systolic: systolic,
-        diastolic: diastolic,
-        pulse: pulse,
-        measuredAt: measuredAt,
-        arm: arm,
-        posture: posture,
-        note: note,
-        photoPath: photoPath,
-        source: source,
-        deviceId: deviceId,
-        createdAt: now,
-        updatedAt: now,
-      ));
+          photoPath: photoPath,
+          source: source,
+          deviceId: deviceId,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
     }
     await refresh();
   }
@@ -81,11 +86,10 @@ class RecordsController extends StateNotifier<AsyncValue<List<BpRecord>>> {
 }
 
 final recordsControllerProvider =
-    StateNotifierProvider<RecordsController, AsyncValue<List<BpRecord>>>(
-        (ref) {
-  final repo = ref.watch(recordsRepositoryProvider);
-  return RecordsController(repo, ref.watch(deviceIdProvider.future));
-});
+    StateNotifierProvider<RecordsController, AsyncValue<List<BpRecord>>>((ref) {
+      final repo = ref.watch(recordsRepositoryProvider);
+      return RecordsController(repo, ref.watch(deviceIdProvider.future));
+    });
 
 /// 最近一次记录。
 final latestRecordProvider = Provider<BpRecord?>((ref) {
@@ -104,15 +108,17 @@ final todayRecordsProvider = Provider<List<BpRecord>>((ref) {
 });
 
 /// 统计（近 N 天或自定义区间）。watch 记录列表状态：数据变化后自动重算。
-final statsProvider = FutureProvider.family<BpStats, StatsRange>(
-    (ref, range) async {
+final statsProvider = FutureProvider.family<BpStats, StatsRange>((
+  ref,
+  range,
+) async {
   ref.watch(recordsControllerProvider);
   final repo = ref.watch(recordsRepositoryProvider);
   if (range.isCustom) {
     return repo.stats(from: range.from!, to: range.to!);
   }
   final to = DateTime.now();
-  final from = to.subtract(Duration(days: range.days));
+  final from = DateTime(to.year, to.month, to.day - range.days + 1);
   return repo.stats(from: from, to: to);
 });
 
@@ -121,12 +127,21 @@ class StatsRange {
 
   /// 自定义区间工厂：from/to 含首尾整天。
   StatsRange.custom(DateTime from, DateTime to, {String label = ''})
-      : this(
-          to.difference(DateTime(from.year, from.month, from.day)).inDays + 1,
-          label,
-          from: DateTime(from.year, from.month, from.day),
-          to: DateTime(to.year, to.month, to.day, 23, 59, 59),
-        );
+    : this(
+        DateTime.utc(
+              to.year,
+              to.month,
+              to.day,
+            ).difference(DateTime.utc(from.year, from.month, from.day)).inDays +
+            1,
+        label,
+        from: DateTime(from.year, from.month, from.day),
+        to: DateTime(
+          to.year,
+          to.month,
+          to.day + 1,
+        ).subtract(const Duration(microseconds: 1)),
+      );
 
   final int days; // 7 / 30 / 90 / 3650(全部)；自定义=跨度天数
   final String label;

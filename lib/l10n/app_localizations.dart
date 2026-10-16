@@ -783,20 +783,8 @@ abstract class AppLocalizations {
   /// No description provided for @chartReferenceHint.
   ///
   /// In en, this message translates to:
-  /// **'Dashed lines are home-measurement reference levels (systolic 135 / diastolic 85; above means elevated). Multiple readings on the same day are averaged.'**
+  /// **'Dashed lines mark home-measurement reference levels (systolic 135 / diastolic 85). Each day shows first, last, highest and lowest readings for each BP series.'**
   String get chartReferenceHint;
-
-  /// No description provided for @refSystolic.
-  ///
-  /// In en, this message translates to:
-  /// **'Systolic {value}'**
-  String refSystolic(int value);
-
-  /// No description provided for @refDiastolic.
-  ///
-  /// In en, this message translates to:
-  /// **'Diastolic {value}'**
-  String refDiastolic(int value);
 
   /// No description provided for @range7.
   ///
@@ -2315,6 +2303,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Complete the actual operator, HTTPS privacy policy URL and verified processing location in AI model settings. Health sharing currently requires HTTPS, no credentials embedded in the endpoint, and verified mainland China processing. Use a local model otherwise.'**
   String get remoteDisclosureMissing;
+
+  /// No description provided for @candleFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'First'**
+  String get candleFirst;
+
+  /// No description provided for @candleLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Last'**
+  String get candleLast;
+
+  /// No description provided for @candleHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest'**
+  String get candleHigh;
+
+  /// No description provided for @candleLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest'**
+  String get candleLow;
+
+  /// No description provided for @candleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Wicks: minimum–maximum. Body: first–last. Hollow: last is higher; filled: last is lower; dash: unchanged.'**
+  String get candleHint;
+
+  /// No description provided for @candleSystolicRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Systolic range'**
+  String get candleSystolicRange;
+
+  /// No description provided for @candleDiastolicRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Diastolic range'**
+  String get candleDiastolicRange;
+
+  /// No description provided for @candleInteractionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap for readings. Pinch to zoom across dates.'**
+  String get candleInteractionHint;
+
+  /// No description provided for @shareCardPulseTrendHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'BloodPressed · Pulse Trend'**
+  String get shareCardPulseTrendHeader;
 }
 
 class _AppLocalizationsDelegate

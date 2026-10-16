@@ -145,7 +145,7 @@ void main() {
     expect(entries!.last.op, 'delete');
   });
 
-  testWidgets('趋势页：真实多日记录聚合、筛选与折线图', (tester) async {
+  testWidgets('趋势页：真实多日记录聚合、筛选与蜡烛图', (tester) async {
     final now = DateTime.now();
     await app.insertRecord(sys: 118, dia: 76, pulse: 68, at: now);
     await app.insertRecord(
@@ -167,16 +167,16 @@ void main() {
     await pumpUntilReal(tester, () => tester.any(find.text('血压趋势')));
     await pumpUntilReal(
       tester,
-      () => tester.any(find.text('平均高压')) && tester.any(find.byType(LineChart)),
+      () => tester.any(find.text('平均高压')) && tester.any(find.byType(CandlestickChart)),
     );
 
     expect(find.text('血压趋势'), findsOneWidget);
     expect(find.text('平均高压'), findsOneWidget);
     expect(find.text('平均低压'), findsOneWidget);
-    expect(find.byType(LineChart), findsOneWidget);
+    expect(find.byType(CandlestickChart), findsOneWidget);
 
     await tester.tap(find.text('近7天'));
-    await pumpUntilReal(tester, () => tester.any(find.byType(LineChart)));
+    await pumpUntilReal(tester, () => tester.any(find.byType(CandlestickChart)));
     await tester.tap(find.text('双臂'));
     await tester.pump();
     expect(find.textContaining('仅左臂'), findsOneWidget);
@@ -479,11 +479,11 @@ void main() {
     await app.insertRecord(sys: 126, dia: 82, pulse: 70);
     await app.pumpApp(tester);
     await tester.tap(find.byIcon(Icons.show_chart_outlined));
-    await pumpUntilReal(tester, () => tester.any(find.byType(LineChart)));
+    await pumpUntilReal(tester, () => tester.any(find.byType(CandlestickChart)));
     await tester.tap(find.text('近90天'));
-    await pumpUntilReal(tester, () => tester.any(find.byType(LineChart)));
+    await pumpUntilReal(tester, () => tester.any(find.byType(CandlestickChart)));
     await tester.tap(find.text('脉搏'));
-    await pumpUntilReal(tester, () => tester.any(find.byType(LineChart)));
+    await pumpUntilReal(tester, () => tester.any(find.byType(CandlestickChart)));
     expect(find.text('平均脉搏'), findsOneWidget);
   });
 

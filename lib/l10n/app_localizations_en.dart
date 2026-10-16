@@ -400,17 +400,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chartReferenceHint =>
-      'Dashed lines are home-measurement reference levels (systolic 135 / diastolic 85; above means elevated). Multiple readings on the same day are averaged.';
-
-  @override
-  String refSystolic(int value) {
-    return 'Systolic $value';
-  }
-
-  @override
-  String refDiastolic(int value) {
-    return 'Diastolic $value';
-  }
+      'Dashed lines mark home-measurement reference levels (systolic 135 / diastolic 85). Each day shows first, last, highest and lowest readings for each BP series.';
 
   @override
   String get range7 => 'Last 7 days';
@@ -1267,4 +1257,33 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get remoteDisclosureMissing =>
       'Complete the actual operator, HTTPS privacy policy URL and verified processing location in AI model settings. Health sharing currently requires HTTPS, no credentials embedded in the endpoint, and verified mainland China processing. Use a local model otherwise.';
+
+  @override
+  String get candleFirst => 'First';
+
+  @override
+  String get candleLast => 'Last';
+
+  @override
+  String get candleHigh => 'Highest';
+
+  @override
+  String get candleLow => 'Lowest';
+
+  @override
+  String get candleHint =>
+      'Wicks: minimum–maximum. Body: first–last. Hollow: last is higher; filled: last is lower; dash: unchanged.';
+
+  @override
+  String get candleSystolicRange => 'Systolic range';
+
+  @override
+  String get candleDiastolicRange => 'Diastolic range';
+
+  @override
+  String get candleInteractionHint =>
+      'Tap for readings. Pinch to zoom across dates.';
+
+  @override
+  String get shareCardPulseTrendHeader => 'BloodPressed · Pulse Trend';
 }

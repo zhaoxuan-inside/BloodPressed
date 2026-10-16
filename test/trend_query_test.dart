@@ -24,12 +24,28 @@ void main() {
       expect(q.endDate.year, 2026);
       expect(q.endDate.month, 8);
       expect(q.endDate.day, 31);
+      expect(
+        q.to,
+        DateTime(2026, 9, 1).subtract(const Duration(microseconds: 1)),
+      );
     });
 
     test('相同区间相等，不同区间不等', () {
-      final a = TrendQuery(days: 31, from: _day(2026, 8, 1), to: _day(2026, 8, 31));
-      final b = TrendQuery(days: 31, from: _day(2026, 8, 1), to: _day(2026, 8, 31));
-      final c = TrendQuery(days: 31, from: _day(2026, 8, 2), to: _day(2026, 8, 31));
+      final a = TrendQuery(
+        days: 31,
+        from: _day(2026, 8, 1),
+        to: _day(2026, 8, 31),
+      );
+      final b = TrendQuery(
+        days: 31,
+        from: _day(2026, 8, 1),
+        to: _day(2026, 8, 31),
+      );
+      final c = TrendQuery(
+        days: 31,
+        from: _day(2026, 8, 2),
+        to: _day(2026, 8, 31),
+      );
       expect(a, equals(b));
       expect(a, isNot(equals(c)));
       expect(a.hashCode, b.hashCode);

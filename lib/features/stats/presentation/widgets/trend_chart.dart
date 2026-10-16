@@ -1,151 +1,239 @@
-/// 趋势折线图公共组件：趋势页、全屏横屏页、分享卡共用。
-///
-/// 触摸提示显示日期（今天/昨天友好化，否则 M/d）与序列值——
-/// 修复了旧实现提示 day-index 不可读的问题。
+/// 每日测量蜡烛图：趋势页、全屏页与分享卡共用。
 library;
+
+import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import 'package:blood_pressed/core/design/app_colors.dart';
-import '../controllers/trend_providers.dart';
+import 'package:blood_pressed/core/utils/formatters.dart';
+import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
-/// 血压双序列折线（高压红 / 低压蓝 + 135/85 参考线）。
-class TrendLineChart extends StatelessWidget {
-  const TrendLineChart({super.key, required this.points, required this.query});
+import '../controllers/trend_providers.dart';
 
-  final List<DayPoint> points;
+class TrendCandleChart extends StatelessWidget {
+  const TrendCandleChart({
+    super.key,
+    required this.points,
+    required this.query,
+    this.interactive = true,
+  });
+  final List<DayCandle> points;
   final TrendQuery query;
+  final bool interactive;
 
   @override
-  Widget build(BuildContext context) {
-    final sysSpots =
-        points.map((p) => FlSpot(xOf(p.date, query), p.avgSystolic)).toList();
-    final diaSpots =
-        points.map((p) => FlSpot(xOf(p.date, query), p.avgDiastolic)).toList();
-    final allY =
-        points.expand((p) => [p.avgSystolic, p.avgDiastolic]).toList();
-
-    return LineChart(
-      LineChartData(
-        minX: ChartBase.minX(query.days),
-        maxX: ChartBase.maxX(query.days),
-        minY: ((allY.reduce(_min) - 15) / 10).floorToDouble() * 10,
-        maxY: ((allY.reduce(_max) + 15) / 10).ceilToDouble() * 10,
-        gridData: ChartBase.grid(),
-        titlesData: ChartBase.titles(query),
-        borderData: ChartBase.border(),
-        lineTouchData: ChartBase.touch(query),
-        extraLinesData: ChartBase.referenceLines(),
-        lineBarsData: [
-          LineChartBarData(
-            spots: sysSpots,
-            isCurved: true,
-            curveSmoothness: 0.3,
-            preventCurveOverShooting: true,
-            barWidth: 2.4,
-            color: AppColors.chartSystolic,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) =>
-                  FlDotCirclePainter(
-                radius: 2.6,
-                color: barData.color ?? Colors.blue,
-                strokeColor: Colors.white,
-                strokeWidth: 1,
-              ),
-            ),
-            belowBarData: BarAreaData(
-              show: true,
-              color: AppColors.chartSystolic.withValues(alpha: 0.06),
-            ),
-          ),
-          LineChartBarData(
-            spots: diaSpots,
-            isCurved: true,
-            curveSmoothness: 0.3,
-            preventCurveOverShooting: true,
-            barWidth: 2.4,
-            color: AppColors.chartDiastolic,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) =>
-                  FlDotCirclePainter(
-                radius: 2.6,
-                color: barData.color ?? Colors.blue,
-                strokeColor: Colors.white,
-                strokeWidth: 1,
-              ),
-            ),
-            belowBarData: BarAreaData(
-              show: true,
-              color: AppColors.chartDiastolic.withValues(alpha: 0.06),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static double _min(double a, double b) => a < b ? a : b;
-  static double _max(double a, double b) => a > b ? a : b;
+  Widget build(BuildContext context) => _DailyCandleChart(
+    points: points,
+    query: query,
+    pulse: false,
+    interactive: interactive,
+  );
 }
 
-/// 脉搏单序列折线。
-class PulseLineChart extends StatelessWidget {
-  const PulseLineChart({super.key, required this.points, required this.query});
-
-  final List<DayPoint> points;
+class PulseCandleChart extends StatelessWidget {
+  const PulseCandleChart({
+    super.key,
+    required this.points,
+    required this.query,
+    this.interactive = true,
+  });
+  final List<DayCandle> points;
   final TrendQuery query;
+  final bool interactive;
+
+  @override
+  Widget build(BuildContext context) => _DailyCandleChart(
+    points: points,
+    query: query,
+    pulse: true,
+    interactive: interactive,
+  );
+}
+
+typedef _ChartCandle = ({
+  DayCandle day,
+  MeasurementCandle reading,
+  String label,
+  Color color,
+  double x,
+});
+
+class _DailyCandleChart extends StatelessWidget {
+  const _DailyCandleChart({
+    required this.points,
+    required this.query,
+    required this.pulse,
+    required this.interactive,
+  });
+
+  final List<DayCandle> points;
+  final TrendQuery query;
+  final bool pulse;
+  final bool interactive;
 
   @override
   Widget build(BuildContext context) {
-    final spots = points
-        .where((p) => p.avgPulse != null)
-        .map((p) => FlSpot(xOf(p.date, query), p.avgPulse!))
-        .toList();
-    if (spots.isEmpty) {
-      return Center(
-        child: Text(AppLocalizations.of(context).pulseEmpty,
-            style: const TextStyle(color: Colors.grey)),
-      );
-    }
-    final ys = spots.map((s) => s.y).toList();
-
-    return LineChart(
-      LineChartData(
-        minX: ChartBase.minX(query.days),
-        maxX: ChartBase.maxX(query.days),
-        minY: ((ys.reduce(_min) - 10) / 10).floorToDouble() * 10,
-        maxY: ((ys.reduce(_max) + 10) / 10).ceilToDouble() * 10,
-        gridData: ChartBase.grid(),
-        titlesData: ChartBase.titles(query),
-        borderData: ChartBase.border(),
-        lineTouchData: ChartBase.touch(query, pulse: true),
-        lineBarsData: [
-          LineChartBarData(
-            spots: spots,
-            isCurved: true,
-            curveSmoothness: 0.3,
-            barWidth: 2.4,
-            color: AppColors.chartPulse,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) =>
-                  FlDotCirclePainter(
-                radius: 2.6,
-                color: barData.color ?? Colors.blue,
-                strokeColor: Colors.white,
-                strokeWidth: 1,
-              ),
+    final l10n = AppLocalizations.of(context);
+    final candles = <_ChartCandle>[
+      for (final day in points)
+        if (pulse) ...[
+          if (day.pulse case final MeasurementCandle reading)
+            (
+              day: day,
+              reading: reading,
+              label: l10n.seriesPulse,
+              color: AppColors.chartPulse,
+              x: xOf(day.date, query),
             ),
+        ] else ...[
+          (
+            day: day,
+            reading: day.systolic,
+            label: l10n.sysLabel,
+            color: AppColors.chartSystolic,
+            x: xOf(day.date, query) - 0.19,
+          ),
+          (
+            day: day,
+            reading: day.diastolic,
+            label: l10n.diaLabel,
+            color: AppColors.chartDiastolic,
+            x: xOf(day.date, query) + 0.19,
           ),
         ],
-      ),
+    ];
+    if (candles.isEmpty) {
+      return Center(
+        child: Text(pulse ? l10n.pulseEmpty : l10n.statsEmptyTitle),
+      );
+    }
+    final minimum = candles.map((c) => c.reading.minimum).reduce(math.min);
+    final maximum = candles.map((c) => c.reading.maximum).reduce(math.max);
+    final minY =
+        ((math.min(minimum, pulse ? minimum : 85) - 10) / 10).floorToDouble() *
+        10;
+    final maxY =
+        ((math.max(maximum, pulse ? maximum : 135) + 10) / 10).ceilToDouble() *
+        10;
+
+    String describe(_ChartCandle candle) {
+      final r = candle.reading;
+      final unit = pulse ? l10n.pulseUnit : 'mmHg';
+      return '${Fmt.day(candle.day.date)} · ${candle.label}\n'
+          '${l10n.candleFirst} ${Fmt.time(r.firstMeasuredAt)}: ${r.first} $unit\n'
+          '${l10n.candleLast} ${Fmt.time(r.lastMeasuredAt)}: ${r.last} $unit\n'
+          '${l10n.candleHigh}: ${r.maximum} $unit\n'
+          '${l10n.candleLow}: ${r.minimum} $unit\n'
+          '${l10n.countLabel}: ${r.count}';
+    }
+
+    return Column(
+      children: [
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 16,
+          runSpacing: 2,
+          children: [
+            for (final (label, color)
+                in pulse
+                    ? [(l10n.seriesPulse, AppColors.chartPulse)]
+                    : [
+                        (l10n.sysLabel, AppColors.chartSystolic),
+                        (l10n.diaLabel, AppColors.chartDiastolic),
+                      ])
+              Text('● $label', style: TextStyle(color: color, fontSize: 11)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final bodyWidth =
+                  ((constraints.maxWidth - 34) /
+                          math.max(query.days, 1) *
+                          (pulse ? 0.45 : 0.25))
+                      .clamp(1.2, 16.0);
+              return Semantics(
+                label: candles.map(describe).join('\n'),
+                child: CandlestickChart(
+                  CandlestickChartData(
+                    minX: -0.5,
+                    maxX: math.max(query.days, 1) - 0.5,
+                    minY: minY,
+                    maxY: maxY,
+                    candlestickSpots: [
+                      for (final c in candles)
+                        CandlestickSpot(
+                          x: c.x,
+                          open: c.reading.first.toDouble(),
+                          close: c.reading.last.toDouble(),
+                          high: c.reading.maximum.toDouble(),
+                          low: c.reading.minimum.toDouble(),
+                        ),
+                    ],
+                    candlestickPainter: DefaultCandlestickPainter(
+                      candlestickStyleProvider: (spot, index) {
+                        final color = candles[index].color;
+                        return CandlestickStyle(
+                          lineColor: color,
+                          lineWidth: 1.2,
+                          bodyStrokeColor: color,
+                          bodyStrokeWidth: 1.2,
+                          bodyFillColor: spot.close < spot.open
+                              ? color
+                              : Colors.transparent,
+                          bodyWidth: bodyWidth,
+                          bodyRadius: 0,
+                        );
+                      },
+                    ),
+                    gridData: ChartBase.grid(bloodPressure: !pulse),
+                    titlesData: ChartBase.titles(query),
+                    borderData: ChartBase.border(),
+                    candlestickTouchData: CandlestickTouchData(
+                      enabled: interactive,
+                      touchSpotThreshold: 12,
+                      touchTooltipData: CandlestickTouchTooltipData(
+                        fitInsideHorizontally: true,
+                        fitInsideVertically: true,
+                        maxContentWidth: 220,
+                        getTooltipItems: (_, spot, index) =>
+                            CandlestickTooltipItem(
+                              describe(candles[index]),
+                              textStyle: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                height: 1.35,
+                              ),
+                            ),
+                      ),
+                    ),
+                  ),
+                  duration: Duration.zero,
+                  transformationConfig: FlTransformationConfig(
+                    scaleAxis: interactive
+                        ? FlScaleAxis.horizontal
+                        : FlScaleAxis.none,
+                    maxScale: 100,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '${l10n.candleHint}${interactive ? '\n${l10n.candleInteractionHint}' : ''}',
+          style: TextStyle(
+            fontSize: 10,
+            height: 1.4,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+        ),
+      ],
     );
   }
-
-  static double _min(double a, double b) => a < b ? a : b;
-  static double _max(double a, double b) => a > b ? a : b;
 }

@@ -20,6 +20,7 @@ import 'package:blood_pressed/features/export/presentation/card_capture_dialog.d
 import 'package:blood_pressed/features/export/presentation/share_card_widgets.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
+import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
 BpRecord rec(int hour, int sys, int dia, {int? pulse}) {
@@ -40,45 +41,42 @@ BpRecord rec(int hour, int sys, int dia, {int? pulse}) {
 }
 
 TrendShareCard trendCard() => TrendShareCard(
-      title: '10月5日-10月6日',
-      points: [
-        DayPoint(
-            date: DateTime(2026, 10, 5),
-            avgSystolic: 138,
-            avgDiastolic: 88,
-            count: 2),
-        DayPoint(
-            date: DateTime(2026, 10, 6),
-            avgSystolic: 126,
-            avgDiastolic: 80,
-            count: 1),
-      ],
-      query: TrendQuery.custom(DateTime(2026, 10, 5), DateTime(2026, 10, 6)),
-      avgSystolic: 132,
-      avgDiastolic: 84,
-      count: 3,
-    );
+  title: '10月5日-10月6日',
+  points: DayCandle.aggregate([
+    rec(8, 138, 88),
+    rec(20, 142, 92),
+    rec(8, 126, 80).copyWith(measuredAt: DateTime(2026, 10, 6, 8)),
+  ]),
+  query: TrendQuery.custom(DateTime(2026, 10, 5), DateTime(2026, 10, 6)),
+);
 
-Future<void> pumpCardDialog(WidgetTester tester, Widget card, GlobalKey key) async {
+Future<void> pumpCardDialog(
+  WidgetTester tester,
+  Widget card,
+  GlobalKey key,
+) async {
   BuildContext? contextOut;
-  await tester.pumpWidget(MaterialApp(
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    locale: const Locale('zh'),
-    home: Builder(
-      builder: (ctx) {
-        contextOut ??= ctx;
-        return const Scaffold(body: SizedBox());
-      },
+  await tester.pumpWidget(
+    MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('zh'),
+      home: Builder(
+        builder: (ctx) {
+          contextOut ??= ctx;
+          return const Scaffold(body: SizedBox());
+        },
+      ),
     ),
-  ));
+  );
   showDialog<void>(
     context: contextOut!,
     barrierColor: Colors.transparent,
     barrierDismissible: false,
     useRootNavigator: true,
-    builder: (_) =>
-        Center(child: RepaintBoundary(key: key, child: card)),
+    builder: (_) => Center(
+      child: RepaintBoundary(key: key, child: card),
+    ),
   );
   // dialog 首帧 + 推过入场动画与卡片内动画，确保无 pending 帧标记
   await tester.pump();
@@ -124,27 +122,31 @@ void main() {
     testWidgets('记录卡成功出 PNG', (tester) async {
       final key = GlobalKey();
       await pumpCardDialog(
-          tester, RecordShareCard(record: rec(8, 128, 76, pulse: 72)), key);
+        tester,
+        RecordShareCard(record: rec(8, 128, 76, pulse: 72)),
+        key,
+      );
       final bytes = await captureStable(tester, key);
       expect(bytes, isNotNull);
       expect(bytes![0], 0x89);
       expect(bytes[1], 0x50);
     });
 
-    testWidgets('捕获挂起时 captureCard 超时兜底返回 null 且 dialog 关闭',
-        (tester) async {
+    testWidgets('捕获挂起时 captureCard 超时兜底返回 null 且 dialog 关闭', (tester) async {
       BuildContext? contextOut;
-      await tester.pumpWidget(MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('zh'),
-        home: Builder(
-          builder: (ctx) {
-            contextOut ??= ctx;
-            return const Scaffold(body: SizedBox());
-          },
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('zh'),
+          home: Builder(
+            builder: (ctx) {
+              contextOut ??= ctx;
+              return const Scaffold(body: SizedBox());
+            },
+          ),
         ),
-      ));
+      );
       // timeout=0 强制走超时路径（toImage future 总是异步完成）；
       // 整条链路留在 FakeAsync 时区，由 pump 推进 settle 延迟与超时
       final future = captureCard(
