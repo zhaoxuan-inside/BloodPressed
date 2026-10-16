@@ -5,8 +5,14 @@
 
 ## 1. 版本号
 
-`pubspec.yaml` → `version: x.y.z+build`（versionName+versionCode，每次发布 build 至少 +1）。
-本次记录：**1.2.2+4**（2026-10-15，前一版 1.2.1+3）。
+按 hs-dev-skill 四段式：`MAJOR.FEATURE.PATCH.BUILD`。本次功能版本为 `1.3.0`。
+
+- `pubspec.yaml` 保持 Flutter 格式 `1.3.0+BUILD`；APK 内 `versionName` 为 `1.3.0.BUILD`，`versionCode` 为整数 BUILD。
+- 唯一打包入口为 `scripts/build_android_release.ps1`。每次调用自动预留新 BUILD，优先使用上海时区 `MMddHHmmss`；同秒重复、时钟回拨或跨年时使用上次号 +1，保证 Android code 严格递增。失败构建也不回收版本号。
+- 脚本持有项目独占锁，禁止并行发包；构建后校验实际 APK 的 versionName/versionCode、身份、ABI 与签名，不允许只改文件名冒充新版。
+- 可交付文件位于 `output/mobile/BloodPressed-v1.3.0.BUILD-android-arm64-store.apk`；相邻 `.sha256` 和 `.json` 记录校验值、版本、构建时间、源码基线及工作区状态，符号表按完整版本归档。
+- 正式包与旧身份覆盖测试包也各自获得新 BUILD；已有产物拒绝覆盖。`build/` 只是可变的中间输出，不再作为唯一交付归档。
+- 不直接运行原始 `flutter build apk` 作为对外出包入口，也不手动改名替代版本升级。
 
 ## 2. 门禁（发布前必须全绿）
 
@@ -15,30 +21,18 @@ flutter analyze          # 0 issue
 flutter test             # 全绿
 ```
 
-## 3. 打包（Git Bash）
-
-```bash
-export JAVA_HOME='D:\HardStone.开发环境\JDK\jdk-21.0.12.1+1'   # Gradle 需 JDK 17+，shell 默认 JVM 8 会失败
-flutter build apk --release --target-platform android-arm64
-# 产物：build/app/outputs/flutter-apk/app-release.apk
-```
-
-发布仅支持 ARM64（arm64-v8a）手机；release 构建配置排除 32 位原生库。
-实际过滤位于 app defaultConfig.ndk，配合 gradle.properties 的
-`disable-abi-filtering=true` 防止 Flutter 自动重新加入其他 ABI；不使用 --split-per-abi。
-当前 release 沿用 debug 签名；尚未配置正式发布证书。
-
-Windows PowerShell 本机命令（Flutter SDK 不在 PATH）：
+## 3. 打包（Windows PowerShell）
 
 ```powershell
 $env:JAVA_HOME = 'D:\HardStone.开发环境\JDK\jdk-21.0.12.1+1'
-New-Item -ItemType Directory -Force -Path "$PWD\build\java-tmp" | Out-Null
-$env:JAVA_TOOL_OPTIONS = "-Djdk.net.unixdomain.tmpdir=$PWD\build\java-tmp"
-& 'E:\HardStone.Flutter\flutter\bin\flutter.bat' --no-version-check build apk --release --target-platform android-arm64 --no-pub
+& .\scripts\test_release_version.ps1
+& .\scripts\build_android_release.ps1 -FlutterPath 'E:\HardStone.Flutter\flutter\bin\flutter.bat'
+# 旧测试身份包另加 -Legacy，仍自动预留独立版本。
 ```
 
-此 Java 临时目录参数仅在当前 PowerShell 进程生效，用于规避本机默认临时目录下
-Java NIO `Unable to establish loopback connection` / `UnixDomainSockets.connect0` 错误。
+脚本自动配置 Java 临时目录参数，规避本机 NIO loopback / UnixDomainSockets 问题。
+仅打 ARM64；正式包使用仓库外的正式签名，缺少签名时拒绝回退至 debug。
+签名与覆盖安装身份说明见 `docs/android-signing.md`。
 
 ## 4. 上传蒲公英
 
@@ -47,7 +41,7 @@ Java NIO `Unable to establish loopback connection` / `UnixDomainSockets.connect0
 **命令行方式**（Key 由开发者临时提供）：
 
 ```bash
-curl -F "file=@build/app/outputs/flutter-apk/app-release.apk" \
+curl -F "file=@output/mobile/<本次完整版本APK文件名>" \
      -F "_api_key=<你的蒲公英APIKey>" \
      -F "buildUpdateDescription=<更新日志，见下方>" \
      https://www.pgyer.com/apiv2/app/upload
@@ -56,6 +50,17 @@ curl -F "file=@build/app/outputs/flutter-apk/app-release.apk" \
 响应 `code: 0` 即成功；返回的 `buildShortcutUrl`（https://www.pgyer.com/xxxx 二维码短链）即分发页。
 
 ## 5. 发布记录
+
+2026-10-16：**1.3.0.1016162951 Android ARM64（版本治理修正及测量趋势）**。
+
+- 用户指出先前多个出包复用了 `1.2.4+6`；旧文件名无法可靠区分内部版本。本次开始由脚本自动预留、实际核验并归档每个构建。
+- APK 内 versionName `1.3.0.1016162951`、versionCode `1016162951`，pubspec 为 `1.3.0+1016162951`。
+- `output/mobile/BloodPressed-v1.3.0.1016162951-android-arm64-store.apk`，219,969,627 字节。
+- SHA256 `50cf513ae61be0b5a0ea4e24f7a56fadb2e83e2a97ba631f3003fc36fe576464`。
+- 旁附 `.sha256`、`.json` 回执，符号表位于 `output/mobile/symbols/1.3.0.1016162951-store/`。
+- manifest 版本、正式身份 `com.zhaoxuan.bloodpressed`、ARM64、签名经实际产物核验；304 项测试与静态分析通过。未上传、未做真机安装。
+- 业务内容：每次测量趋势、缺日/缺项断线、单项血压及同次脉压差、单日展开与直接数值标注。
+
 
 2026-10-15：**1.2.4+6 ARM64（隐私授权与正式身份）**，双包：
 
@@ -102,16 +107,15 @@ aapt 与 ZIP 检查均确认仅 `arm64-v8a`，minSdk 24，versionCode 3；apksig
 ## 6. 更新日志模板（发布时填入）
 
 ```
-本次更新（1.2.4）：
-1. 增加首启隐私同意、拒绝和撤回流程，同意后才启动业务。
-2. 远端健康信息发送需单独授权，接收方/模型变化重新确认，支持撤回。
-3. 隐藏尚未接入的云同步和登录入口，更新隐私政策正文。
-4. 提供正式签名商店包和旧身份覆盖测试包，均为 ARM64。
+本次更新（1.3.0.1016162951）：
+1. 保留每次血压测量，支持缺项留空、缺测断线及同次脉压差。
+2. 单日视图展开密集读数，显示数值、时刻，并支持同步横滑与编辑。
+3. 每次打包自动生成独立版本，核验 APK 内版本，归档校验值、回执及符号表。
 ```
 
 ## 7. 发布检查单
 
-- [ ] pubspec 版本已升级且 build 递增
+- [ ] 经官方脚本预留新 BUILD，APK 内四段 versionName 和递增 versionCode 与回执一致
 - [ ] analyze 0 + 全量测试绿
 - [ ] release APK 构建成功（真机安装冒烟：登录/录音/相机权限首启弹窗）
 - [ ] 更新日志已填写
