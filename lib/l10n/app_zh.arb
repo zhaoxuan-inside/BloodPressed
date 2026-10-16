@@ -394,5 +394,12 @@
         "type": "int"
       }
     }
-  }
+  },
+  "viewDayTrend": "查看单日趋势",
+  "dayTrendTitle": "单日测量趋势",
+  "measurementOrderHint": "按测量先后排列，间距不代表时长；左右滑动查看全部读数。",
+  "previousDay": "前一天",
+  "nextDay": "后一天",
+  "noMeasurementsThisDay": "当天没有测量记录",
+  "dayInteractionHint": "点击测量点查看明细；下方列出当天每次读数，可点击编辑。"
 }

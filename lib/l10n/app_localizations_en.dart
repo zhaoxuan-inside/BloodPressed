@@ -1309,4 +1309,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String trendCoverage(int total, int paired, int missing) {
     return '$total readings · $paired valid pairs · $missing unmeasured days';
   }
+
+  @override
+  String get viewDayTrend => 'View day trend';
+
+  @override
+  String get dayTrendTitle => 'Daily readings';
+
+  @override
+  String get measurementOrderHint =>
+      'In measurement order; spacing does not represent elapsed time. Swipe to see all readings.';
+
+  @override
+  String get previousDay => 'Previous day';
+
+  @override
+  String get nextDay => 'Next day';
+
+  @override
+  String get noMeasurementsThisDay => 'No readings on this day.';
+
+  @override
+  String get dayInteractionHint =>
+      'Tap a point for details. Every reading is listed below; tap to edit.';
 }

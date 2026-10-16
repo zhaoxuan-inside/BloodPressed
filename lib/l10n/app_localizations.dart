@@ -2393,6 +2393,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{total} readings · {paired} valid pairs · {missing} unmeasured days'**
   String trendCoverage(int total, int paired, int missing);
+
+  /// No description provided for @viewDayTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'View day trend'**
+  String get viewDayTrend;
+
+  /// No description provided for @dayTrendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily readings'**
+  String get dayTrendTitle;
+
+  /// No description provided for @measurementOrderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'In measurement order; spacing does not represent elapsed time. Swipe to see all readings.'**
+  String get measurementOrderHint;
+
+  /// No description provided for @previousDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous day'**
+  String get previousDay;
+
+  /// No description provided for @nextDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Next day'**
+  String get nextDay;
+
+  /// No description provided for @noMeasurementsThisDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No readings on this day.'**
+  String get noMeasurementsThisDay;
+
+  /// No description provided for @dayInteractionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a point for details. Every reading is listed below; tap to edit.'**
+  String get dayInteractionHint;
 }
 
 class _AppLocalizationsDelegate

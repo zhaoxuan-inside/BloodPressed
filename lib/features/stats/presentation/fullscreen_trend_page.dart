@@ -8,6 +8,7 @@ import 'package:blood_pressed/features/stats/presentation/stats_share.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
 
 import 'controllers/trend_providers.dart';
+import 'daily_trend_page.dart';
 
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
@@ -15,7 +16,7 @@ enum _Series { bp, pulse }
 
 /// 全屏横屏图表页：进入强制横屏、图表铺满可用区，返回恢复竖屏。
 ///
-/// 小屏（及终端式窄屏）上看清蜡烛图的专用视图；查询参数由趋势页经
+/// 小屏（及终端式窄屏）上看清测量趋势的专用视图；查询参数由趋势页经
 /// go_router extra 传入。
 class FullscreenTrendPage extends ConsumerStatefulWidget {
   const FullscreenTrendPage({super.key, required this.query});
@@ -87,6 +88,19 @@ class _FullscreenTrendPageState extends ConsumerState<FullscreenTrendPage> {
                         : Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              IconButton(
+                                tooltip: l10n.viewDayTrend,
+                                icon: const Icon(Icons.today, size: 20),
+                                onPressed: () => Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => DailyTrendPage(
+                                      range: widget.query,
+                                      initialDate: points.last.date,
+                                      pulse: _series == _Series.pulse,
+                                    ),
+                                  ),
+                                ),
+                              ),
                               IconButton(
                                 tooltip: l10n.statsAiAnalyze,
                                 icon: const Icon(Icons.auto_awesome, size: 20),

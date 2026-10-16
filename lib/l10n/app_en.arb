@@ -728,5 +728,12 @@
         "type": "int"
       }
     }
-  }
+  },
+  "viewDayTrend": "View day trend",
+  "dayTrendTitle": "Daily readings",
+  "measurementOrderHint": "In measurement order; spacing does not represent elapsed time. Swipe to see all readings.",
+  "previousDay": "Previous day",
+  "nextDay": "Next day",
+  "noMeasurementsThisDay": "No readings on this day.",
+  "dayInteractionHint": "Tap a point for details. Every reading is listed below; tap to edit."
 }

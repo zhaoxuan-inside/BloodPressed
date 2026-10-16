@@ -238,4 +238,81 @@ void main() {
     expect(text, contains('120/80'));
     expect(text, contains('145/95'));
   });
+  testWidgets('单日密集和同刻测量展开为独立位置，横滑保留血压和压差对齐', (tester) async {
+    final days = DailyMeasurements.aggregate([
+      for (var i = 0; i < 12; i++)
+        reading(
+          8,
+          120 + i,
+          80 + i,
+          id: '$i',
+        ).copyWith(measuredAt: DateTime(2026, 10, 15, 8, i ~/ 2)),
+    ]);
+    final dayQuery = TrendQuery.custom(
+      DateTime(2026, 10, 15),
+      DateTime(2026, 10, 15),
+    );
+    await showChart(
+      tester,
+      MeasurementTrendChart(
+        points: days,
+        query: dayQuery,
+        measurementOrder: true,
+      ),
+    );
+    final charts = tester
+        .widgetList<LineChart>(find.byType(LineChart))
+        .toList();
+    expect(
+      charts.first.data.lineBarsData.first.spots.map((s) => s.x),
+      List.generate(12, (i) => i.toDouble()),
+    );
+    expect(
+      charts.last.data.lineBarsData.single.spots.map((s) => s.x),
+      List.generate(12, (i) => i.toDouble()),
+    );
+    expect(
+      tester.getSize(find.byType(LineChart).first).width,
+      greaterThanOrEqualTo(12 * 88),
+    );
+    expect(find.textContaining('间距不代表时长'), findsOneWidget);
+    final scroll = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView),
+    );
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(-500, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(scroll.controller!.offset, greaterThan(0));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('单日展开保留缺失项的断点和单次读数', (tester) async {
+    final days = DailyMeasurements.aggregate([
+      reading(8, 120, null),
+      reading(8, 130, 85, id: 'next'),
+    ]);
+    await showChart(
+      tester,
+      MeasurementTrendChart(
+        points: days,
+        query: TrendQuery.custom(
+          DateTime(2026, 10, 15),
+          DateTime(2026, 10, 15),
+        ),
+        measurementOrder: true,
+      ),
+    );
+    final charts = tester
+        .widgetList<LineChart>(find.byType(LineChart))
+        .toList();
+    expect(charts.first.data.lineBarsData.last.spots.first, FlSpot.nullSpot);
+    expect(charts.last.data.lineBarsData.single.spots.first, FlSpot.nullSpot);
+    expect(charts.first.data.lineBarsData.first.spots.map((s) => s.y), [
+      120,
+      130,
+    ]);
+    expect(tester.takeException(), isNull);
+  });
 }

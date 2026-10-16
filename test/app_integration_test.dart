@@ -497,6 +497,36 @@ void main() {
     expect(find.text('该范围内暂无数据'), findsOneWidget);
   });
 
+  testWidgets('趋势提供明显的单日展开入口', (tester) async {
+    await app.insertRecord(sys: 120, dia: 80);
+    await app.pumpApp(tester);
+    await tester.tap(find.byIcon(Icons.show_chart_outlined));
+    await pumpUntilReal(tester, () => tester.any(find.byType(LineChart)));
+    expect(find.text('查看单日趋势'), findsOneWidget);
+    await tester.tap(find.text('查看单日趋势'));
+    await pumpUntilReal(tester, () => tester.any(find.byType(LineChart)));
+    expect(find.text('单日测量趋势'), findsOneWidget);
+    await pumpUntilReal(
+      tester,
+      () => tester.any(find.textContaining('· 120/80 mmHg')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('· 120/80 mmHg'), findsOneWidget);
+    await tester.tap(find.byTooltip('前一天'));
+    await pumpUntilReal(tester, () => tester.any(find.text('当天没有测量记录')));
+    expect(find.byType(LineChart), findsNothing);
+    await tester.tap(find.byTooltip('后一天'));
+    await pumpUntilReal(tester, () => tester.any(find.byType(LineChart)));
+    await tester.ensureVisible(find.byIcon(Icons.edit_outlined));
+    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await pumpUntilReal(tester, () => tester.any(find.text('编辑记录')));
+    await fillAndSave(tester, sys: '135', dia: '85');
+    await pumpUntilReal(
+      tester,
+      () => tester.any(find.textContaining('· 135/85 mmHg')),
+    );
+  });
+
   testWidgets('趋势近90天与脉搏序列', (tester) async {
     await app.insertRecord(sys: 126, dia: 82, pulse: 70);
     await app.pumpApp(tester);

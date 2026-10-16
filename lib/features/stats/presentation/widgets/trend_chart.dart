@@ -22,13 +22,19 @@ class MeasurementTrendChart extends StatelessWidget {
     required this.points,
     required this.query,
     this.interactive = true,
+    this.measurementOrder = false,
   });
   final List<DailyMeasurements> points;
   final TrendQuery query;
   final bool interactive;
+  final bool measurementOrder;
   @override
-  Widget build(BuildContext context) =>
-      _MeasurementChart(points: points, query: query, interactive: interactive);
+  Widget build(BuildContext context) => _MeasurementChart(
+    points: points,
+    query: query,
+    interactive: interactive,
+    measurementOrder: measurementOrder,
+  );
 }
 
 class PulseTrendChart extends StatelessWidget {
@@ -37,16 +43,19 @@ class PulseTrendChart extends StatelessWidget {
     required this.points,
     required this.query,
     this.interactive = true,
+    this.measurementOrder = false,
   });
   final List<DailyMeasurements> points;
   final TrendQuery query;
   final bool interactive;
+  final bool measurementOrder;
   @override
   Widget build(BuildContext context) => _MeasurementChart(
     points: points,
     query: query,
     interactive: interactive,
     pulse: true,
+    measurementOrder: measurementOrder,
   );
 }
 
@@ -58,10 +67,12 @@ class _MeasurementChart extends StatefulWidget {
     required this.query,
     required this.interactive,
     this.pulse = false,
+    this.measurementOrder = false,
   });
   final List<DailyMeasurements> points;
   final TrendQuery query;
   final bool interactive;
+  final bool measurementOrder;
   final bool pulse;
   @override
   State<_MeasurementChart> createState() => _MeasurementChartState();
@@ -69,6 +80,7 @@ class _MeasurementChart extends StatefulWidget {
 
 class _MeasurementChartState extends State<_MeasurementChart> {
   final _transform = TransformationController();
+  final _scroll = ScrollController();
   String? _selectedId;
 
   @override
@@ -77,12 +89,14 @@ class _MeasurementChartState extends State<_MeasurementChart> {
     if (oldWidget.query != widget.query) {
       _transform.value = Matrix4.identity();
       _selectedId = null;
+      if (_scroll.hasClients) _scroll.jumpTo(0);
     }
   }
 
   @override
   void dispose() {
     _transform.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -148,40 +162,83 @@ class _MeasurementChartState extends State<_MeasurementChart> {
             color: Theme.of(context).colorScheme.outline,
           ),
         ),
+        if (widget.measurementOrder)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              l10n.measurementOrderHint,
+              style: TextStyle(
+                fontSize: 10,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ),
         const SizedBox(height: 6),
         Expanded(
-          flex: widget.pulse ? 1 : 3,
-          child: _chart(
-            context,
-            timeline,
-            metrics,
-            bloodPressure: !widget.pulse,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final plots = Column(
+                children: [
+                  Expanded(
+                    flex: widget.pulse ? 1 : 3,
+                    child: _chart(
+                      context,
+                      timeline,
+                      metrics,
+                      bloodPressure: !widget.pulse,
+                    ),
+                  ),
+                  if (!widget.pulse) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      '${l10n.pulsePressure} · mmHg',
+                      style: TextStyle(fontSize: 11, color: pp.color),
+                    ),
+                    const SizedBox(height: 4),
+                    Expanded(
+                      flex: 2,
+                      child: records.every((r) => r.pulsePressure == null)
+                          ? Center(
+                              child: Text(
+                                l10n.pulsePressureEmpty,
+                                style: const TextStyle(fontSize: 11),
+                              ),
+                            )
+                          : _chart(context, timeline, [pp]),
+                    ),
+                  ],
+                ],
+              );
+              if (!widget.measurementOrder) return plots;
+              return Scrollbar(
+                controller: _scroll,
+                thumbVisibility: true,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 18),
+                  child: SingleChildScrollView(
+                    controller: _scroll,
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: math.max(
+                        constraints.maxWidth,
+                        records.length * 88.0 + 50,
+                      ),
+                      height: constraints.maxHeight - 18,
+                      child: plots,
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
-        if (!widget.pulse) ...[
-          const SizedBox(height: 6),
-          Text(
-            '${l10n.pulsePressure} · mmHg',
-            style: TextStyle(fontSize: 11, color: pp.color),
-          ),
-          const SizedBox(height: 4),
-          Expanded(
-            flex: 2,
-            child: records.every((r) => r.pulsePressure == null)
-                ? Center(
-                    child: Text(
-                      l10n.pulsePressureEmpty,
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                  )
-                : _chart(context, timeline, [pp]),
-          ),
-        ],
         if (widget.interactive) ...[
           const SizedBox(height: 6),
           Text(
             selected == null
-                ? l10n.measurementInteractionHint
+                ? widget.measurementOrder
+                      ? l10n.dayInteractionHint
+                      : l10n.measurementInteractionHint
                 : _detail(selected, l10n),
             maxLines: 5,
             overflow: TextOverflow.ellipsis,
@@ -237,14 +294,16 @@ class _MeasurementChartState extends State<_MeasurementChart> {
     );
     final padding = math.max(8, (high - low) * 0.12).toDouble();
     final bars = [
-      for (final m in metrics)
+      for (final (metricIndex, m) in metrics.indexed)
         LineChartBarData(
           spots: [
-            for (final r in entries)
+            for (final (index, r) in entries.indexed)
               r == null || m.value(r) == null
                   ? FlSpot.nullSpot
                   : FlSpot(
-                      TrendTimeline.xOf(r.measuredAt, start),
+                      widget.measurementOrder
+                          ? index.toDouble()
+                          : TrendTimeline.xOf(r.measuredAt, start),
                       m.value(r)!.toDouble(),
                     ),
           ],
@@ -259,6 +318,22 @@ class _MeasurementChartState extends State<_MeasurementChart> {
                   BpCategory.fromValues(r.systolic, r.diastolic) ==
                       BpCategory.incomplete &&
                   r.hasCompleteBp;
+              if (widget.measurementOrder) {
+                return _ReadingDotPainter(
+                  label: spot.y.toStringAsFixed(0),
+                  labelStyle: Theme.of(context).textTheme.labelSmall!.copyWith(
+                    color: m.color,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  below: bloodPressure && metricIndex == 1,
+                  color: m.color,
+                  strokeColor: invalid
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.surface,
+                  invalid: invalid,
+                );
+              }
               return FlDotCirclePainter(
                 radius: invalid ? 4 : 2.5,
                 color: m.color,
@@ -281,14 +356,21 @@ class _MeasurementChartState extends State<_MeasurementChart> {
           .join('\n'),
       child: LineChart(
         LineChartData(
-          minX: 0,
-          maxX: widget.query.days.toDouble(),
+          minX: widget.measurementOrder ? -0.5 : 0,
+          maxX: widget.measurementOrder
+              ? math.max(entries.length - 0.5, 0.5)
+              : widget.query.days.toDouble(),
           minY: low - padding,
           maxY: high + padding,
           lineBarsData: bars,
           clipData: const FlClipData.all(),
           gridData: ChartBase.grid(),
-          titlesData: _titles(widget.query, start, high - low <= 50 ? 10 : 20),
+          titlesData: _titles(
+            widget.query,
+            start,
+            high - low <= 50 ? 10 : 20,
+            entries,
+          ),
           borderData: ChartBase.border(),
           extraLinesData: ExtraLinesData(
             horizontalLines: [
@@ -354,7 +436,7 @@ class _MeasurementChartState extends State<_MeasurementChart> {
         ),
         duration: Duration.zero,
         transformationConfig: FlTransformationConfig(
-          scaleAxis: widget.interactive
+          scaleAxis: widget.interactive && !widget.measurementOrder
               ? FlScaleAxis.horizontal
               : FlScaleAxis.none,
           maxScale: 100,
@@ -364,19 +446,42 @@ class _MeasurementChartState extends State<_MeasurementChart> {
     );
   }
 
-  FlTitlesData _titles(TrendQuery query, DateTime start, double interval) {
+  FlTitlesData _titles(
+    TrendQuery query,
+    DateTime start,
+    double interval,
+    List<BpRecord?> entries,
+  ) {
     final base = ChartBase.titles(interval: interval);
     return base.copyWith(
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
           reservedSize: 22,
-          interval: query.days == 1
+          interval: widget.measurementOrder
+              ? 1
+              : query.days == 1
               ? 0.25
               : ChartBase.labelInterval(query.days),
-          minIncluded: true,
+          minIncluded: !widget.measurementOrder,
           maxIncluded: false,
           getTitlesWidget: (value, meta) {
+            if (widget.measurementOrder) {
+              final index = value.round();
+              if ((value - index).abs() > 0.001 ||
+                  index < 0 ||
+                  index >= entries.length ||
+                  entries[index] == null) {
+                return const SizedBox.shrink();
+              }
+              return SideTitleWidget(
+                meta: meta,
+                child: Text(
+                  '${index + 1}. ${Fmt.time(entries[index]!.measuredAt)}',
+                  style: const TextStyle(fontSize: 10),
+                ),
+              );
+            }
             if (value < 0 || value >= query.days) {
               return const SizedBox.shrink();
             }
@@ -399,6 +504,36 @@ class _MeasurementChartState extends State<_MeasurementChart> {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+/// Numeric labels remain legible because the day view reserves width per reading.
+class _ReadingDotPainter extends FlDotCirclePainter {
+  _ReadingDotPainter({
+    required this.label,
+    required this.below,
+    required this.labelStyle,
+    required super.color,
+    required super.strokeColor,
+    required bool invalid,
+  }) : super(radius: invalid ? 4 : 3, strokeWidth: invalid ? 2 : 1);
+  final String label;
+  final bool below;
+  final TextStyle labelStyle;
+  @override
+  void draw(Canvas canvas, FlSpot spot, Offset offsetInCanvas) {
+    super.draw(canvas, spot, offsetInCanvas);
+    final text = TextPainter(
+      text: TextSpan(text: label, style: labelStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    text.paint(
+      canvas,
+      Offset(
+        offsetInCanvas.dx - text.width / 2,
+        offsetInCanvas.dy + (below ? 6 : -19),
       ),
     );
   }

@@ -18,6 +18,7 @@ import 'package:blood_pressed/features/stats/presentation/widgets/analysis_card.
 import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
 
 import 'controllers/trend_providers.dart';
+import 'daily_trend_page.dart';
 
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
@@ -164,6 +165,19 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                       children: [
                         Row(
                           children: [
+                            TextButton.icon(
+                              icon: const Icon(Icons.today, size: 18),
+                              label: Text(l10n.viewDayTrend),
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => DailyTrendPage(
+                                    range: query,
+                                    initialDate: points.last.date,
+                                    pulse: _series == _Series.pulse,
+                                  ),
+                                ),
+                              ),
+                            ),
                             const Spacer(),
                             IconButton(
                               tooltip: l10n.shareMore,

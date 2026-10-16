@@ -1252,4 +1252,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String trendCoverage(int total, int paired, int missing) {
     return '记录 $total 次 · 完整有效 $paired 次 · 缺测 $missing 天';
   }
+
+  @override
+  String get viewDayTrend => '查看单日趋势';
+
+  @override
+  String get dayTrendTitle => '单日测量趋势';
+
+  @override
+  String get measurementOrderHint => '按测量先后排列，间距不代表时长；左右滑动查看全部读数。';
+
+  @override
+  String get previousDay => '前一天';
+
+  @override
+  String get nextDay => '后一天';
+
+  @override
+  String get noMeasurementsThisDay => '当天没有测量记录';
+
+  @override
+  String get dayInteractionHint => '点击测量点查看明细；下方列出当天每次读数，可点击编辑。';
 }

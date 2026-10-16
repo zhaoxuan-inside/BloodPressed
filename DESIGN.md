@@ -60,3 +60,5 @@ lib/
 - 契约：records_repository（真实 SQLite）· model_market_api（真实网络）
 - UI 集成：app_integration（欢迎→录入→分级→编辑→落盘全链路）· l10n smoke
 - 规则：修 bug 先加失败测试；新枚举值必须带 labels 断言（防非穷尽 switch 回归）
+
+- 单日详情：从趋势或全屏进入，按测量先后独立占位并标出时间和数值；88dp/次的最小间距，血压与压差同步横滑。间距不代表时长，主总览仍为真实时间轴。支持逐日/日历切换和逐条编辑。
