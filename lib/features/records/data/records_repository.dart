@@ -47,8 +47,12 @@ class RecordsRepository {
   }
 
   Future<BpRecord?> byId(String id) async {
-    final rows = await _db.db
-        .query('bp_records', where: 'id = ?', whereArgs: [id], limit: 1);
+    final rows = await _db.db.query(
+      'bp_records',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
     return rows.isEmpty ? null : BpRecord.fromMap(rows.first);
   }
 
@@ -63,6 +67,7 @@ class RecordsRepository {
   }
 
   Future<BpRecord> create(BpRecord record) async {
+    _validate(record);
     await _db.db.insert('bp_records', record.toMap());
     await _outbox.enqueue(
       entityType: _entityType,
@@ -74,6 +79,7 @@ class RecordsRepository {
   }
 
   Future<BpRecord> update(BpRecord record) async {
+    _validate(record);
     await _db.db.update(
       'bp_records',
       record.toMap(),
@@ -87,6 +93,15 @@ class RecordsRepository {
       payload: record.toSyncPayload(),
     );
     return record;
+  }
+
+  static void _validate(BpRecord record) {
+    final error = validateBpValues(
+      systolic: record.systolic,
+      diastolic: record.diastolic,
+      pulse: record.pulse,
+    );
+    if (error != null) throw ArgumentError(error.name);
   }
 
   /// 软删除。
@@ -132,57 +147,72 @@ class BpStats {
     this.maxPulse,
     this.minPulse,
     required this.normalRate,
+    this.completeCount = 0,
+    this.systolicCount = 0,
+    this.diastolicCount = 0,
   });
 
   final int count;
-  final double avgSystolic;
-  final double avgDiastolic;
+  final int completeCount;
+  final int systolicCount;
+  final int diastolicCount;
+  final double? avgSystolic;
+  final double? avgDiastolic;
   final double? avgPulse;
-  final int maxSystolic;
-  final int minSystolic;
-  final int maxDiastolic;
-  final int minDiastolic;
+  final int? maxSystolic;
+  final int? minSystolic;
+  final int? maxDiastolic;
+  final int? minDiastolic;
 
   /// 脉搏最值（无任何脉搏记录时为 null）。
   final int? maxPulse;
   final int? minPulse;
 
   /// 家庭自测达标（<135/85）占比。
-  final double normalRate;
+  final double? normalRate;
 
   factory BpStats.compute(List<BpRecord> records) {
-    if (records.isEmpty) {
-      return const BpStats(
-        count: 0,
-        avgSystolic: 0,
-        avgDiastolic: 0,
-        avgPulse: null,
-        maxSystolic: 0,
-        minSystolic: 0,
-        maxDiastolic: 0,
-        minDiastolic: 0,
-        normalRate: 0,
-      );
-    }
-    final sys = records.map((r) => r.systolic).toList();
-    final dia = records.map((r) => r.diastolic).toList();
-    final pulses = records.where((r) => r.pulse != null).map((r) => r.pulse!).toList();
-    final normalCount =
-        records.where((r) => r.systolic < 135 && r.diastolic < 85).length;
+    final live = records.where((r) => !r.isDeleted).toList();
+    final sys = live
+        .map((r) => r.systolic)
+        .whereType<int>()
+        .where((v) => v >= 40 && v <= 300)
+        .toList();
+    final dia = live
+        .map((r) => r.diastolic)
+        .whereType<int>()
+        .where((v) => v >= 30 && v <= 200)
+        .toList();
+    final pulses = live
+        .map((r) => r.pulse)
+        .whereType<int>()
+        .where((v) => v >= 20 && v <= 300)
+        .toList();
+    final pairs = live.where((r) => r.hasValidPair).toList();
+    final normalCount = pairs
+        .where((r) => r.systolic! < 135 && r.diastolic! < 85)
+        .length;
+    double? average(List<int> values) =>
+        values.isEmpty ? null : values.reduce((a, b) => a + b) / values.length;
+    int? minimum(List<int> values) =>
+        values.isEmpty ? null : values.reduce((a, b) => a < b ? a : b);
+    int? maximum(List<int> values) =>
+        values.isEmpty ? null : values.reduce((a, b) => a > b ? a : b);
     return BpStats(
-      count: records.length,
-      avgSystolic: sys.reduce((a, b) => a + b) / sys.length,
-      avgDiastolic: dia.reduce((a, b) => a + b) / dia.length,
-      avgPulse: pulses.isEmpty
-          ? null
-          : pulses.reduce((a, b) => a + b) / pulses.length,
-      maxSystolic: sys.reduce((a, b) => a > b ? a : b),
-      minSystolic: sys.reduce((a, b) => a < b ? a : b),
-      maxDiastolic: dia.reduce((a, b) => a > b ? a : b),
-      minDiastolic: dia.reduce((a, b) => a < b ? a : b),
-      maxPulse: pulses.isEmpty ? null : pulses.reduce((a, b) => a > b ? a : b),
-      minPulse: pulses.isEmpty ? null : pulses.reduce((a, b) => a < b ? a : b),
-      normalRate: normalCount / records.length,
+      count: live.length,
+      completeCount: pairs.length,
+      systolicCount: sys.length,
+      diastolicCount: dia.length,
+      avgSystolic: average(sys),
+      avgDiastolic: average(dia),
+      avgPulse: average(pulses),
+      maxSystolic: maximum(sys),
+      minSystolic: minimum(sys),
+      maxDiastolic: maximum(dia),
+      minDiastolic: minimum(dia),
+      maxPulse: maximum(pulses),
+      minPulse: minimum(pulses),
+      normalRate: pairs.isEmpty ? null : normalCount / pairs.length,
     );
   }
 }

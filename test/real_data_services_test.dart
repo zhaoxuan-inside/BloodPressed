@@ -26,7 +26,7 @@ import 'package:blood_pressed/features/llm/domain/llm_models.dart';
 import 'package:blood_pressed/features/records/data/records_repository.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/settings/data/app_settings.dart';
-import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
+import 'package:blood_pressed/features/stats/domain/daily_measurements.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -154,9 +154,9 @@ void main() {
         pulse: 74,
         at: now.subtract(const Duration(days: 1)),
       );
-      final points = DayCandle.aggregate(await records.list());
+      final points = DailyMeasurements.aggregate(await records.list());
       expect(points, hasLength(2));
-      expect(points.last.systolic.first, 120);
+      expect(points.last.systolic!.first, 120);
     });
 
     test('无记录时健康上下文引导先测量', () async {

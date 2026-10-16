@@ -20,7 +20,7 @@ import 'package:blood_pressed/features/export/presentation/card_capture_dialog.d
 import 'package:blood_pressed/features/export/presentation/share_card_widgets.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
-import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
+import 'package:blood_pressed/features/stats/domain/daily_measurements.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
 BpRecord rec(int hour, int sys, int dia, {int? pulse}) {
@@ -42,7 +42,7 @@ BpRecord rec(int hour, int sys, int dia, {int? pulse}) {
 
 TrendShareCard trendCard() => TrendShareCard(
   title: '10月5日-10月6日',
-  points: DayCandle.aggregate([
+  points: DailyMeasurements.aggregate([
     rec(8, 138, 88),
     rec(20, 142, 92),
     rec(8, 126, 80).copyWith(measuredAt: DateTime(2026, 10, 6, 8)),

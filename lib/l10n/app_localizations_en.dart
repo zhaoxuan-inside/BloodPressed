@@ -280,7 +280,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get errNeedSysDia => 'Please enter systolic and diastolic values';
+  String get errNeedSysDia => 'Enter at least systolic or diastolic pressure.';
 
   @override
   String get errSysRange => 'Systolic must be between 40 and 300';
@@ -298,7 +298,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteRecordTitle => 'Delete Record';
 
   @override
-  String deleteRecordContent(String datetime, int sys, int dia) {
+  String deleteRecordContent(String datetime, String sys, String dia) {
     return 'Delete the record from $datetime ($sys/$dia)? This cannot be undone.';
   }
 
@@ -400,7 +400,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chartReferenceHint =>
-      'Dashed lines mark home-measurement reference levels (systolic 135 / diastolic 85). Each day shows first, last, highest and lowest readings for each BP series.';
+      'Actual readings, without daily averaging. Dashed references: 135/85 mmHg. Pulse pressure uses the paired reading; missing values stay empty.';
 
   @override
   String get range7 => 'Last 7 days';
@@ -516,7 +516,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onTargetRateLabel => 'On-target rate (<135/85)';
 
   @override
-  String bpRangeValue(int smin, int smax, int dmin, int dmax) {
+  String bpRangeValue(String smin, String smax, String dmin, String dmax) {
     return 'Sys $smin~$smax · Dia $dmin~$dmax';
   }
 
@@ -1271,19 +1271,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get candleLow => 'Lowest';
 
   @override
-  String get candleHint =>
-      'Wicks: minimum–maximum. Body: first–last. Hollow: last is higher; filled: last is lower; dash: unchanged.';
-
-  @override
   String get candleSystolicRange => 'Systolic range';
 
   @override
   String get candleDiastolicRange => 'Diastolic range';
 
   @override
-  String get candleInteractionHint =>
-      'Tap for readings. Pinch to zoom across dates.';
+  String get shareCardPulseTrendHeader => 'BloodPressed · Pulse Trend';
 
   @override
-  String get shareCardPulseTrendHeader => 'BloodPressed · Pulse Trend';
+  String get categoryIncomplete => 'Incomplete / check reading';
+
+  @override
+  String get adviceIncomplete =>
+      'Add the missing reading or check the entered values.';
+
+  @override
+  String get pulsePressure => 'Pulse pressure';
+
+  @override
+  String get pulsePressureEmpty =>
+      'Pulse pressure needs a valid paired reading.';
+
+  @override
+  String get measurementInteractionHint =>
+      'Each dot is a reading. Missing values/days break the line. Tap for details; pinch to zoom.';
+
+  @override
+  String get pairedAnalysisHint =>
+      'Pattern analysis below uses valid complete BP pairs only.';
+
+  @override
+  String get partialBpHint =>
+      'Enter at least one BP value. Leave unknown values empty; pulse pressure needs a valid pair.';
+
+  @override
+  String trendCoverage(int total, int paired, int missing) {
+    return '$total readings · $paired valid pairs · $missing unmeasured days';
+  }
 }

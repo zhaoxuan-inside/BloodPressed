@@ -6,6 +6,7 @@
 library;
 
 enum BpCategory {
+  incomplete('数据不完整或需核对', '请补充缺失读数或核对录入数据。'),
   low('偏低', '血压偏低，若无不适无需处理；若伴头晕乏力请咨询医生。'),
   normal('正常', '血压处于理想范围，请继续保持健康生活方式。'),
   elevated('正常高值', '血压偏高但未达高血压水平，建议限盐、运动并规律复测。'),
@@ -17,14 +18,22 @@ enum BpCategory {
   final String label;
   final String advice;
 
-  static BpCategory fromValues(int systolic, int diastolic) {
+  static BpCategory fromValues(int? systolic, int? diastolic) {
+    if (systolic == null ||
+        diastolic == null ||
+        systolic <= diastolic ||
+        systolic < 40 ||
+        systolic > 300 ||
+        diastolic < 30 ||
+        diastolic > 200) {
+      return BpCategory.incomplete;
+    }
     if (systolic < 90 || diastolic < 60) return BpCategory.low;
     if (systolic >= 160 || diastolic >= 100) return BpCategory.grade2;
     if (systolic >= 140 || diastolic >= 90) return BpCategory.grade1;
     if (systolic >= 130 || diastolic >= 85) return BpCategory.elevated;
     return BpCategory.normal;
   }
-
 }
 
 /// 分级配色（亮/暗主题下均可读）。

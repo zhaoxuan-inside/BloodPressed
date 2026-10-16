@@ -58,12 +58,18 @@ class _AnalysisCardState extends State<AnalysisCard> {
           children: [
             Row(
               children: [
-                Icon(Icons.insights,
-                    size: 18, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.insights,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 6),
-                Text(l10n.analysisTitle,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w700)),
+                Text(
+                  l10n.analysisTitle,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const Spacer(),
                 IconButton(
                   tooltip: l10n.statsAiAnalyze,
@@ -76,11 +82,8 @@ class _AnalysisCardState extends State<AnalysisCard> {
                   onPressed: widget.onShare,
                 ),
                 IconButton(
-                  tooltip: _expanded
-                      ? l10n.statsCustom
-                      : l10n.analysisTitle,
-                  icon: Icon(
-                      _expanded ? Icons.expand_less : Icons.expand_more),
+                  tooltip: _expanded ? l10n.statsCustom : l10n.analysisTitle,
+                  icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
                   onPressed: () => setState(() => _expanded = !_expanded),
                 ),
               ],
@@ -101,9 +104,10 @@ class _AnalysisCardState extends State<AnalysisCard> {
                 ),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text(widget.conclusion,
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(height: 1.5)),
+                  child: Text(
+                    widget.conclusion,
+                    style: theme.textTheme.bodySmall?.copyWith(height: 1.5),
+                  ),
                 ),
               ],
             ),
@@ -111,8 +115,7 @@ class _AnalysisCardState extends State<AnalysisCard> {
               const SizedBox(height: 10),
               // 时段条形
               for (final b in a.buckets) ...[
-                _BucketRow(
-                    label: _bucketLabel(l10n, b.bucket), stats: b),
+                _BucketRow(label: _bucketLabel(l10n, b.bucket), stats: b),
                 const SizedBox(height: 6),
               ],
               const SizedBox(height: 8),
@@ -136,7 +139,8 @@ class _AnalysisCardState extends State<AnalysisCard> {
                             Text(
                               _weekdayLabel(l10n, w.weekday),
                               style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.outline),
+                                color: theme.colorScheme.outline,
+                              ),
                             ),
                           ],
                         ),
@@ -148,17 +152,22 @@ class _AnalysisCardState extends State<AnalysisCard> {
               if (a.peakRecord != null)
                 Row(
                   children: [
-                    Icon(Icons.trending_up,
-                        size: 14, color: theme.colorScheme.error),
+                    Icon(
+                      Icons.trending_up,
+                      size: 14,
+                      color: theme.colorScheme.error,
+                    ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         l10n.analysisPeakLine(
-                            a.peakRecord!.systolic,
-                            a.peakRecord!.diastolic,
-                            Fmt.full(a.peakRecord!.measuredAt)),
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: theme.colorScheme.outline),
+                          a.peakRecord!.systolic!,
+                          a.peakRecord!.diastolic!,
+                          Fmt.full(a.peakRecord!.measuredAt),
+                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
                       ),
                     ),
                   ],
@@ -190,10 +199,14 @@ class _BucketRow extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-            width: 40,
-            child: Text(label,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.outline))),
+          width: 40,
+          child: Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.outline,
+            ),
+          ),
+        ),
         Expanded(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(4),
@@ -211,8 +224,9 @@ class _BucketRow extends StatelessWidget {
           child: Text(
             '${stats.avgSystolic.toStringAsFixed(0)}/${stats.avgDiastolic.toStringAsFixed(0)}',
             textAlign: TextAlign.right,
-            style: theme.textTheme.bodySmall
-                ?.copyWith(fontWeight: FontWeight.w700),
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
         const SizedBox(width: 6),
@@ -221,8 +235,9 @@ class _BucketRow extends StatelessWidget {
           child: Text(
             l10n.analysisOnTargetShort(stats.onTargetCount, stats.count),
             textAlign: TextAlign.right,
-            style: theme.textTheme.labelSmall
-                ?.copyWith(color: theme.colorScheme.outline),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.outline,
+            ),
           ),
         ),
       ],

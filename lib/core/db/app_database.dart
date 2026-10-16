@@ -10,7 +10,7 @@ import 'package:sqflite/sqflite.dart';
 class AppDatabase {
   AppDatabase._(this.db);
 
-  static const int _dbVersion = 1;
+  static const int _dbVersion = 2;
   static AppDatabase? _instance;
 
   final Database db;
@@ -23,6 +23,7 @@ class AppDatabase {
       version: _dbVersion,
       onConfigure: (d) => d.execute('PRAGMA foreign_keys = ON'),
       onCreate: _onCreate,
+      onUpgrade: upgradeSchema,
     );
     _instance = AppDatabase._(db);
     return _instance!;
@@ -46,12 +47,42 @@ class AppDatabase {
     }
   }
 
+  /// v1 → v2：重建记录表以允许血压单项为空，保留所有记录及其他表。
+  /// sqflite 的 onUpgrade 在事务内调用，失败会自动回滚。
+  static Future<void> upgradeSchema(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    if (oldVersion < 2) {
+      final schema =
+          (await db.rawQuery(
+                "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'bp_records'",
+              )).single['sql']
+              as String;
+      await db.execute('ALTER TABLE bp_records RENAME TO bp_records_v1');
+      await db.execute(
+        schema
+            .replaceAll('systolic INTEGER NOT NULL', 'systolic INTEGER')
+            .replaceAll('diastolic INTEGER NOT NULL', 'diastolic INTEGER'),
+      );
+      await db.execute('INSERT INTO bp_records SELECT * FROM bp_records_v1');
+      await db.execute('DROP TABLE bp_records_v1');
+      await db.execute(
+        'CREATE INDEX idx_records_measured_at ON bp_records (measured_at DESC)',
+      );
+      await db.execute(
+        'CREATE INDEX idx_records_sync_state ON bp_records (sync_state)',
+      );
+    }
+  }
+
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE bp_records (
         id TEXT PRIMARY KEY,
-        systolic INTEGER NOT NULL,
-        diastolic INTEGER NOT NULL,
+        systolic INTEGER,
+        diastolic INTEGER,
         pulse INTEGER,
         measured_at INTEGER NOT NULL,
         arm TEXT NOT NULL DEFAULT 'left',
@@ -67,9 +98,11 @@ class AppDatabase {
       )
     ''');
     await db.execute(
-        'CREATE INDEX idx_records_measured_at ON bp_records (measured_at DESC)');
+      'CREATE INDEX idx_records_measured_at ON bp_records (measured_at DESC)',
+    );
     await db.execute(
-        'CREATE INDEX idx_records_sync_state ON bp_records (sync_state)');
+      'CREATE INDEX idx_records_sync_state ON bp_records (sync_state)',
+    );
 
     await db.execute('''
       CREATE TABLE sync_outbox (
@@ -82,7 +115,8 @@ class AppDatabase {
       )
     ''');
     await db.execute(
-        'CREATE INDEX idx_outbox_created ON sync_outbox (created_at)');
+      'CREATE INDEX idx_outbox_created ON sync_outbox (created_at)',
+    );
 
     await db.execute('''
       CREATE TABLE llm_profiles (
@@ -104,7 +138,7 @@ class AppDatabase {
       )
     ''');
     await db.execute(
-        'CREATE INDEX idx_chat_created ON chat_messages (created_at)');
+      'CREATE INDEX idx_chat_created ON chat_messages (created_at)',
+    );
   }
-
 }

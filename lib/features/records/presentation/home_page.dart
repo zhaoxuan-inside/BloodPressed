@@ -11,8 +11,10 @@ import 'package:blood_pressed/core/widgets/common_widgets.dart';
 import 'package:blood_pressed/features/camera_ocr/presentation/ocr_flow.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
+
 import 'record_edit_page.dart';
 import 'widgets/record_tile.dart';
+
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
 /// 首页：概览 + 快捷录入 + 记录列表。
@@ -30,8 +32,10 @@ class HomePage extends ConsumerWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.appTitle,
-                style: const TextStyle(fontWeight: FontWeight.w700)),
+            Text(
+              l10n.appTitle,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
           ],
         ),
         actions: [
@@ -93,9 +97,12 @@ class HomePage extends ConsumerWidget {
               else ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(l10n.historyHint,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.outline)),
+                  child: Text(
+                    l10n.historyHint,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
                 ),
                 ..._groupedRecords(context, ref, records),
               ],
@@ -111,25 +118,34 @@ class HomePage extends ConsumerWidget {
   }
 
   List<Widget> _groupedRecords(
-      BuildContext context, WidgetRef ref, List<BpRecord> records) {
+    BuildContext context,
+    WidgetRef ref,
+    List<BpRecord> records,
+  ) {
     final widgets = <Widget>[];
     String? lastDay;
     for (final r in records) {
       final day = Fmt.friendlyDay(r.measuredAt);
       if (day != lastDay) {
-        widgets.add(Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 2),
-          child: Text(day,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline)),
-        ));
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 2),
+            child: Text(
+              day,
+              style: Theme.of(context).textTheme.labelMedium
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
+            ),
+          ),
+        );
         lastDay = day;
       }
-      widgets.add(RecordTile(
-        record: r,
-        onTap: () => _openEdit(context, existing: r),
-        onDelete: () => _delete(context, ref, r),
-      ));
+      widgets.add(
+        RecordTile(
+          record: r,
+          onTap: () => _openEdit(context, existing: r),
+          onDelete: () => _delete(context, ref, r),
+        ),
+      );
     }
     return widgets;
   }
@@ -140,20 +156,24 @@ class HomePage extends ConsumerWidget {
       context.push('/record/new');
       return;
     }
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => RecordEditPage(existing: existing),
-      fullscreenDialog: true,
-    ));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => RecordEditPage(existing: existing),
+        fullscreenDialog: true,
+      ),
+    );
   }
 
-  Future<void> _delete(
-      BuildContext context, WidgetRef ref, BpRecord r) async {
+  Future<void> _delete(BuildContext context, WidgetRef ref, BpRecord r) async {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showConfirmDialog(
       context,
       title: l10n.deleteRecordTitle,
       content: l10n.deleteRecordContent(
-          Fmt.full(r.measuredAt), r.systolic, r.diastolic),
+        Fmt.full(r.measuredAt),
+        r.systolic?.toString() ?? '—',
+        r.diastolic?.toString() ?? '—',
+      ),
       confirmText: l10n.delete,
       danger: true,
     );
@@ -173,41 +193,43 @@ void showEntrySheet(BuildContext context) {
     builder: (ctx) {
       final l10n = AppLocalizations.of(ctx);
       return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.edit_note),
-            title: Text(l10n.actionManual),
-            subtitle: Text(l10n.sheetManualSubtitle),
-            onTap: () {
-              Navigator.of(ctx).pop();
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => const RecordEditPage(),
-                fullscreenDialog: true,
-              ));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.photo_camera_outlined),
-            title: Text(l10n.actionCamera),
-            subtitle: Text(l10n.sheetCameraSubtitle),
-            onTap: () {
-              Navigator.of(ctx).pop();
-              startCameraOcrFlow(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.photo_outlined),
-            title: Text(l10n.sheetGalleryTitle),
-            subtitle: Text(l10n.sheetGallerySubtitle),
-            onTap: () {
-              Navigator.of(ctx).pop();
-              startGalleryOcrFlow(context);
-            },
-          ),
-        ],
-      ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit_note),
+              title: Text(l10n.actionManual),
+              subtitle: Text(l10n.sheetManualSubtitle),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const RecordEditPage(),
+                    fullscreenDialog: true,
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.actionCamera),
+              subtitle: Text(l10n.sheetCameraSubtitle),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                startCameraOcrFlow(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_outlined),
+              title: Text(l10n.sheetGalleryTitle),
+              subtitle: Text(l10n.sheetGallerySubtitle),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                startGalleryOcrFlow(context);
+              },
+            ),
+          ],
+        ),
       );
     },
   );
@@ -252,13 +274,18 @@ class _LatestCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(l10n.latestMeasurement,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                          color: theme.colorScheme.outline)),
+                  Text(
+                    l10n.latestMeasurement,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(999),
@@ -280,24 +307,37 @@ class _LatestCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('${r.systolic}',
-                        style: theme.textTheme.displayMedium?.copyWith(
-                            fontWeight: FontWeight.w800, color: color)),
+                    Text(
+                      '${r.systolic ?? '—'}',
+                      style: theme.textTheme.displayMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: color,
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: Text('/',
-                          style: theme.textTheme.displaySmall?.copyWith(
-                              color: theme.colorScheme.outline)),
+                      child: Text(
+                        '/',
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
+                      ),
                     ),
-                    Text('${r.diastolic}',
-                        style: theme.textTheme.displayMedium?.copyWith(
-                            fontWeight: FontWeight.w800)),
+                    Text(
+                      '${r.diastolic ?? '—'}',
+                      style: theme.textTheme.displayMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: Text('mmHg',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.outline)),
+                      child: Text(
+                        'mmHg',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     if (r.pulse != null)
@@ -305,11 +345,16 @@ class _LatestCard extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Row(
                           children: [
-                            Icon(Icons.favorite,
-                                size: 14, color: theme.colorScheme.primary),
+                            Icon(
+                              Icons.favorite,
+                              size: 14,
+                              color: theme.colorScheme.primary,
+                            ),
                             const SizedBox(width: 4),
-                            Text('${r.pulse} ${l10n.pulseUnit}',
-                                style: theme.textTheme.bodyMedium),
+                            Text(
+                              '${r.pulse} ${l10n.pulseUnit}',
+                              style: theme.textTheme.bodyMedium,
+                            ),
                           ],
                         ),
                       ),
@@ -320,18 +365,19 @@ class _LatestCard extends StatelessWidget {
               Text(
                 '${Fmt.friendlyDay(r.measuredAt)} ${Fmt.time(r.measuredAt)} · ${armLabel(l10n, r.arm)}'
                 '${todayCount > 1 ? ' · ${l10n.todayMeasuredTimes(todayCount)}' : ''}',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.outline),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
               ),
               const SizedBox(height: 8),
-              Text(categoryAdvice(l10n, category),
-                  style: theme.textTheme.bodySmall?.copyWith(height: 1.4)),
+              Text(
+                categoryAdvice(l10n, category),
+                style: theme.textTheme.bodySmall?.copyWith(height: 1.4),
+              ),
             ],
           ),
         ),
       ),
     );
   }
-
 }
-

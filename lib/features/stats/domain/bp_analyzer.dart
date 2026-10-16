@@ -105,7 +105,7 @@ class BpAnalyzer {
 
   /// 分析一批记录（已按范围/臂过滤的输入由调用方保证）。
   static BpAnalysis analyze(List<BpRecord> records) {
-    final live = records;
+    final live = records.where((r) => !r.isDeleted && r.hasValidPair).toList();
     if (live.isEmpty) {
       return const BpAnalysis(
         buckets: [],
@@ -122,10 +122,9 @@ class BpAnalyzer {
       byBucket.putIfAbsent(bucketOf(r.measuredAt), () => []).add(r);
     }
     final buckets = byBucket.entries.map((e) {
-      final sys = e.value.map((r) => r.systolic).toList();
-      final dia = e.value.map((r) => r.diastolic).toList();
-      final pulses =
-          e.value.map((r) => r.pulse).whereType<int>().toList();
+      final sys = e.value.map((r) => r.systolic!).toList();
+      final dia = e.value.map((r) => r.diastolic!).toList();
+      final pulses = e.value.map((r) => r.pulse).whereType<int>().toList();
       return BucketStats(
         bucket: e.key,
         count: e.value.length,
@@ -135,11 +134,10 @@ class BpAnalyzer {
             ? null
             : pulses.reduce((a, b) => a + b) / pulses.length,
         onTargetCount: e.value
-            .where((r) => r.systolic < sysTarget && r.diastolic < diaTarget)
+            .where((r) => r.systolic! < sysTarget && r.diastolic! < diaTarget)
             .length,
       );
-    }).toList()
-      ..sort((a, b) => b.avgSystolic.compareTo(a.avgSystolic));
+    }).toList()..sort((a, b) => b.avgSystolic.compareTo(a.avgSystolic));
 
     // 星期分桶
     final byWeekday = <int, List<BpRecord>>{};
@@ -151,8 +149,8 @@ class BpAnalyzer {
         if (byWeekday.containsKey(wd))
           () {
             final list = byWeekday[wd]!;
-            final sys = list.map((r) => r.systolic).toList();
-            final dia = list.map((r) => r.diastolic).toList();
+            final sys = list.map((r) => r.systolic!).toList();
+            final dia = list.map((r) => r.diastolic!).toList();
             return WeekdayStats(
               weekday: wd,
               count: list.length,
@@ -165,10 +163,10 @@ class BpAnalyzer {
     // 峰值（收缩压最高；并列取时间较后者）
     BpRecord? peak;
     for (final r in live) {
-      if (peak == null || r.systolic >= peak.systolic) peak = r;
+      if (peak == null || r.systolic! >= peak.systolic!) peak = r;
     }
     final abnormal = live
-        .where((r) => r.systolic >= sysTarget || r.diastolic >= diaTarget)
+        .where((r) => r.systolic! >= sysTarget || r.diastolic! >= diaTarget)
         .length;
 
     return BpAnalysis(

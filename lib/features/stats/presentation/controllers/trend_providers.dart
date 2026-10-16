@@ -7,7 +7,7 @@ import '../../../../core/providers.dart' show recordsRepositoryProvider;
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
 import 'package:blood_pressed/features/stats/domain/bp_analyzer.dart';
-import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
+import 'package:blood_pressed/features/stats/domain/daily_measurements.dart';
 
 /// 趋势查询参数。
 ///
@@ -63,34 +63,23 @@ class TrendQuery {
   int get hashCode => Object.hash(days, arm, from, to);
 }
 
-/// 图表数据（范围内记录，按天聚合）。
+/// 图表数据（按日组织的范围内原始记录及摘要）。
 ///
 /// watch 记录列表状态：新增/编辑/删除后自动重算。
-final trendDataProvider = FutureProvider.family<List<DayCandle>, TrendQuery>((
-  ref,
-  q,
-) async {
-  ref.watch(recordsControllerProvider);
-  final repo = ref.watch(recordsRepositoryProvider);
-  final now = DateTime.now();
-  final records = await repo.list(
-    from: q.isCustom
-        ? q.from
-        : DateTime(now.year, now.month, now.day - q.days + 1),
-    to: q.isCustom ? q.to : now,
-    arm: q.arm,
-  );
-  return DayCandle.aggregate(records);
-});
-
-/// x 轴：0 = 区间首日，days-1 = 区间末日（预设模式末日=今天；自定义=区间末）。
-double xOf(DateTime date, TrendQuery q) {
-  final endDate = q.endDate;
-  final end = DateTime.utc(endDate.year, endDate.month, endDate.day);
-  final d0 = DateTime.utc(date.year, date.month, date.day);
-  final diff = end.difference(d0).inDays;
-  return (q.days - 1 - diff).toDouble().clamp(0.0, (q.days - 1).toDouble());
-}
+final trendDataProvider =
+    FutureProvider.family<List<DailyMeasurements>, TrendQuery>((ref, q) async {
+      ref.watch(recordsControllerProvider);
+      final repo = ref.watch(recordsRepositoryProvider);
+      final now = DateTime.now();
+      final records = await repo.list(
+        from: q.isCustom
+            ? q.from
+            : DateTime(now.year, now.month, now.day - q.days + 1),
+        to: q.isCustom ? q.to : now,
+        arm: q.arm,
+      );
+      return DailyMeasurements.aggregate(records);
+    });
 
 /// 规律分析：与趋势图同查询（范围 + 臂过滤），对原始记录做
 /// 时段/星期/峰值分析。跟随 recordsControllerProvider 变化自动重算。
@@ -109,11 +98,8 @@ final analysisDataProvider = FutureProvider.family<BpAnalysis, TrendQuery>((
   return BpAnalyzer.analyze(records);
 });
 
-/// 图表基座配置（坐标轴/网格/参考线），页面内共享。
+/// 图表基座配置（坐标轴/网格），页面内共享。
 class ChartBase {
-  static const sysColor = Color(0xFFE53935);
-  static const diaColor = Color(0xFF1E88E5);
-
   static double labelInterval(int days) {
     if (days <= 7) return 1;
     if (days <= 30) return 5;
@@ -123,16 +109,16 @@ class ChartBase {
     return (days - 1).toDouble(); // 超长区间只标首尾年月。
   }
 
-  static FlTitlesData titles(TrendQuery q) {
-    final days = q.days;
-    final end = q.endDate;
+  static FlTitlesData titles({double interval = 20}) {
     return FlTitlesData(
       topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       leftTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-          interval: 20,
+          interval: interval,
+          minIncluded: false,
+          maxIncluded: false,
           reservedSize: 34,
           getTitlesWidget: (v, meta) => SideTitleWidget(
             meta: meta,
@@ -143,58 +129,16 @@ class ChartBase {
           ),
         ),
       ),
-      bottomTitles: AxisTitles(
-        sideTitles: SideTitles(
-          showTitles: true,
-          interval: labelInterval(days),
-          reservedSize: 26,
-          minIncluded: false,
-          maxIncluded: false,
-          getTitlesWidget: (v, meta) {
-            if ((v - v.round()).abs() > 0.001 || v < 0 || v >= days) {
-              return const SizedBox.shrink();
-            }
-            final date = DateTime(
-              end.year,
-              end.month,
-              end.day - (days - 1 - v).round(),
-            );
-            // "全部"等超长跨度只渲染首尾两个年月标签，避免重叠
-            if (days > 366 && v > 0 && v < days - 1) {
-              return const SizedBox.shrink();
-            }
-            final label = days > 366
-                ? '${date.year}/${date.month}'
-                : '${date.month}/${date.day}';
-            return SideTitleWidget(
-              meta: meta,
-              child: Text(
-                label,
-                style: const TextStyle(fontSize: 10, color: Colors.grey),
-              ),
-            );
-          },
-        ),
-      ),
+      bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
     );
   }
 
-  static FlGridData grid({bool bloodPressure = false}) => FlGridData(
+  static FlGridData grid() => FlGridData(
     show: true,
     drawVerticalLine: false,
-    horizontalInterval: bloodPressure ? 5 : 20,
-    checkToShowHorizontalLine: (value) =>
-        value % 20 == 0 || (bloodPressure && (value == 135 || value == 85)),
-    getDrawingHorizontalLine: (value) {
-      final reference = bloodPressure && (value == 135 || value == 85);
-      return FlLine(
-        color: reference
-            ? (value == 135 ? sysColor : diaColor).withValues(alpha: 0.65)
-            : Colors.grey.withValues(alpha: 0.2),
-        strokeWidth: 1,
-        dashArray: reference ? [6, 4] : null,
-      );
-    },
+    horizontalInterval: 20,
+    getDrawingHorizontalLine: (_) =>
+        FlLine(color: Colors.grey.withValues(alpha: 0.2), strokeWidth: 1),
   );
 
   static FlBorderData border() => FlBorderData(

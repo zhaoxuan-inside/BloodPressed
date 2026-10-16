@@ -146,8 +146,11 @@ class _FullscreenTrendPageState extends ConsumerState<FullscreenTrendPage> {
                       return Center(child: Text(l10n.statsEmptyTitle));
                     }
                     return _series == _Series.bp
-                        ? TrendCandleChart(points: points, query: widget.query)
-                        : PulseCandleChart(points: points, query: widget.query);
+                        ? MeasurementTrendChart(
+                            points: points,
+                            query: widget.query,
+                          )
+                        : PulseTrendChart(points: points, query: widget.query);
                   },
                 ),
               ),

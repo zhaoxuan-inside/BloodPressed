@@ -80,7 +80,7 @@
   "bannerLowConfidence": "{source}置信度低（{percent}%），红框数值仅供参考，请核对修改后保存",
   "bannerAutoFilled": "{source}{confidence} 已自动填入，请核对后保存",
   "confidenceSuffix": "（置信度 {percent}%）",
-  "errNeedSysDia": "请填写高压与低压",
+  "errNeedSysDia": "请至少填写高压或低压其中一项",
   "errSysRange": "高压应在 40 ~ 300 之间",
   "errDiaRange": "低压应在 30 ~ 200 之间",
   "errSysGreater": "高压应大于低压",
@@ -113,7 +113,7 @@
   "statsEmptyTitle": "该范围内暂无数据",
   "statsEmptySubtitle": "调整时间范围或先添加几条记录",
   "pulseEmpty": "该范围内没有脉搏数据",
-  "chartReferenceHint": "水平虚线为家庭自测参考线（高压 135 / 低压 85）。每天分别展示高压和低压的首次、末次、最高及最低测量值。",
+  "chartReferenceHint": "展示每次实际测量，不取日均值。虚线为高压135、低压85 mmHg参考线；脉压差为同次高压减低压，缺失不补值。",
   "range7": "近7天",
   "range30": "近30天",
   "range90": "近90天",
@@ -371,9 +371,28 @@
   "candleLast": "末次",
   "candleHigh": "最高",
   "candleLow": "最低",
-  "candleHint": "影线：最低—最高；实体：首次—末次。空心：末次更高；实心：末次更低；横线：首末相同。",
   "candleSystolicRange": "高压范围",
   "candleDiastolicRange": "低压范围",
-  "candleInteractionHint": "点击查看读数，双指缩放可展开日期。",
-  "shareCardPulseTrendHeader": "血压了么 · 脉搏趋势"
+  "shareCardPulseTrendHeader": "血压了么 · 脉搏趋势",
+  "categoryIncomplete": "数据不完整或需核对",
+  "adviceIncomplete": "请补充缺失读数或核对录入数据。",
+  "pulsePressure": "脉压差",
+  "pulsePressureEmpty": "没有同次完整有效的血压记录，无法计算脉压差",
+  "measurementInteractionHint": "每个点为一次实际测量；缺失项和缺测日期断线。点击查看明细，双指缩放。",
+  "pairedAnalysisHint": "以下规律分析仅使用高压、低压齐全且有效的记录。",
+  "partialBpHint": "高压、低压至少填写一项；缺失项留空，只有两项齐全且有效时计算脉压差。",
+  "trendCoverage": "记录 {total} 次 · 完整有效 {paired} 次 · 缺测 {missing} 天",
+  "@trendCoverage": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "paired": {
+        "type": "int"
+      },
+      "missing": {
+        "type": "int"
+      }
+    }
+  }
 }

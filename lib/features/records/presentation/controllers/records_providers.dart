@@ -25,8 +25,8 @@ class RecordsController extends StateNotifier<AsyncValue<List<BpRecord>>> {
   }
 
   Future<void> save({
-    required int systolic,
-    required int diastolic,
+    required int? systolic,
+    required int? diastolic,
     int? pulse,
     required DateTime measuredAt,
     required MeasureArm arm,
@@ -36,6 +36,12 @@ class RecordsController extends StateNotifier<AsyncValue<List<BpRecord>>> {
     String? photoPath,
     String? editId,
   }) async {
+    final error = validateBpValues(
+      systolic: systolic,
+      diastolic: diastolic,
+      pulse: pulse,
+    );
+    if (error != null) throw ArgumentError(error.name);
     final deviceId = await _deviceId;
     if (editId != null) {
       final existing = await _repo.byId(editId);

@@ -27,6 +27,7 @@ String sourceLabel(AppLocalizations l10n, RecordSource source) =>
 
 String categoryLabel(AppLocalizations l10n, BpCategory category) =>
     switch (category) {
+      BpCategory.incomplete => l10n.categoryIncomplete,
       BpCategory.low => l10n.categoryLow,
       BpCategory.normal => l10n.categoryNormal,
       BpCategory.elevated => l10n.categoryElevated,
@@ -36,6 +37,7 @@ String categoryLabel(AppLocalizations l10n, BpCategory category) =>
 
 String categoryAdvice(AppLocalizations l10n, BpCategory category) =>
     switch (category) {
+      BpCategory.incomplete => l10n.adviceIncomplete,
       BpCategory.low => l10n.adviceLow,
       BpCategory.normal => l10n.adviceNormal,
       BpCategory.elevated => l10n.adviceElevated,

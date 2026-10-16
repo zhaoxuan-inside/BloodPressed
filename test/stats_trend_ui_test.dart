@@ -22,7 +22,7 @@ import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/stats/domain/bp_analyzer.dart';
 import 'package:blood_pressed/features/stats/presentation/analysis_text.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
-import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
+import 'package:blood_pressed/features/stats/domain/daily_measurements.dart';
 import 'package:blood_pressed/features/stats/presentation/fullscreen_trend_page.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/analysis_card.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
@@ -149,7 +149,7 @@ void main() {
             body: Center(
               child: TrendShareCard(
                 title: '10月5日-10月6日',
-                points: DayCandle.aggregate([
+                points: DailyMeasurements.aggregate([
                   rec(8, 138, 88),
                   rec(20, 142, 92),
                   rec(
@@ -169,7 +169,7 @@ void main() {
       expect(find.text('126–142'), findsOneWidget);
       expect(find.text('80–92'), findsOneWidget);
       expect(find.text('测量次数: 3'), findsOneWidget);
-      expect(find.byType(TrendCandleChart), findsOneWidget);
+      expect(find.byType(MeasurementTrendChart), findsOneWidget);
     });
 
     testWidgets('分析卡：结论/时段/星期/峰值可见', (tester) async {
@@ -268,7 +268,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(FullscreenTrendPage), findsOneWidget);
-      expect(find.byType(TrendCandleChart), findsOneWidget);
+      expect(find.byType(MeasurementTrendChart), findsOneWidget);
 
       // 切脉搏：无脉搏数据显示空态文案
       await tester.tap(find.text('脉搏'));

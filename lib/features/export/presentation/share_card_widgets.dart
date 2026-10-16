@@ -13,7 +13,7 @@ import 'package:blood_pressed/features/records/data/records_repository.dart';
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/core/utils/formatters.dart';
 import 'package:blood_pressed/features/stats/domain/bp_analyzer.dart';
-import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
+import 'package:blood_pressed/features/stats/domain/daily_measurements.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
 import 'package:blood_pressed/features/stats/presentation/widgets/trend_chart.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
@@ -83,7 +83,7 @@ class RecordShareCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('${record.systolic}', style: _heroStyle),
+                Text('${record.systolic ?? '—'}', style: _heroStyle),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   child: Text(
@@ -96,7 +96,7 @@ class RecordShareCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                Text('${record.diastolic}', style: _heroStyle),
+                Text('${record.diastolic ?? '—'}', style: _heroStyle),
                 const SizedBox(width: 10),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
@@ -213,7 +213,7 @@ class StatsShareCard extends StatelessWidget {
                 child: _MetricTile(
                   label: l10n.avgBpLabel,
                   value:
-                      '${stats.avgSystolic.toStringAsFixed(0)} / ${stats.avgDiastolic.toStringAsFixed(0)}',
+                      '${(stats.avgSystolic?.toStringAsFixed(0) ?? '—')} / ${(stats.avgDiastolic?.toStringAsFixed(0) ?? '—')}',
                   unit: 'mmHg',
                 ),
               ),
@@ -240,7 +240,9 @@ class StatsShareCard extends StatelessWidget {
               Expanded(
                 child: _MetricTile(
                   label: l10n.onTargetRateLabel,
-                  value: '${(stats.normalRate * 100).toStringAsFixed(0)}%',
+                  value: stats.normalRate == null
+                      ? '—'
+                      : '${(stats.normalRate! * 100).toStringAsFixed(0)}%',
                 ),
               ),
             ],
@@ -249,10 +251,10 @@ class StatsShareCard extends StatelessWidget {
           _MetricTile(
             label: l10n.bpRangeLabel,
             value: l10n.bpRangeValue(
-              stats.minSystolic,
-              stats.maxSystolic,
-              stats.minDiastolic,
-              stats.maxDiastolic,
+              stats.minSystolic?.toString() ?? '—',
+              stats.maxSystolic?.toString() ?? '—',
+              stats.minDiastolic?.toString() ?? '—',
+              stats.maxDiastolic?.toString() ?? '—',
             ),
             small: true,
           ),
@@ -277,7 +279,7 @@ class StatsShareCard extends StatelessWidget {
 // 趋势 / 分析分享卡（趋势页分享入口，stats-trend-001）
 // ---------------------------------------------------------------------------
 
-/// 每日蜡烛图分享卡，范围与次数均来自实际测量值。
+/// 原始测量趋势分享卡，范围与次数均来自实际测量值。
 class TrendShareCard extends StatelessWidget {
   const TrendShareCard({
     super.key,
@@ -288,7 +290,7 @@ class TrendShareCard extends StatelessWidget {
   });
 
   final String title;
-  final List<DayCandle> points;
+  final List<DailyMeasurements> points;
   final TrendQuery query;
   final bool pulse;
 
@@ -301,8 +303,11 @@ class TrendShareCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    String range(MeasurementCandle? Function(DayCandle) metric) {
-      final values = points.map(metric).whereType<MeasurementCandle>().toList();
+    String range(MeasurementSummary? Function(DailyMeasurements) metric) {
+      final values = points
+          .map(metric)
+          .whereType<MeasurementSummary>()
+          .toList();
       if (values.isEmpty) return '—';
       final low = values.map((c) => c.minimum).reduce((a, b) => a < b ? a : b);
       final high = values.map((c) => c.maximum).reduce((a, b) => a > b ? a : b);
@@ -313,89 +318,110 @@ class TrendShareCard extends StatelessWidget {
       0,
       (sum, p) => sum + (pulse ? p.pulse?.count ?? 0 : p.count),
     );
-    return _CardShell(
-      gradient: _gradient,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _BrandBadge(icon: Icons.candlestick_chart),
-          const SizedBox(height: 18),
-          Text(
-            pulse ? l10n.shareCardPulseTrendHeader : l10n.shareCardTrendHeader,
-            style: _brandLabelStyle,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              height: 1.2,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.3,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: _CardShell(
+        gradient: _gradient,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _BrandBadge(icon: Icons.show_chart),
+            const SizedBox(height: 18),
+            Text(
+              pulse
+                  ? l10n.shareCardPulseTrendHeader
+                  : l10n.shareCardTrendHeader,
+              style: _brandLabelStyle,
             ),
-          ),
-          const SizedBox(height: 14),
-          Container(
-            width: double.infinity,
-            height: 250,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                height: 1.2,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+              ),
             ),
-            child: IgnorePointer(
-              child: pulse
-                  ? PulseCandleChart(
-                      points: points,
-                      query: query,
-                      interactive: false,
-                    )
-                  : TrendCandleChart(
-                      points: points,
-                      query: query,
-                      interactive: false,
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              height: pulse ? 250 : 340,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IgnorePointer(
+                child: pulse
+                    ? PulseTrendChart(
+                        points: points,
+                        query: query,
+                        interactive: false,
+                      )
+                    : MeasurementTrendChart(
+                        points: points,
+                        query: query,
+                        interactive: false,
+                      ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (pulse)
+              _MetricTile(
+                label: l10n.seriesPulse,
+                value: range((d) => d.pulse),
+                unit: l10n.pulseUnit,
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: _MetricTile(
+                      label: l10n.candleSystolicRange,
+                      value: range((d) => d.systolic),
+                      unit: 'mmHg',
                     ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (pulse)
-            _MetricTile(
-              label: l10n.seriesPulse,
-              value: range((d) => d.pulse),
-              unit: l10n.pulseUnit,
-            )
-          else
-            Row(
-              children: [
-                Expanded(
-                  child: _MetricTile(
-                    label: l10n.candleSystolicRange,
-                    value: range((d) => d.systolic),
-                    unit: 'mmHg',
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _MetricTile(
-                    label: l10n.candleDiastolicRange,
-                    value: range((d) => d.diastolic),
-                    unit: 'mmHg',
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _MetricTile(
+                      label: l10n.candleDiastolicRange,
+                      value: range((d) => d.diastolic),
+                      unit: 'mmHg',
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
+            if (!pulse) ...[
+              const SizedBox(height: 10),
+              _MetricTile(
+                label: l10n.pulsePressure,
+                value: () {
+                  final values = points
+                      .expand((d) => d.records)
+                      .map((r) => r.pulsePressure)
+                      .whereType<int>()
+                      .toList();
+                  if (values.isEmpty) return '—';
+                  return '${values.reduce((a, b) => a < b ? a : b)}–${values.reduce((a, b) => a > b ? a : b)}';
+                }(),
+                unit: 'mmHg',
+              ),
+            ],
+            const SizedBox(height: 10),
+            Text(
+              '${l10n.countLabel}: $count',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
-          const SizedBox(height: 10),
-          Text(
-            '${l10n.countLabel}: $count',
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          const SizedBox(height: 14),
-          const _HairlineDivider(),
-          const SizedBox(height: 12),
-          const _CardFooter(text: '规律监测，心中有数 📈'),
-        ],
+            const SizedBox(height: 14),
+            const _HairlineDivider(),
+            const SizedBox(height: 12),
+            const _CardFooter(text: '规律监测，心中有数 📈'),
+          ],
+        ),
       ),
     );
   }
@@ -568,8 +594,8 @@ class AnalysisShareCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               l10n.analysisPeakLine(
-                peak.systolic,
-                peak.diastolic,
+                peak.systolic!,
+                peak.diastolic!,
                 Fmt.full(peak.measuredAt),
               ),
               style: _metaStyle,

@@ -31,25 +31,27 @@ class CsvExporter {
     final sb = StringBuffer('\uFEFF'); // UTF-8 BOM
     sb.writeln(header.map(_escape).join(','));
     for (final r in records) {
-      sb.writeln([
-        _fmtDateTime(r.measuredAt),
-        '${r.systolic}',
-        '${r.diastolic}',
-        r.pulse?.toString() ?? '',
-        armLabel(l10n, r.arm),
-        r.posture == null ? '' : postureLabel(l10n, r.posture),
-        r.note ?? '',
-        sourceLabel(l10n, r.source),
-      ].map(_escape).join(','));
+      sb.writeln(
+        [
+          _fmtDateTime(r.measuredAt),
+          '${r.systolic ?? ''}',
+          '${r.diastolic ?? ''}',
+          r.pulse?.toString() ?? '',
+          armLabel(l10n, r.arm),
+          r.posture == null ? '' : postureLabel(l10n, r.posture),
+          r.note ?? '',
+          sourceLabel(l10n, r.source),
+        ].map(_escape).join(','),
+      );
     }
     return sb.toString();
   }
 
   /// 导出为临时文件并返回路径。
-  Future<File> exportToFile(List<BpRecord> records,
-      {String? fileName}) async {
+  Future<File> exportToFile(List<BpRecord> records, {String? fileName}) async {
     final dir = await getTemporaryDirectory();
-    final name = fileName ??
+    final name =
+        fileName ??
         'blood_pressed_${DateTime.now().millisecondsSinceEpoch}.csv';
     final file = File('${dir.path}/$name');
     await file.writeAsString(buildCsv(records), flush: true);
@@ -63,9 +65,7 @@ class CsvExporter {
   static String _two(int v) => v.toString().padLeft(2, '0');
 
   static String _escape(String field) {
-    if (field.contains(',') ||
-        field.contains('"') ||
-        field.contains('\n')) {
+    if (field.contains(',') || field.contains('"') || field.contains('\n')) {
       return '"${field.replaceAll('"', '""')}"';
     }
     return field;

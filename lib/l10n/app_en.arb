@@ -138,7 +138,7 @@
       }
     }
   },
-  "errNeedSysDia": "Please enter systolic and diastolic values",
+  "errNeedSysDia": "Enter at least systolic or diastolic pressure.",
   "errSysRange": "Systolic must be between 40 and 300",
   "errDiaRange": "Diastolic must be between 30 and 200",
   "errSysGreater": "Systolic must be greater than diastolic",
@@ -151,10 +151,10 @@
         "type": "String"
       },
       "sys": {
-        "type": "int"
+        "type": "String"
       },
       "dia": {
-        "type": "int"
+        "type": "String"
       }
     }
   },
@@ -244,7 +244,7 @@
   "statsEmptyTitle": "No data in this range",
   "statsEmptySubtitle": "Adjust the time range or add a few records first",
   "pulseEmpty": "No pulse data in this range",
-  "chartReferenceHint": "Dashed lines mark home-measurement reference levels (systolic 135 / diastolic 85). Each day shows first, last, highest and lowest readings for each BP series.",
+  "chartReferenceHint": "Actual readings, without daily averaging. Dashed references: 135/85 mmHg. Pulse pressure uses the paired reading; missing values stay empty.",
   "range7": "Last 7 days",
   "range30": "Last 30 days",
   "range90": "Last 90 days",
@@ -314,16 +314,16 @@
   "@bpRangeValue": {
     "placeholders": {
       "smin": {
-        "type": "int"
+        "type": "String"
       },
       "smax": {
-        "type": "int"
+        "type": "String"
       },
       "dmin": {
-        "type": "int"
+        "type": "String"
       },
       "dmax": {
-        "type": "int"
+        "type": "String"
       }
     }
   },
@@ -705,9 +705,28 @@
   "candleLast": "Last",
   "candleHigh": "Highest",
   "candleLow": "Lowest",
-  "candleHint": "Wicks: minimum–maximum. Body: first–last. Hollow: last is higher; filled: last is lower; dash: unchanged.",
   "candleSystolicRange": "Systolic range",
   "candleDiastolicRange": "Diastolic range",
-  "candleInteractionHint": "Tap for readings. Pinch to zoom across dates.",
-  "shareCardPulseTrendHeader": "BloodPressed · Pulse Trend"
+  "shareCardPulseTrendHeader": "BloodPressed · Pulse Trend",
+  "categoryIncomplete": "Incomplete / check reading",
+  "adviceIncomplete": "Add the missing reading or check the entered values.",
+  "pulsePressure": "Pulse pressure",
+  "pulsePressureEmpty": "Pulse pressure needs a valid paired reading.",
+  "measurementInteractionHint": "Each dot is a reading. Missing values/days break the line. Tap for details; pinch to zoom.",
+  "pairedAnalysisHint": "Pattern analysis below uses valid complete BP pairs only.",
+  "partialBpHint": "Enter at least one BP value. Leave unknown values empty; pulse pressure needs a valid pair.",
+  "trendCoverage": "{total} readings · {paired} valid pairs · {missing} unmeasured days",
+  "@trendCoverage": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "paired": {
+        "type": "int"
+      },
+      "missing": {
+        "type": "int"
+      }
+    }
+  }
 }

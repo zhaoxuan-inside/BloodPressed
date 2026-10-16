@@ -11,7 +11,7 @@ import 'package:blood_pressed/features/records/domain/bp_record.dart';
 import 'package:blood_pressed/features/records/presentation/controllers/records_providers.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
 
-import 'daily_candle_test.dart' show reading;
+import 'daily_measurements_test.dart' show reading;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -82,7 +82,7 @@ void main() {
     expect(candles, hasLength(1));
     expect(candles.single.date, midnight);
     expect(candles.single.count, 1);
-    expect(candles.single.systolic.maximum, 120);
+    expect(candles.single.systolic!.maximum, 120);
     expect(
       (await container.read(statsProvider(const StatsRange(1, '')).future))
           .count,
@@ -118,9 +118,9 @@ void main() {
     addTearDown(subscription.close);
     final candles = await container.read(trendDataProvider(query).future);
     expect(candles.single.count, 2);
-    expect(candles.single.systolic.first, 120);
-    expect(candles.single.systolic.last, 145);
-    expect(candles.single.systolic.maximum, 145);
+    expect(candles.single.systolic!.first, 120);
+    expect(candles.single.systolic!.last, 145);
+    expect(candles.single.systolic!.maximum, 145);
     expect(
       (await container.read(
         statsProvider(
@@ -166,5 +166,67 @@ void main() {
     expect((await container.read(provider.future)).peakRecord!.systolic, 150);
     await controller.delete(id);
     expect((await container.read(provider.future)).totalCount, 0);
+  });
+  test('趋势随单项编辑、改日期和删除重新查询，不复用旧缓存', () async {
+    final q15 = TrendQuery.custom(
+      DateTime(2026, 10, 15),
+      DateTime(2026, 10, 15),
+    );
+    final q16 = TrendQuery.custom(
+      DateTime(2026, 10, 16),
+      DateTime(2026, 10, 16),
+    );
+    final p15 = trendDataProvider(q15);
+    final p16 = trendDataProvider(q16);
+    final s15 = container.listen(p15, (_, _) {});
+    final s16 = container.listen(p16, (_, _) {});
+    addTearDown(s15.close);
+    addTearDown(s16.close);
+    final controller = container.read(recordsControllerProvider.notifier);
+    await controller.refresh();
+    expect(await container.read(p15.future), isEmpty);
+    await controller.save(
+      systolic: 120,
+      diastolic: 80,
+      measuredAt: DateTime(2026, 10, 15, 8),
+      arm: MeasureArm.left,
+    );
+    final id = container.read(recordsControllerProvider).requireValue.single.id;
+    expect(
+      (await container.read(p15.future)).single.records.single.pulsePressure,
+      40,
+    );
+    await controller.save(
+      systolic: 150,
+      diastolic: null,
+      measuredAt: DateTime(2026, 10, 15, 8),
+      arm: MeasureArm.left,
+      editId: id,
+    );
+    final partial = (await container.read(p15.future)).single;
+    expect(partial.systolic!.first, 150);
+    expect(partial.diastolic, isNull);
+    expect(partial.records.single.pulsePressure, isNull);
+    expect(
+      (await container.read(
+        statsProvider(
+          StatsRange.custom(DateTime(2026, 10, 15), DateTime(2026, 10, 15)),
+        ).future,
+      )).avgDiastolic,
+      isNull,
+    );
+    await controller.save(
+      systolic: null,
+      diastolic: 85,
+      measuredAt: DateTime(2026, 10, 16, 20),
+      arm: MeasureArm.left,
+      editId: id,
+    );
+    expect(await container.read(p15.future), isEmpty);
+    final moved = (await container.read(p16.future)).single;
+    expect(moved.systolic, isNull);
+    expect(moved.diastolic!.last, 85);
+    await controller.delete(id);
+    expect(await container.read(p16.future), isEmpty);
   });
 }

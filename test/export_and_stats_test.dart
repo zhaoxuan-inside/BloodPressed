@@ -121,7 +121,7 @@ void main() {
   group('血压校验', () {
     test('非法组合', () {
       expect(
-        validateBpValues(systolic: null, diastolic: 80),
+        validateBpValues(systolic: null, diastolic: null),
         isNotNull,
       );
       expect(

@@ -16,7 +16,7 @@ import 'package:blood_pressed/features/export/data/wechat_share_service.dart';
 import 'package:blood_pressed/features/export/presentation/card_capture_dialog.dart';
 import 'package:blood_pressed/features/export/presentation/share_card_widgets.dart';
 import 'package:blood_pressed/features/stats/domain/bp_analyzer.dart';
-import 'package:blood_pressed/features/stats/domain/daily_candle.dart';
+import 'package:blood_pressed/features/stats/domain/daily_measurements.dart';
 import 'package:blood_pressed/features/stats/presentation/controllers/trend_providers.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
@@ -24,7 +24,7 @@ import 'package:blood_pressed/l10n/app_localizations.dart';
 Future<void> shareTrendChart(
   BuildContext context,
   WidgetRef ref, {
-  required List<DayCandle> points,
+  required List<DailyMeasurements> points,
   required TrendQuery query,
   required String title,
   bool pulse = false,

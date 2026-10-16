@@ -17,7 +17,6 @@ import 'package:blood_pressed/features/records/presentation/controllers/records_
 import 'package:blood_pressed/features/records/presentation/controllers/voice_input_provider.dart';
 import 'package:blood_pressed/l10n/app_localizations.dart';
 
-
 /// 录入 / 编辑页。同时承担"OCR/AI 识别结果确认"角色。
 class RecordEditPage extends ConsumerStatefulWidget {
   const RecordEditPage({
@@ -61,7 +60,6 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
   bool _voiceFilled = false;
 
   bool get _isEditing => widget.existing != null;
-
 
   @override
   void initState() {
@@ -119,18 +117,29 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
     );
     if (time == null) return;
     setState(() {
-      _measuredAt = DateTime(date.year, date.month, date.day, time.hour,
-          time.minute);
+      _measuredAt = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
     });
   }
 
   Future<void> _save() async {
     final sys = int.tryParse(_sysCtrl.text.trim());
     final dia = int.tryParse(_diaCtrl.text.trim());
-    final pulse =
-        _pulseCtrl.text.trim().isEmpty ? null : int.tryParse(_pulseCtrl.text.trim());
-    final error = validateBpValues(
-        systolic: sys, diastolic: dia, pulse: pulse);
+    final pulse = _pulseCtrl.text.trim().isEmpty
+        ? null
+        : int.tryParse(_pulseCtrl.text.trim());
+    final error = _sysCtrl.text.trim().isNotEmpty && sys == null
+        ? BpValidationError.sysRange
+        : _diaCtrl.text.trim().isNotEmpty && dia == null
+        ? BpValidationError.diaRange
+        : _pulseCtrl.text.trim().isNotEmpty && pulse == null
+        ? BpValidationError.pulseRange
+        : validateBpValues(systolic: sys, diastolic: dia, pulse: pulse);
     if (error != null) {
       final l10n = AppLocalizations.of(context);
       final message = switch (error) {
@@ -144,9 +153,11 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
           .showSnackBar(SnackBar(content: Text(message)));
       return;
     }
-    await ref.read(recordsControllerProvider.notifier).save(
-          systolic: sys!,
-          diastolic: dia!,
+    await ref
+        .read(recordsControllerProvider.notifier)
+        .save(
+          systolic: sys,
+          diastolic: dia,
           pulse: pulse,
           measuredAt: _measuredAt,
           arm: _arm,
@@ -194,9 +205,8 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
     final r = next.result;
     if (r == null || !r.hasAny) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('未识别到血压数值，请手动输入')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('未识别到血压数值，请手动输入')));
       ref.read(voiceInputProvider.notifier).consumeResult();
       return;
     }
@@ -207,14 +217,10 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
     _voiceFilled = true;
     setState(() {}); // 刷新血压分级预览
 
-
     final count = r.recognizedCount;
-    final hint = count == 3
-        ? '已识别收缩压、舒张压、脉搏'
-        : '已识别 $count 项，请补充其余字段';
+    final hint = count == 3 ? '已识别收缩压、舒张压、脉搏' : '已识别 $count 项，请补充其余字段';
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(hint)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(hint)));
     ref.read(voiceInputProvider.notifier).consumeResult();
   }
 
@@ -267,6 +273,8 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            Text(l10n.partialBpHint, style: theme.textTheme.bodySmall),
             const SizedBox(height: 12),
             _NumberField(
               controller: _pulseCtrl,
@@ -278,9 +286,13 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
             SegmentedButton<MeasureArm>(
               segments: [
                 ButtonSegment(
-                    value: MeasureArm.left, label: Text(l10n.armLeft)),
+                  value: MeasureArm.left,
+                  label: Text(l10n.armLeft),
+                ),
                 ButtonSegment(
-                    value: MeasureArm.right, label: Text(l10n.armRight)),
+                  value: MeasureArm.right,
+                  label: Text(l10n.armRight),
+                ),
               ],
               selected: {_arm},
               onSelectionChanged: (s) => setState(() => _arm = s.first),
@@ -294,10 +306,14 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
                     decoration: InputDecoration(labelText: l10n.postureField),
                     items: [
                       DropdownMenuItem(
-                          value: null, child: Text(l10n.postureNotRecorded)),
+                        value: null,
+                        child: Text(l10n.postureNotRecorded),
+                      ),
                       ...MeasurePosture.values.map(
                         (p) => DropdownMenuItem(
-                            value: p, child: Text(postureLabel(l10n, p))),
+                          value: p,
+                          child: Text(postureLabel(l10n, p)),
+                        ),
                       ),
                     ],
                     onChanged: (v) => setState(() => _posture = v),
@@ -347,17 +363,19 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
               onTap: voiceState.isListening
                   ? () => ref.read(voiceInputProvider.notifier).stopListening()
                   : switch (voiceState.status) {
-                      VoiceInputStatus.permissionBlocked => () => ref
-                          .read(voiceInputProvider.notifier)
-                          .requestMicAccess(),
+                      VoiceInputStatus.permissionBlocked =>
+                        () => ref
+                            .read(voiceInputProvider.notifier)
+                            .requestMicAccess(),
                       VoiceInputStatus.modelMissing ||
                       VoiceInputStatus.downloading =>
                         () => ref
                             .read(voiceInputProvider.notifier)
                             .startModelDownload(),
-                      _ => () => ref
-                          .read(voiceInputProvider.notifier)
-                          .startListening(),
+                      _ =>
+                        () => ref
+                            .read(voiceInputProvider.notifier)
+                            .startListening(),
                     },
             ),
             const SizedBox(height: 12),
@@ -371,7 +389,6 @@ class _RecordEditPageState extends ConsumerState<RecordEditPage> {
       ),
     );
   }
-
 }
 
 class _RecognitionSourceBanner extends StatelessWidget {
@@ -408,14 +425,18 @@ class _RecognitionSourceBanner extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.warning_amber_rounded,
-                size: 18, color: theme.colorScheme.onErrorContainer),
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 18,
+              color: theme.colorScheme.onErrorContainer,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 detail,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.onErrorContainer),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onErrorContainer,
+                ),
               ),
             ),
           ],
@@ -433,14 +454,18 @@ class _RecognitionSourceBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.auto_awesome,
-              size: 18, color: theme.colorScheme.onSecondaryContainer),
+          Icon(
+            Icons.auto_awesome,
+            size: 18,
+            color: theme.colorScheme.onSecondaryContainer,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               l10n.bannerAutoFilled(text, conf),
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSecondaryContainer),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
             ),
           ),
         ],
@@ -472,9 +497,7 @@ class _NumberField extends StatelessWidget {
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       maxLength: 3,
-      style: Theme.of(context)
-          .textTheme
-          .titleLarge
+      style: Theme.of(context).textTheme.titleLarge
           ?.copyWith(fontWeight: FontWeight.w600),
       decoration: InputDecoration(
         labelText: label,
@@ -508,10 +531,7 @@ class _NumberField extends StatelessWidget {
 /// - 离线模型缺失/下载中 → 显示下载入口与进度；
 /// - 聆听中 → 红色提示态并实时显示识别文本。
 class _VoiceInputButton extends StatelessWidget {
-  const _VoiceInputButton({
-    required this.voiceState,
-    required this.onTap,
-  });
+  const _VoiceInputButton({required this.voiceState, required this.onTap});
 
   final VoiceInputState voiceState;
   final VoidCallback onTap;
@@ -543,19 +563,14 @@ class _VoiceInputButton extends StatelessWidget {
 
     final icon = switch (voiceState.status) {
       VoiceInputStatus.modelMissing ||
-      VoiceInputStatus.downloading =>
-        const Icon(Icons.download_rounded),
+      VoiceInputStatus.downloading => const Icon(Icons.download_rounded),
       _ => Icon(isListening ? Icons.stop_rounded : Icons.mic_none_outlined),
     };
 
     return FilledButton.tonalIcon(
       onPressed: notAvailable || downloading ? null : onTap,
       icon: icon,
-      label: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       style: isListening
           ? FilledButton.styleFrom(
               backgroundColor: theme.colorScheme.errorContainer,
@@ -608,9 +623,8 @@ class _VoiceErrorDialog extends StatelessWidget {
     final report = await _buildReport(context);
     await Clipboard.setData(ClipboardData(text: report));
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.voiceErrorCopied)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.voiceErrorCopied)));
   }
 
   @override
@@ -628,8 +642,9 @@ class _VoiceErrorDialog extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             l10n.voiceErrorCopyHint,
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.outline),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.outline,
+            ),
           ),
         ],
       ),

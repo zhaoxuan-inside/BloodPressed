@@ -216,8 +216,11 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                         SizedBox(
                           height: chartHeight,
                           child: _series == _Series.bp
-                              ? TrendCandleChart(points: points, query: query)
-                              : PulseCandleChart(points: points, query: query),
+                              ? MeasurementTrendChart(
+                                  points: points,
+                                  query: query,
+                                )
+                              : PulseTrendChart(points: points, query: query),
                         ),
                       ],
                     ),
@@ -247,17 +250,26 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                 ? const SizedBox.shrink()
                 : Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    child: AnalysisCard(
-                      analysis: a,
-                      conclusion: analysisConclusion(a, l10n),
-                      onAiAnalyze: () => _aiAnalyze(a),
-                      onShare: () => shareAnalysis(
-                        context,
-                        ref,
-                        analysis: a,
-                        conclusion: analysisConclusion(a, l10n),
-                        title: trendRangeLabel(query, l10n),
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.pairedAnalysisHint,
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        AnalysisCard(
+                          analysis: a,
+                          conclusion: analysisConclusion(a, l10n),
+                          onAiAnalyze: () => _aiAnalyze(a),
+                          onShare: () => shareAnalysis(
+                            context,
+                            ref,
+                            analysis: a,
+                            conclusion: analysisConclusion(a, l10n),
+                            title: trendRangeLabel(query, l10n),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
           ),
@@ -286,7 +298,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
     final size = MediaQuery.sizeOf(context);
     final landscape = size.width > size.height;
     final h = landscape ? size.height * 0.62 : size.height * 0.34;
-    return h.clamp(220.0, landscape ? 420.0 : 300.0);
+    return h.clamp(340.0, landscape ? 480.0 : 400.0);
   }
 }
 
@@ -310,20 +322,20 @@ class _StatsCards extends StatelessWidget {
         children: [
           StatCard(
             label: l10n.avgSystolicCard,
-            value: stats.avgSystolic.toStringAsFixed(0),
+            value: (stats.avgSystolic?.toStringAsFixed(0) ?? '—'),
             color: sysColor,
             sub: l10n.minMaxHint(
-              '${stats.maxSystolic}',
-              '${stats.minSystolic}',
+              '${stats.maxSystolic ?? '—'}',
+              '${stats.minSystolic ?? '—'}',
             ),
           ),
           StatCard(
             label: l10n.avgDiastolicCard,
-            value: stats.avgDiastolic.toStringAsFixed(0),
+            value: (stats.avgDiastolic?.toStringAsFixed(0) ?? '—'),
             color: diaColor,
             sub: l10n.minMaxHint(
-              '${stats.maxDiastolic}',
-              '${stats.minDiastolic}',
+              '${stats.maxDiastolic ?? '—'}',
+              '${stats.minDiastolic ?? '—'}',
             ),
           ),
           StatCard(
@@ -338,7 +350,8 @@ class _StatsCards extends StatelessWidget {
     );
   }
 
-  Color _statsColor(double v, double threshold) {
+  Color _statsColor(double? v, double threshold) {
+    if (v == null) return BpCategoryStyle.colorOf(BpCategory.incomplete);
     if (v >= 160) return BpCategoryStyle.colorOf(BpCategory.grade2);
     if (v >= threshold) return BpCategoryStyle.colorOf(BpCategory.grade1);
     if (v >= threshold - 10) {

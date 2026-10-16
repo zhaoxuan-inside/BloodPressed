@@ -100,8 +100,8 @@ class BpRecord {
   });
 
   final String id;
-  final int systolic; // 高压（收缩压）
-  final int diastolic; // 低压（舒张压）
+  final int? systolic; // 高压（收缩压）
+  final int? diastolic; // 低压（舒张压）
   final int? pulse; // 脉搏
   final DateTime measuredAt; // 测量时间
   final MeasureArm arm; // 左/右臂
@@ -115,11 +115,18 @@ class BpRecord {
   final DateTime? deletedAt; // 软删除
   final SyncState syncState;
 
+  /// 仅同一次完整且合法的血压读数可用于成对分析和脉压差。
+  bool get hasCompleteBp => systolic != null && diastolic != null;
+  bool get hasValidPair =>
+      hasCompleteBp &&
+      validateBpValues(systolic: systolic, diastolic: diastolic) == null;
+  int? get pulsePressure => hasValidPair ? systolic! - diastolic! : null;
+
   bool get isDeleted => deletedAt != null;
 
   BpRecord copyWith({
-    int? systolic,
-    int? diastolic,
+    Object? systolic = _unset,
+    Object? diastolic = _unset,
     Object? pulse = _unset,
     DateTime? measuredAt,
     MeasureArm? arm,
@@ -133,74 +140,75 @@ class BpRecord {
   }) {
     return BpRecord(
       id: id,
-      systolic: systolic ?? this.systolic,
-      diastolic: diastolic ?? this.diastolic,
+      systolic: systolic == _unset ? this.systolic : systolic as int?,
+      diastolic: diastolic == _unset ? this.diastolic : diastolic as int?,
       pulse: pulse == _unset ? this.pulse : pulse as int?,
       measuredAt: measuredAt ?? this.measuredAt,
       arm: arm ?? this.arm,
       posture: posture == _unset ? this.posture : posture as MeasurePosture?,
       note: note == _unset ? this.note : note as String?,
-      photoPath:
-          photoPath == _unset ? this.photoPath : photoPath as String?,
+      photoPath: photoPath == _unset ? this.photoPath : photoPath as String?,
       source: source ?? this.source,
       deviceId: deviceId,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      deletedAt:
-          deletedAt == _unset ? this.deletedAt : deletedAt as DateTime?,
+      deletedAt: deletedAt == _unset ? this.deletedAt : deletedAt as DateTime?,
       syncState: syncState ?? this.syncState,
     );
   }
 
   Map<String, Object?> toMap() => {
-        'id': id,
-        'systolic': systolic,
-        'diastolic': diastolic,
-        'pulse': pulse,
-        'measured_at': measuredAt.millisecondsSinceEpoch,
-        'arm': arm.name,
-        'posture': posture?.name,
-        'note': note,
-        'photo_path': photoPath,
-        'source': source.name,
-        'device_id': deviceId,
-        'created_at': createdAt.millisecondsSinceEpoch,
-        'updated_at': updatedAt.millisecondsSinceEpoch,
-        'deleted_at': deletedAt?.millisecondsSinceEpoch,
-        'sync_state': syncState == SyncState.synced ? 'synced' : 'pending',
-      };
+    'id': id,
+    'systolic': systolic,
+    'diastolic': diastolic,
+    'pulse': pulse,
+    'measured_at': measuredAt.millisecondsSinceEpoch,
+    'arm': arm.name,
+    'posture': posture?.name,
+    'note': note,
+    'photo_path': photoPath,
+    'source': source.name,
+    'device_id': deviceId,
+    'created_at': createdAt.millisecondsSinceEpoch,
+    'updated_at': updatedAt.millisecondsSinceEpoch,
+    'deleted_at': deletedAt?.millisecondsSinceEpoch,
+    'sync_state': syncState == SyncState.synced ? 'synced' : 'pending',
+  };
 
   static BpRecord fromMap(Map<String, Object?> map) => BpRecord(
-        id: map['id'] as String,
-        systolic: map['systolic'] as int,
-        diastolic: map['diastolic'] as int,
-        pulse: map['pulse'] as int?,
-        measuredAt:
-            DateTime.fromMillisecondsSinceEpoch(map['measured_at'] as int),
-        arm: MeasureArm.fromName(map['arm'] as String? ?? 'left'),
-        posture: MeasurePosture.tryFromName(map['posture'] as String?),
-        note: map['note'] as String?,
-        photoPath: map['photo_path'] as String?,
-        source: RecordSource.fromName(map['source'] as String?),
-        deviceId: (map['device_id'] as String?) ?? '',
-        createdAt:
-            DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
-        updatedAt:
-            DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int),
-        deletedAt: map['deleted_at'] == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(map['deleted_at'] as int),
-        syncState: map['sync_state'] == 'synced'
-            ? SyncState.synced
-            : SyncState.pending,
-      );
+    id: map['id'] as String,
+    systolic: map['systolic'] as int?,
+    diastolic: map['diastolic'] as int?,
+    pulse: map['pulse'] as int?,
+    measuredAt: DateTime.fromMillisecondsSinceEpoch(map['measured_at'] as int),
+    arm: MeasureArm.fromName(map['arm'] as String? ?? 'left'),
+    posture: MeasurePosture.tryFromName(map['posture'] as String?),
+    note: map['note'] as String?,
+    photoPath: map['photo_path'] as String?,
+    source: RecordSource.fromName(map['source'] as String?),
+    deviceId: (map['device_id'] as String?) ?? '',
+    createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
+    updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int),
+    deletedAt: map['deleted_at'] == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(map['deleted_at'] as int),
+    syncState: map['sync_state'] == 'synced'
+        ? SyncState.synced
+        : SyncState.pending,
+  );
 
   /// 同步载荷（outbox / 未来云同步平台共用）。
   Map<String, Object?> toSyncPayload() => toMap();
 }
 
 /// 校验错误码（文案由 UI 层按当前语言映射）。
-enum BpValidationError { needSysDia, sysRange, diaRange, sysGreater, pulseRange }
+enum BpValidationError {
+  needSysDia,
+  sysRange,
+  diaRange,
+  sysGreater,
+  pulseRange,
+}
 
 /// 合法性校验：返回错误码，null 表示合法。
 BpValidationError? validateBpValues({
@@ -208,10 +216,18 @@ BpValidationError? validateBpValues({
   required int? diastolic,
   int? pulse,
 }) {
-  if (systolic == null || diastolic == null) return BpValidationError.needSysDia;
-  if (systolic < 40 || systolic > 300) return BpValidationError.sysRange;
-  if (diastolic < 30 || diastolic > 200) return BpValidationError.diaRange;
-  if (systolic <= diastolic) return BpValidationError.sysGreater;
+  if (systolic == null && diastolic == null) {
+    return BpValidationError.needSysDia;
+  }
+  if (systolic != null && (systolic < 40 || systolic > 300)) {
+    return BpValidationError.sysRange;
+  }
+  if (diastolic != null && (diastolic < 30 || diastolic > 200)) {
+    return BpValidationError.diaRange;
+  }
+  if (systolic != null && diastolic != null && systolic <= diastolic) {
+    return BpValidationError.sysGreater;
+  }
   if (pulse != null && (pulse < 20 || pulse > 300)) {
     return BpValidationError.pulseRange;
   }

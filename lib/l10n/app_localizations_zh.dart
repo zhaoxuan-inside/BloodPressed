@@ -265,7 +265,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get errNeedSysDia => '请填写高压与低压';
+  String get errNeedSysDia => '请至少填写高压或低压其中一项';
 
   @override
   String get errSysRange => '高压应在 40 ~ 300 之间';
@@ -283,7 +283,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deleteRecordTitle => '删除记录';
 
   @override
-  String deleteRecordContent(String datetime, int sys, int dia) {
+  String deleteRecordContent(String datetime, String sys, String dia) {
     return '删除 $datetime 的记录（$sys/$dia）？删除后不可恢复。';
   }
 
@@ -383,7 +383,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get chartReferenceHint =>
-      '水平虚线为家庭自测参考线（高压 135 / 低压 85）。每天分别展示高压和低压的首次、末次、最高及最低测量值。';
+      '展示每次实际测量，不取日均值。虚线为高压135、低压85 mmHg参考线；脉压差为同次高压减低压，缺失不补值。';
 
   @override
   String get range7 => '近7天';
@@ -496,7 +496,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onTargetRateLabel => '达标率（<135/85）';
 
   @override
-  String bpRangeValue(int smin, int smax, int dmin, int dmax) {
+  String bpRangeValue(String smin, String smax, String dmin, String dmax) {
     return '高压 $smin~$smax · 低压 $dmin~$dmax';
   }
 
@@ -1219,17 +1219,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get candleLow => '最低';
 
   @override
-  String get candleHint => '影线：最低—最高；实体：首次—末次。空心：末次更高；实心：末次更低；横线：首末相同。';
-
-  @override
   String get candleSystolicRange => '高压范围';
 
   @override
   String get candleDiastolicRange => '低压范围';
 
   @override
-  String get candleInteractionHint => '点击查看读数，双指缩放可展开日期。';
+  String get shareCardPulseTrendHeader => '血压了么 · 脉搏趋势';
 
   @override
-  String get shareCardPulseTrendHeader => '血压了么 · 脉搏趋势';
+  String get categoryIncomplete => '数据不完整或需核对';
+
+  @override
+  String get adviceIncomplete => '请补充缺失读数或核对录入数据。';
+
+  @override
+  String get pulsePressure => '脉压差';
+
+  @override
+  String get pulsePressureEmpty => '没有同次完整有效的血压记录，无法计算脉压差';
+
+  @override
+  String get measurementInteractionHint => '每个点为一次实际测量；缺失项和缺测日期断线。点击查看明细，双指缩放。';
+
+  @override
+  String get pairedAnalysisHint => '以下规律分析仅使用高压、低压齐全且有效的记录。';
+
+  @override
+  String get partialBpHint => '高压、低压至少填写一项；缺失项留空，只有两项齐全且有效时计算脉压差。';
+
+  @override
+  String trendCoverage(int total, int paired, int missing) {
+    return '记录 $total 次 · 完整有效 $paired 次 · 缺测 $missing 天';
+  }
 }

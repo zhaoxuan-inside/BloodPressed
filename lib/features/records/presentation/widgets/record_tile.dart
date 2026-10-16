@@ -39,8 +39,10 @@ class RecordTile extends StatelessWidget {
           color: theme.colorScheme.errorContainer,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Icon(Icons.delete_outline,
-            color: theme.colorScheme.onErrorContainer),
+        child: Icon(
+          Icons.delete_outline,
+          color: theme.colorScheme.onErrorContainer,
+        ),
       ),
       confirmDismiss: (_) async {
         return true;
@@ -73,36 +75,48 @@ class RecordTile extends StatelessWidget {
                         child: Row(
                           children: [
                             Text(
-                              '${record.systolic}/${record.diastolic}',
+                              '${record.systolic ?? '—'}/${record.diastolic ?? '—'}',
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                             const SizedBox(width: 4),
-                            Text('mmHg',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.outline)),
+                            Text(
+                              'mmHg',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
                             const SizedBox(width: 10),
                             if (record.pulse != null) ...[
-                              Icon(Icons.favorite,
-                                  size: 13,
-                                  color: theme.colorScheme.primary),
+                              Icon(
+                                Icons.favorite,
+                                size: 13,
+                                color: theme.colorScheme.primary,
+                              ),
                               const SizedBox(width: 2),
-                              Text('${record.pulse}',
-                                  style: theme.textTheme.bodyMedium),
+                              Text(
+                                '${record.pulse}',
+                                style: theme.textTheme.bodyMedium,
+                              ),
                             ],
                           ],
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
+                        '${l10n.pulsePressure}: ${record.pulsePressure ?? '—'} mmHg',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      Text(
                         '${Fmt.full(record.measuredAt)} · ${armLabel(l10n, record.arm)}'
                         '${record.posture != null ? ' · ${postureLabel(l10n, record.posture!)}' : ''}'
                         '${record.note != null ? ' · ${record.note}' : ''}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: theme.colorScheme.outline),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
                       ),
                     ],
                   ),
@@ -123,7 +137,6 @@ class RecordTile extends StatelessWidget {
                         size: 14,
                         color: theme.colorScheme.outline,
                       ),
-
                   ],
                 ),
               ],

@@ -1,8 +1,8 @@
 import 'package:blood_pressed/features/records/domain/bp_record.dart';
 
 /// 单项指标的实际读数范围及按测量时间确定的首末值。
-class MeasurementCandle {
-  const MeasurementCandle({
+class MeasurementSummary {
+  const MeasurementSummary({
     required this.first,
     required this.last,
     required this.minimum,
@@ -20,7 +20,7 @@ class MeasurementCandle {
   final DateTime firstMeasuredAt;
   final DateTime lastMeasuredAt;
 
-  static MeasurementCandle? _fromOrdered(
+  static MeasurementSummary? _fromOrdered(
     List<BpRecord> records,
     int? Function(BpRecord) valueOf,
   ) {
@@ -30,7 +30,7 @@ class MeasurementCandle {
     ];
     if (values.isEmpty) return null;
     final readings = values.map((v) => v.$2);
-    return MeasurementCandle(
+    return MeasurementSummary(
       first: values.first.$2,
       last: values.last.$2,
       minimum: readings.reduce((a, b) => a < b ? a : b),
@@ -42,22 +42,24 @@ class MeasurementCandle {
   }
 }
 
-/// 一天的血压和脉搏蜡烛；无数据的日期、缺失的脉搏不补值。
-class DayCandle {
-  const DayCandle({
+/// 每日原始测量和摘要；无数据的日期、缺失的脉搏不补值。
+class DailyMeasurements {
+  const DailyMeasurements({
     required this.date,
     required this.systolic,
     required this.diastolic,
     this.pulse,
+    required this.records,
   });
 
   final DateTime date;
-  final MeasurementCandle systolic;
-  final MeasurementCandle diastolic;
-  final MeasurementCandle? pulse;
-  int get count => systolic.count;
+  final MeasurementSummary? systolic;
+  final MeasurementSummary? diastolic;
+  final MeasurementSummary? pulse;
+  final List<BpRecord> records;
+  int get count => records.length;
 
-  static List<DayCandle> aggregate(List<BpRecord> records) {
+  static List<DailyMeasurements> aggregate(List<BpRecord> records) {
     final byDay = <DateTime, List<BpRecord>>{};
     for (final record in records) {
       if (record.isDeleted) continue;
@@ -73,11 +75,12 @@ class DayCandle {
           final created = a.createdAt.compareTo(b.createdAt);
           return created != 0 ? created : a.id.compareTo(b.id);
         });
-      return DayCandle(
+      return DailyMeasurements(
         date: entry.key,
-        systolic: MeasurementCandle._fromOrdered(ordered, (r) => r.systolic)!,
-        diastolic: MeasurementCandle._fromOrdered(ordered, (r) => r.diastolic)!,
-        pulse: MeasurementCandle._fromOrdered(ordered, (r) => r.pulse),
+        systolic: MeasurementSummary._fromOrdered(ordered, (r) => r.systolic),
+        diastolic: MeasurementSummary._fromOrdered(ordered, (r) => r.diastolic),
+        pulse: MeasurementSummary._fromOrdered(ordered, (r) => r.pulse),
+        records: List.unmodifiable(ordered),
       );
     }).toList();
     days.sort((a, b) => a.date.compareTo(b.date));

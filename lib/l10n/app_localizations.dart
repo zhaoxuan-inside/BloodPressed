@@ -581,7 +581,7 @@ abstract class AppLocalizations {
   /// No description provided for @errNeedSysDia.
   ///
   /// In en, this message translates to:
-  /// **'Please enter systolic and diastolic values'**
+  /// **'Enter at least systolic or diastolic pressure.'**
   String get errNeedSysDia;
 
   /// No description provided for @errSysRange.
@@ -618,7 +618,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Delete the record from {datetime} ({sys}/{dia})? This cannot be undone.'**
-  String deleteRecordContent(String datetime, int sys, int dia);
+  String deleteRecordContent(String datetime, String sys, String dia);
 
   /// No description provided for @statsTitle.
   ///
@@ -783,7 +783,7 @@ abstract class AppLocalizations {
   /// No description provided for @chartReferenceHint.
   ///
   /// In en, this message translates to:
-  /// **'Dashed lines mark home-measurement reference levels (systolic 135 / diastolic 85). Each day shows first, last, highest and lowest readings for each BP series.'**
+  /// **'Actual readings, without daily averaging. Dashed references: 135/85 mmHg. Pulse pressure uses the paired reading; missing values stay empty.'**
   String get chartReferenceHint;
 
   /// No description provided for @range7.
@@ -994,7 +994,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Sys {smin}~{smax} · Dia {dmin}~{dmax}'**
-  String bpRangeValue(int smin, int smax, int dmin, int dmax);
+  String bpRangeValue(String smin, String smax, String dmin, String dmax);
 
   /// No description provided for @cardFooterStats.
   ///
@@ -2328,12 +2328,6 @@ abstract class AppLocalizations {
   /// **'Lowest'**
   String get candleLow;
 
-  /// No description provided for @candleHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Wicks: minimum–maximum. Body: first–last. Hollow: last is higher; filled: last is lower; dash: unchanged.'**
-  String get candleHint;
-
   /// No description provided for @candleSystolicRange.
   ///
   /// In en, this message translates to:
@@ -2346,17 +2340,59 @@ abstract class AppLocalizations {
   /// **'Diastolic range'**
   String get candleDiastolicRange;
 
-  /// No description provided for @candleInteractionHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap for readings. Pinch to zoom across dates.'**
-  String get candleInteractionHint;
-
   /// No description provided for @shareCardPulseTrendHeader.
   ///
   /// In en, this message translates to:
   /// **'BloodPressed · Pulse Trend'**
   String get shareCardPulseTrendHeader;
+
+  /// No description provided for @categoryIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete / check reading'**
+  String get categoryIncomplete;
+
+  /// No description provided for @adviceIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the missing reading or check the entered values.'**
+  String get adviceIncomplete;
+
+  /// No description provided for @pulsePressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulse pressure'**
+  String get pulsePressure;
+
+  /// No description provided for @pulsePressureEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulse pressure needs a valid paired reading.'**
+  String get pulsePressureEmpty;
+
+  /// No description provided for @measurementInteractionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Each dot is a reading. Missing values/days break the line. Tap for details; pinch to zoom.'**
+  String get measurementInteractionHint;
+
+  /// No description provided for @pairedAnalysisHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pattern analysis below uses valid complete BP pairs only.'**
+  String get pairedAnalysisHint;
+
+  /// No description provided for @partialBpHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter at least one BP value. Leave unknown values empty; pulse pressure needs a valid pair.'**
+  String get partialBpHint;
+
+  /// No description provided for @trendCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'{total} readings · {paired} valid pairs · {missing} unmeasured days'**
+  String trendCoverage(int total, int paired, int missing);
 }
 
 class _AppLocalizationsDelegate
